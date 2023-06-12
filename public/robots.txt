@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin
+Disallow: /order
+Disallow: /?*
+Allow: /
+
+Sitemap: http://www.sumoist.od.ua/sitemap.xml

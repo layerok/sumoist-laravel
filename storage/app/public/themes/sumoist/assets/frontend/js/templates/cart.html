@@ -1,0 +1,17 @@
+<form action="/cart/manipulate" method="post" data-buy  class="flex justify-between ph3 pb2 pt2 mt1 bb black">
+    <div class="w-80 flex items-start">
+        <div class="w-40 flex-shrink-0">
+            <img src="{{if associatedModel.images[0] }}/storage/${associatedModel.images[0].full}{{else associatedModel.image}} ${associatedModel.image}{{else}} /storage/img/default-thumb.png {{/if}}" alt="">
+        </div>
+        <div class="flex flex-column black f6 ml2 pl1">
+            <p  class="mt0 mb1">${name}</p>
+            <p class="mt0 mb1">${price} грн</p>
+            <p class="mt0 mb1">${quantity} шт.</p>
+        </div>
+    </div>
+    <div class="flex justify-end">
+
+        <input type="hidden" name="uid" value="${attributes.uid}" >
+        <button type="submit" name="action" value="remove" class="self-start black mv0 pointer f4 bg-transparent bn">&times;</button>
+    </div>
+</form>
