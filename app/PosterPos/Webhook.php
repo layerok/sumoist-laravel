@@ -2,6 +2,7 @@
 namespace App\PosterPos;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class Webhook {
     public function handle(Request $request) {
@@ -13,10 +14,10 @@ class Webhook {
         $parsed = json_decode($request->getContent(), true);
 
         // some meta programming below
-        $class = 'App\\PosterPos\\Handlers\\' . studly_case($parsed['object']) . 'Handler';
+        $class = 'App\\PosterPos\\Actions\\' . studly_case($parsed['object'] . '_' . $parsed['action']) . 'Action';
 
 
-        if(class_exists($class)) {
+        if(!class_exists($class)) {
             $instance = new $class($parsed);
             $instance->handle();
         } else {

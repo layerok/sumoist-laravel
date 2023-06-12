@@ -32,7 +32,7 @@ class Category {
         return $this->attributes->level;
     }
 
-    public function isHidden() {
+    public function isHidden(): bool {
         return $this->attributes->category_hidden;
     }
 
