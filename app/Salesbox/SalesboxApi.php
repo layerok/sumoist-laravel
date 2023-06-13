@@ -1,6 +1,6 @@
 <?php
 
-namespace App\SalesBox;
+namespace App\Salesbox;
 
 use GuzzleHttp\Handler\CurlHandler;
 use GuzzleHttp\HandlerStack;
@@ -9,7 +9,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use \GuzzleHttp\Client;
 
-class Api {
+class SalesboxApi {
     public $guzzleClient;
     public $accessToken;
     public function __construct()
@@ -36,18 +36,6 @@ class Api {
         $this->accessToken = $token;
     }
 
-    public function createManyCategories($categories): ResponseInterface {
-        return $this->guzzleClient->post('categories/createMany', [
-            'json' => [
-                'categories' => $categories
-            ],
-        ]);
-    }
-
-    public function createCategory($category): ResponseInterface {
-        return $this->createManyCategories([$category]);
-    }
-
     public function getToken(): ResponseInterface {
         return $this->guzzleClient->post('auth', [
             'json' => [
@@ -58,6 +46,18 @@ class Api {
 
     public function getCategories(): ResponseInterface {
         return $this->guzzleClient->get('categories?lang=ru');
+    }
+
+    public function createManyCategories($categories): ResponseInterface {
+        return $this->guzzleClient->post('categories/createMany', [
+            'json' => [
+                'categories' => $categories
+            ],
+        ]);
+    }
+
+    public function createCategory($category): ResponseInterface {
+        return $this->createManyCategories([$category]);
     }
 
     public function updateManyCategories($categories): ResponseInterface {
@@ -72,7 +72,7 @@ class Api {
         return $this->updateManyCategories([$category]);
     }
 
-    public function deleteCategories($ids): ResponseInterface {
+    public function deleteManyCategories($ids): ResponseInterface {
         // ?recursively=true
         return $this->guzzleClient->delete('categories', [
             'json' => [
@@ -82,6 +82,6 @@ class Api {
     }
 
     public function deleteCategory($id, $token): ResponseInterface {
-        return $this->deleteCategories([$id], $token);
+        return $this->deleteManyCategories([$id], $token);
     }
 }

@@ -180,6 +180,7 @@ return [
         App\Providers\ThemeServiceProvider::class,
         Maksa988\WayForPay\WayForPayServiceProvider::class,
         Jenssegers\Date\DateServiceProvider::class,
+        App\Salesbox\SalesboxServiceProvider::class,
 
     ],
 
@@ -236,6 +237,7 @@ return [
         'Asset' => App\Libraries\Asset::class,
         'Image' => App\Libraries\Image::class,
         'Date' => Jenssegers\Date\Date::class,
+        'SalesboxApi' => \App\Salesbox\Facades\SalesboxApi::class,
     ],
 
 ];

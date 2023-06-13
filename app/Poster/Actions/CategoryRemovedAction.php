@@ -2,16 +2,16 @@
 
 namespace App\Poster\Actions;
 
-use App\SalesBox\Api;
+
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\Response;
+use App\Salesbox\Facades\SalesboxApi;
 
 class CategoryRemovedAction extends AbstractAction  {
     public function handle(): Response
     {
-        $salesboxApi = new Api();
         try {
-            $authRes = $salesboxApi->getToken();
+            $authRes = SalesboxApi::getToken();
         } catch (ClientException $clientException) {
             return response("api error", 200);
         }
@@ -23,10 +23,10 @@ class CategoryRemovedAction extends AbstractAction  {
         }
 
         $access_token =  $authData['data']['token'];
-        $salesboxApi->setAccessToken($access_token);
+        SalesboxApi::setAccessToken($access_token);
 
         try {
-            $salesboxCategoriesRes = $salesboxApi->getCategories();
+            $salesboxCategoriesRes = SalesboxApi::getCategories();
         } catch (ClientException $clientException) {
             return response('client error', 200);
         }
@@ -40,7 +40,7 @@ class CategoryRemovedAction extends AbstractAction  {
         }
 
         try {
-            $salesboxApi->deleteCategory($salesboxCategory['id'], $access_token);
+            SalesboxApi::deleteCategory($salesboxCategory['id'], $access_token);
         } catch (ClientException $clientException) {
             return response('client error', 200);
         }

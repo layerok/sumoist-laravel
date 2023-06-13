@@ -3,17 +3,16 @@
 namespace App\Poster\Actions;
 
 use App\Poster\Entities\Category;
-use App\SalesBox\Api;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\Response;
 use poster\src\PosterApi;
+use App\Salesbox\Facades\SalesboxApi;
 
 class CategoryChangedAction extends AbstractAction  {
     public function handle(): Response
     {
-        $salesboxApi = new Api();
         try {
-            $authRes = $salesboxApi->getToken();
+            $authRes = SalesboxApi::getToken();
         } catch (ClientException $clientException) {
             return response("api error", 200);
         }
@@ -25,9 +24,9 @@ class CategoryChangedAction extends AbstractAction  {
         }
 
         $access_token =  $authData['data']['token'];
-        $salesboxApi->setAccessToken($access_token);
+        SalesboxApi::setAccessToken($access_token);
 
-        $category = $this->changeSalesboxCategoryByPosterId($this->getObjectId(), $salesboxApi);
+        $category = $this->changeSalesboxCategoryByPosterId($this->getObjectId());
 
         if($category) {
             return response('ok', 200);
@@ -36,7 +35,7 @@ class CategoryChangedAction extends AbstractAction  {
         return response(sprintf('Category [%d] created', $this->getObjectId()), 200);
     }
 
-    public function changeSalesboxCategoryByPosterId($posterId, Api $salesboxApi): ?array {
+    public function changeSalesboxCategoryByPosterId($posterId): ?array {
         PosterApi::init([
             'account_name' => config('poster.account_name'),
             'access_token' => config('poster.access_token'),
@@ -53,7 +52,7 @@ class CategoryChangedAction extends AbstractAction  {
         $posterEntity = new Category($posterCategoryRes->response);
 
         try {
-            $salesBoxCategoriesRes = $salesboxApi->getCategories();
+            $salesBoxCategoriesRes = SalesboxApi::getCategories();
         } catch (ClientException $clientException) {
             return null;
         }
@@ -67,7 +66,7 @@ class CategoryChangedAction extends AbstractAction  {
         if(!$saleboxCategory) {
             // if somehow category doesn't already exist in salesbox,
             // then create it first
-            $this->createSalesboxCategoryByPosterId($posterEntity->getId(), $salesboxApi);
+            $this->createSalesboxCategoryByPosterId($posterEntity->getId());
         }
 
         $changedSalesBoxCategory = [
@@ -87,7 +86,7 @@ class CategoryChangedAction extends AbstractAction  {
             if($salesboxParentCategory) {
                 $changedSalesBoxCategory['parentId'] = $salesboxParentCategory['internalId'];
             } else {
-                $createdParentCategory = $this->createSalesboxCategoryByPosterId($posterEntity->getParentCategory(), $salesboxApi);
+                $createdParentCategory = $this->createSalesboxCategoryByPosterId($posterEntity->getParentCategory());
                 if($createdParentCategory) {
                     $changedSalesBoxCategory['parentId'] = $createdParentCategory['internalId'];
                 }
@@ -102,7 +101,7 @@ class CategoryChangedAction extends AbstractAction  {
         }
 
         try {
-            $updateManyRes = $salesboxApi->updateCategory($changedSalesBoxCategory);
+            $updateManyRes = SalesboxApi::updateCategory($changedSalesBoxCategory);
         } catch (ClientException $clientException) {
             return null;
         }
@@ -116,7 +115,7 @@ class CategoryChangedAction extends AbstractAction  {
         return $updateManyData['data']['ids'][0];
     }
 
-    public function createSalesboxCategoryByPosterId($posterId, Api $salesboxApi): ?array {
+    public function createSalesboxCategoryByPosterId($posterId): ?array {
         PosterApi::init([
             'account_name' => config('poster.account_name'),
             'access_token' => config('poster.access_token'),
@@ -133,7 +132,7 @@ class CategoryChangedAction extends AbstractAction  {
         $posterEntity = new Category($posterCategoryRes->response);
 
         try {
-            $salesBoxCategoriesRes = $salesboxApi->getCategories();
+            $salesBoxCategoriesRes = SalesboxApi::getCategories();
         } catch (ClientException $clientException) {
             return null;
         }
@@ -165,7 +164,7 @@ class CategoryChangedAction extends AbstractAction  {
             if($salesboxParentCategory) {
                 $newSalesBoxCategory['parentId'] = $salesboxParentCategory['internalId'];
             } else {
-                $salesboxParentCategoryIds = $this->createSalesboxCategoryByPosterId($posterEntity->getParentCategory(), $salesboxApi);
+                $salesboxParentCategoryIds = $this->createSalesboxCategoryByPosterId($posterEntity->getParentCategory());
                 if(is_null($salesboxParentCategoryIds)) {
                     return null;
                 }
@@ -180,7 +179,7 @@ class CategoryChangedAction extends AbstractAction  {
         }
 
         try {
-            $createManyRes = $salesboxApi->createCategory($newSalesBoxCategory);
+            $createManyRes = SalesboxApi::createCategory($newSalesBoxCategory);
         } catch (ClientException $clientException) {
             return null;
         }

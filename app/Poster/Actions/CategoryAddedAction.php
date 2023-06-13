@@ -6,9 +6,7 @@ use App\Poster\Entities\Category;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\Response;
 use poster\src\PosterApi;
-use \App\SalesBox\Api;
-
-
+use App\Salesbox\Facades\SalesboxApi;
 
 class CategoryAddedAction extends AbstractAction {
 
@@ -19,10 +17,8 @@ class CategoryAddedAction extends AbstractAction {
 
     public function handle(): Response
     {
-        // todo: make salesbox api singleton
-        $salesboxApi = new Api();
         try {
-            $authRes = $salesboxApi->getToken();
+            $authRes = SalesboxApi::getToken();
         } catch (ClientException $clientException) {
             return response("api error", 200);
         }
@@ -34,9 +30,9 @@ class CategoryAddedAction extends AbstractAction {
         }
 
         $access_token =  $authData['data']['token'];
-        $salesboxApi->setAccessToken($access_token);
+        SalesboxApi::setAccessToken($access_token);
 
-        $salesboxCategory = $this->createSalesboxCategoryByPosterId($this->getObjectId(), $salesboxApi);
+        $salesboxCategory = $this->createSalesboxCategoryByPosterId($this->getObjectId());
 
         if($salesboxCategory) {
             return response('ok', 200);
@@ -45,7 +41,7 @@ class CategoryAddedAction extends AbstractAction {
         return response(sprintf("Category [%d] wasn't created", $this->getObjectId()), 200);
     }
 
-    public function createSalesboxCategoryByPosterId($posterId, Api $salesboxApi): ?array {
+    public function createSalesboxCategoryByPosterId($posterId): ?array {
 
         PosterApi::init([
             'account_name' => config('poster.account_name'),
@@ -63,7 +59,7 @@ class CategoryAddedAction extends AbstractAction {
         $posterEntity = new Category($posterCategoryRes->response);
 
         try {
-            $salesBoxCategoriesRes = $salesboxApi->getCategories();
+            $salesBoxCategoriesRes = SalesboxApi::getCategories();
         } catch (ClientException $clientException) {
             return null;
         }
@@ -96,7 +92,7 @@ class CategoryAddedAction extends AbstractAction {
             if($salesboxParentCategory) {
                 $newSalesBoxCategory['parentId'] = $salesboxParentCategory['internalId'];
             } else {
-                $salesboxParentCategoryIds = createSalesboxCategoryByPosterId($posterEntity->getParentCategory(), $salesboxApi);
+                $salesboxParentCategoryIds = $this->createSalesboxCategoryByPosterId($posterEntity->getParentCategory());
                 if(!is_null($salesboxParentCategoryIds)) {
                     $newSalesBoxCategory['parentId'] = $salesboxParentCategoryIds['internalId'];
                 }
@@ -110,7 +106,7 @@ class CategoryAddedAction extends AbstractAction {
         }
 
         try {
-            $createManyRes = $salesboxApi->createCategory($newSalesBoxCategory);
+            $createManyRes = SalesboxApi::createCategory($newSalesBoxCategory);
         } catch (ClientException $clientException) {
             return null;
         }
