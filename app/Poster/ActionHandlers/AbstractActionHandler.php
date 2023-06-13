@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Poster\Actions;
+namespace App\Poster\ActionHandlers;
 
-abstract class AbstractAction implements IAction {
+abstract class AbstractActionHandler implements IAction {
    public $params;
    public function __construct($params) {
        $this->params = $params;

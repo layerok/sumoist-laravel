@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Poster\Actions;
+namespace App\Poster\ActionHandlers;
 
 use App\Poster\Entities\Category;
 use App\Salesbox\Facades\SalesboxApi;
 use poster\src\PosterApi;
 
-class CategoryRecoveredAction extends AbstractAction
+class CategoryRecoveredActionHandler extends AbstractActionHandler
 {
     public function handle(): bool
     {

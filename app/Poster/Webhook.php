@@ -15,8 +15,8 @@ class Webhook {
         $parsed = json_decode($request->getContent(), true);
 
         // some meta programming below
-        $namespace = 'App\\Poster\\Actions\\';
-        $className = studly_case($parsed['object'] . '_' . $parsed['action'] . '_action'); // e.g. DishCreatedAction
+        $namespace = 'App\\Poster\\ActionHandlers\\';
+        $className = studly_case($parsed['object'] . '_' . $parsed['action'] . '_action_handler'); // e.g. DishCreatedAction
         $class = $namespace . $className;
 
         if(class_exists($class)) {
@@ -26,7 +26,7 @@ class Webhook {
                 return response('ok', 200);
             } catch (\Exception $exception) {
                 Log::error($exception->getMessage());
-                // I return successful response even if exception was thrown,
+                // I return successful response here,
                 // because if poster doesn't get 200,
                 // then it will exponentially backoff all next and retried requests
 

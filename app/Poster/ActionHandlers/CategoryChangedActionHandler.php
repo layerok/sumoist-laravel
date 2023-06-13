@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Poster\Actions;
+namespace App\Poster\ActionHandlers;
 
 use App\Poster\Entities\Category;
 use poster\src\PosterApi;
 use App\Salesbox\Facades\SalesboxApi;
 
-class CategoryChangedAction extends AbstractAction  {
+class CategoryChangedActionHandler extends AbstractActionHandler  {
     public function handle(): bool
     {
         $authRes = SalesboxApi::getToken();

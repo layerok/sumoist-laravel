@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Poster\Actions;
+namespace App\Poster\ActionHandlers;
 
 use App\Salesbox\Facades\SalesboxApi;
 
-class CategoryRemovedAction extends AbstractAction
+class CategoryRemovedActionHandler extends AbstractActionHandler
 {
     public function handle(): bool
     {

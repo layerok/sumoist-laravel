@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Poster\Actions;
+namespace App\Poster\ActionHandlers;
 
 use App\Poster\Entities\Category;
 use poster\src\PosterApi;
 use App\Salesbox\Facades\SalesboxApi;
 
-class CategoryAddedAction extends AbstractAction {
+class CategoryAddedActionHandler extends AbstractActionHandler {
 
     public function __construct($params)
     {
