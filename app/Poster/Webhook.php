@@ -26,11 +26,18 @@ class Webhook {
                 $instance->handle();
                 return response('ok', 200);
             } catch (\Exception $exception) {
-                // todo: log it
-                if($exception instanceof ClientException) {
-                    // salesbox api error...
-                }
+                Log::error($exception->getMessage());
+                // I return successful response even if exception was thrown,
+                // because if poster doesn't get 200,
+                // then it will exponentially backoff all next and retried requests
 
+                // How poster retries requests?
+                // 1 request - 'instantly'
+                // 2 request - ~30 seconds
+                // 3 request - ~1 minute
+                // 4 request - ~5 minutes
+                // 5 request - ~10 minutes
+                // n request - so on
                 return response('not ok',200);
             }
 

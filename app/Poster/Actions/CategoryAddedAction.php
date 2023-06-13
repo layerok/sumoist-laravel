@@ -18,10 +18,6 @@ class CategoryAddedAction extends AbstractAction {
         $authRes = SalesboxApi::getToken();
         $authData = json_decode($authRes->getBody(), true);
 
-        if (!$authData['success']) {
-            throw new \RuntimeException("Couldn't get salesbox' access token");
-        }
-
         $access_token =  $authData['data']['token'];
         SalesboxApi::setAccessToken($access_token);
 

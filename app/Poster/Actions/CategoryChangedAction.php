@@ -13,11 +13,6 @@ class CategoryChangedAction extends AbstractAction  {
 
         $authData = json_decode($authRes->getBody(), true);
 
-        if (!$authData['success']) {
-            // todo: check if this code is reachable
-            throw new \RuntimeException("Couldn't get salesbox' access token");
-        }
-
         $access_token =  $authData['data']['token'];
         SalesboxApi::setAccessToken($access_token);
 

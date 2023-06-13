@@ -2,7 +2,6 @@
 
 namespace App\Salesbox;
 
-use GuzzleHttp\Handler\CurlHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use Psr\Http\Message\RequestInterface;
@@ -21,8 +20,7 @@ class SalesboxApi {
         $this->phone = $config['phone'];
         $this->companyId = $config['company_id'];
 
-        $stack = new HandlerStack();
-        $stack->setHandler(new CurlHandler());
+        $stack = HandlerStack::create();
 
         $stack->push(Middleware::mapRequest(function (RequestInterface $request) {
             if($this->accessToken) {

@@ -30,11 +30,6 @@ class CategoryRecoveredAction extends AbstractAction
         $authRes = SalesboxApi::getToken();
         $authData = json_decode($authRes->getBody(), true);
 
-        if(!$authData['success']) {
-            // todo: check if this code is reachable
-            throw new \RuntimeException("Couldn't get salesbox' access token");
-        }
-
         $token = $authData['data']['token'];
         SalesboxApi::setAccessToken($token);
 

@@ -12,11 +12,6 @@ class CategoryRemovedAction extends AbstractAction
 
         $authData = json_decode($authRes->getBody(), true);
 
-        if (!$authData['success']) {
-            // todo: get exception text from salesbox' response
-            throw new \RuntimeException("Couldn't get salesbox' access token");
-        }
-
         $access_token = $authData['data']['token'];
         SalesboxApi::setAccessToken($access_token);
 
