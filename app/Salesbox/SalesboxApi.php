@@ -14,11 +14,13 @@ class SalesboxApi {
     public $baseUrl;
     public $companyId;
     public $phone;
+    public $lang;
     public function __construct(array $config = [])
     {
-        $this->baseUrl = $config['api_base_url'];
+        $this->baseUrl = $config['base_url'];
         $this->phone = $config['phone'];
         $this->companyId = $config['company_id'];
+        $this->lang = $config['lang'];
 
         $stack = HandlerStack::create();
 
@@ -50,7 +52,14 @@ class SalesboxApi {
     }
 
     public function getCategories(array $guzzleOptions = []): ResponseInterface {
-        return $this->guzzleClient->get('categories?lang=ru', $guzzleOptions);
+        $query = [
+            'lang' => $this->lang
+        ];
+        $options = [
+            'query' => $query
+        ];
+        $mergedOptions = array_merge($options, $guzzleOptions);
+        return $this->guzzleClient->get('categories', $mergedOptions);
     }
 
     public function createManyCategories(array $categories, array $guzzleOptions = []): ResponseInterface {
@@ -83,19 +92,23 @@ class SalesboxApi {
         return $this->updateManyCategories([$category]);
     }
 
-    public function deleteManyCategories($ids, array $guzzleOptions = []): ResponseInterface {
+    public function deleteManyCategories($ids, array $guzzleOptions = [], $recursively = false): ResponseInterface {
         $json = [
             'ids' => $ids
         ];
         $options = [
             'json' => $json
         ];
+        if($recursively) {
+            $options['query'] = [
+                'recursively' => true
+            ];
+        }
         $mergedOptions = array_merge($options, $guzzleOptions);
-        // ?recursively=true
         return $this->guzzleClient->delete('categories', $mergedOptions);
     }
 
-    public function deleteCategory($id, array $guzzleOptions = []): ResponseInterface {
-        return $this->deleteManyCategories([$id], $guzzleOptions);
+    public function deleteCategory($id, array $guzzleOptions = [], $recursively = false): ResponseInterface {
+        return $this->deleteManyCategories([$id], $guzzleOptions, $recursively);
     }
 }

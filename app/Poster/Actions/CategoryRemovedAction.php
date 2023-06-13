@@ -26,7 +26,7 @@ class CategoryRemovedAction extends AbstractAction
             return false;
         }
 
-        SalesboxApi::deleteCategory($salesboxCategory['id']);
+        SalesboxApi::deleteCategory($salesboxCategory['id'], []);
 
         return true;
     }

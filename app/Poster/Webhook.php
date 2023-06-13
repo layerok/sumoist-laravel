@@ -1,7 +1,6 @@
 <?php
 namespace App\Poster;
 
-use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 

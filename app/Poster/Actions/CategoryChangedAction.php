@@ -22,7 +22,7 @@ class CategoryChangedAction extends AbstractAction  {
             return true;
         }
 
-        // category already exists in salesbox
+        // category wasn't updated in salesbox
         return false;
     }
 
@@ -48,16 +48,18 @@ class CategoryChangedAction extends AbstractAction  {
 
         $collection = collect($salesboxCategories['data']);
 
-        $saleboxCategory = $collection->firstWhere('externalId', $posterId);
+        $salesboxCategory = $collection->firstWhere('externalId', $posterId);
 
-        if(!$saleboxCategory) {
+        if(!$salesboxCategory) {
             // if somehow category doesn't already exist in salesbox,
             // then create it first
-            $this->createSalesboxCategoryByPosterId($posterEntity->getId());
+            // no need to update newly created category
+            return $this->createSalesboxCategoryByPosterId($posterEntity->getId());
         }
 
         $changedSalesBoxCategory = [
-            'available' => false,
+            'id' => $salesboxCategory['id'],
+            'available' => !$posterEntity->isHidden(),
             'names' => [
                 [
                     'name' => $posterEntity->getName(),
@@ -110,20 +112,8 @@ class CategoryChangedAction extends AbstractAction  {
 
         $posterEntity = new Category($posterCategoryRes->response);
 
-        $salesBoxCategoriesRes = SalesboxApi::getCategories();
-
-        $salesboxCategories = json_decode($salesBoxCategoriesRes->getBody(), true);
-
-        $collection = collect($salesboxCategories['data']);
-
-        $saleboxCategory = $collection->firstWhere('externalId', $posterId);
-
-        if($saleboxCategory) {
-            return null;
-        }
-
-        $newSalesBoxCategory = [
-            'available' => false,
+        $newSalesboxCategory = [
+            'available' => !$posterEntity->isHidden(),
             'names' => [
                 [
                     'name' => $posterEntity->getName(),
@@ -134,29 +124,36 @@ class CategoryChangedAction extends AbstractAction  {
         ];
 
         if(!!$posterEntity->getParentCategory()) {
+            $salesBoxCategoriesRes = SalesboxApi::getCategories();
+
+            $salesboxCategories = json_decode($salesBoxCategoriesRes->getBody(), true);
+
+            $collection = collect($salesboxCategories['data']);
+
             $salesboxParentCategory = $collection->firstWhere('externalId', $posterEntity->getParentCategory());
 
             if($salesboxParentCategory) {
-                $newSalesBoxCategory['parentId'] = $salesboxParentCategory['internalId'];
-            } else {
+                $newSalesboxCategory['parentId'] = $salesboxParentCategory['internalId'];
+            }
+
+            if(!$salesboxParentCategory) {
                 $salesboxParentCategoryIds = $this->createSalesboxCategoryByPosterId($posterEntity->getParentCategory());
                 if(!is_null($salesboxParentCategoryIds)) {
-                    $newSalesBoxCategory['parentId'] = $salesboxParentCategoryIds['internalId'];
+                    $newSalesboxCategory['parentId'] = $salesboxParentCategoryIds['internalId'];
                 }
-
             }
         }
 
         if($posterEntity->getPhoto()) {
             $url = config('poster.url') . $posterEntity->getPhoto();
-            $newSalesBoxCategory['previewURL'] = $url;
-            $newSalesBoxCategory['originalURL'] = $url;
+            $newSalesboxCategory['previewURL'] = $url;
+            $newSalesboxCategory['originalURL'] = $url;
         }
 
-        $createManyRes = SalesboxApi::createCategory($newSalesBoxCategory);
+        $createManyRes = SalesboxApi::createCategory($newSalesboxCategory);
 
         $createManyData = json_decode($createManyRes->getBody(), true);
 
-        return $createManyData['data']['ids'][0]['internalId'];
+        return $createManyData['data']['ids'][0];
     }
 }
