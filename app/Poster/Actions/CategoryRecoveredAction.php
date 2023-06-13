@@ -3,75 +3,55 @@
 namespace App\Poster\Actions;
 
 use App\Poster\Entities\Category;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use Illuminate\Http\Response;
+use App\Salesbox\Facades\SalesboxApi;
 use poster\src\PosterApi;
 
-class CategoryRecoveredAction extends AbstractAction  {
-    public function handle(): Response
+class CategoryRecoveredAction extends AbstractAction
+{
+    public function handle(): bool
     {
         PosterApi::init([
             'account_name' => config('poster.account_name'),
             'access_token' => config('poster.access_token'),
         ]);
 
-
         $data = PosterApi::menu()->getCategory([
             'category_id' => $this->getObjectId()
         ]);
 
         if (!isset($data->response)) {
-            // todo: should I log it?
+            throw new \RuntimeException($data->message);
             // $errorCode = $data->error;
-            // $message = $data->message;
-        } else {
-
-            $entity = new Category($data->response);
-            $client = new Client([
-                'base_uri' => config('salesbox.api_base_url') . '/' . config('salesbox.company_id') . '/'
-            ]);
-
-            try {
-                $authRes = $client->post('auth', [
-                    'json' => [
-                        'phone' => config('salesbox.phone')
-                    ]
-                ]);
-                $authData = json_decode($authRes->getBody(), true);
-
-
-                if ($authData['success']) {
-                    $res = $client->post('categories/createMany', [
-                        'json' => [
-                            'categories' => [
-                                [
-                                    'available' => !$entity->isHidden(),
-                                    'names' => [
-                                        [
-                                            'name' => $entity->getName(),
-                                            'lang' => 'uk'
-                                        ]
-                                    ],
-//                                    'previewURL' => $entity->getPhoto(),
-                                    'externalId' => $this->getObjectId()
-                                ]
-                            ]
-                        ],
-                        'headers' => [
-                            'Authorization' => sprintf('Bearer %s', $authData['data']['token'])
-                        ]
-                    ]);
-//                    $data = json_decode($res->getBody(), true);
-//                    if(!$data['success']) {
-//                        $errors = $data['errors'];
-//                    }
-                }
-            } catch (ClientException $clientException) {
-                // todo: should I log it?
-            }
-
         }
-        return response('ok', 200);
+
+        // todo: do I need this abstraction?
+        $entity = new Category($data->response);
+
+        $authRes = SalesboxApi::getToken();
+        $authData = json_decode($authRes->getBody(), true);
+
+        if(!$authData['success']) {
+            // todo: check if this code is reachable
+            throw new \RuntimeException("Couldn't get salesbox' access token");
+        }
+
+        $token = $authData['data']['token'];
+        SalesboxApi::setAccessToken($token);
+
+        $recoveredCategory = [
+            'available' => !$entity->isHidden(),
+            'names' => [
+                [
+                    'name' => $entity->getName(),
+                    'lang' => 'uk'
+                ]
+            ],
+//                                    'previewURL' => $entity->getPhoto(),
+            'externalId' => $this->getObjectId()
+        ];
+
+        SalesboxApi::createCategory($recoveredCategory);
+
+        return true;
     }
 }

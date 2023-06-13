@@ -2,49 +2,37 @@
 
 namespace App\Poster\Actions;
 
-
-use GuzzleHttp\Exception\ClientException;
-use Illuminate\Http\Response;
 use App\Salesbox\Facades\SalesboxApi;
 
-class CategoryRemovedAction extends AbstractAction  {
-    public function handle(): Response
+class CategoryRemovedAction extends AbstractAction
+{
+    public function handle(): bool
     {
-        try {
-            $authRes = SalesboxApi::getToken();
-        } catch (ClientException $clientException) {
-            return response("api error", 200);
-        }
+        $authRes = SalesboxApi::getToken();
 
         $authData = json_decode($authRes->getBody(), true);
 
         if (!$authData['success']) {
-            return response("Couldn't get salesbox' access token", 200);
+            // todo: get exception text from salesbox' response
+            throw new \RuntimeException("Couldn't get salesbox' access token");
         }
 
-        $access_token =  $authData['data']['token'];
+        $access_token = $authData['data']['token'];
         SalesboxApi::setAccessToken($access_token);
 
-        try {
-            $salesboxCategoriesRes = SalesboxApi::getCategories();
-        } catch (ClientException $clientException) {
-            return response('client error', 200);
-        }
+        $salesboxCategoriesRes = SalesboxApi::getCategories();
 
         $salesboxCategoriesData = json_decode($salesboxCategoriesRes->getBody(), true);
         $collection = collect($salesboxCategoriesData['data']);
         $salesboxCategory = $collection->firstWhere('externalId', $this->getObjectId());
 
-        if(!$salesboxCategory) {
-            return response(sprintf('category [%d] is not found in salesbox', $this->getObjectId()), 200);
+        if (!$salesboxCategory) {
+            // category doesn't exist in salesbox
+            return false;
         }
 
-        try {
-            SalesboxApi::deleteCategory($salesboxCategory['id']);
-        } catch (ClientException $clientException) {
-            return response('client error', 200);
-        }
+        SalesboxApi::deleteCategory($salesboxCategory['id']);
 
-        return response('ok', 200);
+        return true;
     }
 }

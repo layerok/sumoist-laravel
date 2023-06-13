@@ -2,11 +2,9 @@
 
 namespace App\Poster\Actions;
 
-use Illuminate\Http\Response;
-
 class ApplicationTestAction extends AbstractAction  {
-    public function handle(): Response
+    public function handle(): bool
     {
-        return response('ok', 200);
+        return true;
     }
 }

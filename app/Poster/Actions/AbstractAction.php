@@ -2,7 +2,7 @@
 
 namespace App\Poster\Actions;
 
-abstract class AbstractAction implements IAction{
+abstract class AbstractAction implements IAction {
    public $params;
    public function __construct($params) {
        $this->params = $params;

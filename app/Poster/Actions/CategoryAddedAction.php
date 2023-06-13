@@ -3,8 +3,6 @@
 namespace App\Poster\Actions;
 
 use App\Poster\Entities\Category;
-use GuzzleHttp\Exception\ClientException;
-use Illuminate\Http\Response;
 use poster\src\PosterApi;
 use App\Salesbox\Facades\SalesboxApi;
 
@@ -15,18 +13,13 @@ class CategoryAddedAction extends AbstractAction {
         parent::__construct($params);
     }
 
-    public function handle(): Response
+    public function handle(): bool
     {
-        try {
-            $authRes = SalesboxApi::getToken();
-        } catch (ClientException $clientException) {
-            return response("api error", 200);
-        }
-
+        $authRes = SalesboxApi::getToken();
         $authData = json_decode($authRes->getBody(), true);
 
         if (!$authData['success']) {
-            return response("Couldn't get salesbox' access token", 200);
+            throw new \RuntimeException("Couldn't get salesbox' access token");
         }
 
         $access_token =  $authData['data']['token'];
@@ -35,10 +28,11 @@ class CategoryAddedAction extends AbstractAction {
         $salesboxCategory = $this->createSalesboxCategoryByPosterId($this->getObjectId());
 
         if($salesboxCategory) {
-            return response('ok', 200);
+            return true;
+        } else {
+            // category already exists in salesbox
+            return false;
         }
-
-        return response(sprintf("Category [%d] wasn't created", $this->getObjectId()), 200);
     }
 
     public function createSalesboxCategoryByPosterId($posterId): ?array {
@@ -53,16 +47,12 @@ class CategoryAddedAction extends AbstractAction {
         ]);
 
         if (!isset($posterCategoryRes->response)) {
-            return null;
+            throw new \RuntimeException($posterCategoryRes->message);
         }
 
         $posterEntity = new Category($posterCategoryRes->response);
 
-        try {
-            $salesBoxCategoriesRes = SalesboxApi::getCategories();
-        } catch (ClientException $clientException) {
-            return null;
-        }
+        $salesBoxCategoriesRes = SalesboxApi::getCategories();
 
         $salesboxCategories = json_decode($salesBoxCategoriesRes->getBody(), true);
 
@@ -105,20 +95,11 @@ class CategoryAddedAction extends AbstractAction {
             $newSalesBoxCategory['originalURL'] = $url;
         }
 
-        try {
-            $createManyRes = SalesboxApi::createCategory($newSalesBoxCategory);
-        } catch (ClientException $clientException) {
-            return null;
-        }
+        $createManyRes = SalesboxApi::createCategory($newSalesBoxCategory);
 
         $createManyData = json_decode($createManyRes->getBody(), true);
 
-        if($createManyData['success']) {
-            return $createManyData['data']['ids'][0];
-        }
-
-        return null;
+        return $createManyData['data']['ids'][0];
     }
-
 
 }
