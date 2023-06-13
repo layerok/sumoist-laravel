@@ -13,7 +13,9 @@ class SalesboxServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton('salesboxapi', SalesboxApi::class);
+        $this->app->singleton('salesboxapi', function () {
+            return new SalesboxApi(config('salesbox'));
+        });
     }
 
     /**

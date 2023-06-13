@@ -10,14 +10,14 @@ use Psr\Http\Message\ResponseInterface;
  * @package Maksa988\WayForPay\Facades
  * @method static ResponseInterface getToken()
  * @method static void setAccessToken($accessToken)
- * @method static ResponseInterface getCategories()
- * @method static ResponseInterface createManyCategories(array $categories)
- * @method static ResponseInterface updateManyCategories(array $categories)
- * @method static ResponseInterface deleteManyCategories(array $categories)
- * @method static ResponseInterface getCategory()
- * @method static ResponseInterface createCategory(array $category)
- * @method static ResponseInterface updateCategory(array $category)
- * @method static ResponseInterface deleteCategory(array $category)
+ * @method static ResponseInterface getCategories(array $guzzleOptions = [])
+ * @method static ResponseInterface createManyCategories(array $categories, array $guzzleOptions = [])
+ * @method static ResponseInterface updateManyCategories(array $categories, array $guzzleOptions = [])
+ * @method static ResponseInterface deleteManyCategories(array $categories, array $guzzleOptions = [])
+ * @method static ResponseInterface getCategory(array $guzzleOptions = [])
+ * @method static ResponseInterface createCategory(array $category, array $guzzleOptions = [])
+ * @method static ResponseInterface updateCategory(array $category, array $guzzleOptions = [])
+ * @method static ResponseInterface deleteCategory(array $category, array $guzzleOptions = [])
  *
  * @see  \App\Salesbox\SalesboxApi;
  */

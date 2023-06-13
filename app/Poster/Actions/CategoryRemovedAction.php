@@ -40,7 +40,7 @@ class CategoryRemovedAction extends AbstractAction  {
         }
 
         try {
-            SalesboxApi::deleteCategory($salesboxCategory['id'], $access_token);
+            SalesboxApi::deleteCategory($salesboxCategory['id']);
         } catch (ClientException $clientException) {
             return response('client error', 200);
         }
