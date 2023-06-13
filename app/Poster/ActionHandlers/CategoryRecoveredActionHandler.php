@@ -3,6 +3,7 @@
 namespace App\Poster\ActionHandlers;
 
 use App\Poster\Entities\Category;
+use App\Poster\PosterApiException;
 use App\Salesbox\Facades\SalesboxApi;
 use poster\src\PosterApi;
 
@@ -20,8 +21,7 @@ class CategoryRecoveredActionHandler extends AbstractActionHandler
         ]);
 
         if (!isset($data->response)) {
-            throw new \RuntimeException($data->message);
-            // $errorCode = $data->error;
+            throw new PosterApiException($data->error);
         }
 
         // todo: do I need this abstraction?

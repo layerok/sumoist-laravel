@@ -3,6 +3,7 @@
 namespace App\Poster\ActionHandlers;
 
 use App\Poster\Entities\Category;
+use App\Poster\PosterApiException;
 use poster\src\PosterApi;
 use App\Salesbox\Facades\SalesboxApi;
 
@@ -43,7 +44,7 @@ class CategoryAddedActionHandler extends AbstractActionHandler {
         ]);
 
         if (!isset($posterCategoryRes->response)) {
-            throw new \RuntimeException($posterCategoryRes->message);
+            throw new PosterApiException($posterCategoryRes->error);
         }
 
         $posterEntity = new Category($posterCategoryRes->response);
