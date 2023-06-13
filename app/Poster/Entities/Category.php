@@ -1,5 +1,5 @@
 <?php
-namespace App\PosterPos\Entities;
+namespace App\Poster\Entities;
 
 class Category {
     public $attributes;

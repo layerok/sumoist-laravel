@@ -1,14 +1,15 @@
 <?php
 
-namespace App\PosterPos\Actions;
+namespace App\Poster\Actions;
 
-use App\PosterPos\Entities\Category;
+use App\Poster\Entities\Category;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use Illuminate\Http\Response;
 use poster\src\PosterApi;
 
 class CategoryRecoveredAction extends AbstractAction  {
-    public function handle(): void
+    public function handle(): Response
     {
         PosterApi::init([
             'account_name' => config('poster.account_name'),
@@ -58,7 +59,7 @@ class CategoryRecoveredAction extends AbstractAction  {
                             ]
                         ],
                         'headers' => [
-                            'Authorization' => 'Bearer ' . $authData['data']['token']
+                            'Authorization' => sprintf('Bearer %s', $authData['data']['token'])
                         ]
                     ]);
 //                    $data = json_decode($res->getBody(), true);
@@ -71,5 +72,6 @@ class CategoryRecoveredAction extends AbstractAction  {
             }
 
         }
+        return response('ok', 200);
     }
 }

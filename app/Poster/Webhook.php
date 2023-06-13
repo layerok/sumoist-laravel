@@ -1,5 +1,5 @@
 <?php
-namespace App\PosterPos;
+namespace App\Poster;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -14,18 +14,14 @@ class Webhook {
         $parsed = json_decode($request->getContent(), true);
 
         // some meta programming below
-        $class = 'App\\PosterPos\\Actions\\' . studly_case($parsed['object'] . '_' . $parsed['action']) . 'Action';
+        $class = 'App\\Poster\\Actions\\' . studly_case($parsed['object'] . '_' . $parsed['action']) . 'Action';
 
-
-        if(!class_exists($class)) {
+        if(class_exists($class)) {
             $instance = new $class($parsed);
-            $instance->handle();
-        } else {
-            // skipping unhandled entities
-            // todo: should we log such entities?
+            return $instance->handle();
         }
 
-        return response('ok', 200);
+        return response('nothing was handled', 200);
     }
 
     function isVerifiedRequest(Request $request): bool {

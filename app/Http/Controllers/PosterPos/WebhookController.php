@@ -2,7 +2,7 @@
 namespace App\Http\Controllers\PosterPos;
 
 use App\Http\Controllers\Controller;
-use App\PosterPos\Webhook;
+use App\Poster\Webhook;
 use \Illuminate\Http\Request;
 
 class WebhookController extends Controller

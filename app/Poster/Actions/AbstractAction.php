@@ -1,6 +1,6 @@
 <?php
 
-namespace App\PosterPos\Actions;
+namespace App\Poster\Actions;
 
 abstract class AbstractAction implements IAction{
    public $params;
