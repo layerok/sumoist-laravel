@@ -12,8 +12,7 @@ class CategoryRemovedActionHandler extends AbstractActionHandler
 
         $authData = json_decode($authRes->getBody(), true);
 
-        $access_token = $authData['data']['token'];
-        SalesboxApi::setAccessToken($access_token);
+        SalesboxApi::setAccessToken($authData['data']['token']);
 
         $salesboxCategoriesRes = SalesboxApi::getCategories();
 

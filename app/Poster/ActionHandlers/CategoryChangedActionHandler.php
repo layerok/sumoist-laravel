@@ -14,17 +14,11 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
 
         $authData = json_decode($authRes->getBody(), true);
 
-        $access_token =  $authData['data']['token'];
-        SalesboxApi::setAccessToken($access_token);
+        SalesboxApi::setAccessToken($authData['data']['token']);
 
         $category = $this->changeSalesboxCategoryByPosterId($this->getObjectId());
 
-        if($category) {
-            return true;
-        }
-
-        // category wasn't updated in salesbox
-        return false;
+        return !!$category;
     }
 
     public function changeSalesboxCategoryByPosterId($posterId): ?array {
@@ -58,16 +52,18 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
             return $this->createSalesboxCategoryByPosterId($posterEntity->getId());
         }
 
+        $names = [
+            [
+                'name' => $posterEntity->getName(),
+                'lang' => 'uk' // todo: should this language be configurable?
+            ]
+        ];
+
         $changedSalesBoxCategory = [
             'id' => $salesboxCategory['id'],
             'available' => !$posterEntity->isHidden(),
-            'names' => [
-                [
-                    'name' => $posterEntity->getName(),
-                    'lang' => 'uk'
-                ]
-            ],
-            'externalId' => $posterEntity->getId()
+            'names' => $names,
+            // 'externalId' => $posterEntity->getId() // externalId update makes no sense
         ];
 
         if(!!$posterEntity->getParentCategory()) {
@@ -113,15 +109,17 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
 
         $posterEntity = new Category($posterCategoryRes->response);
 
+        $names = [
+            [
+                'name' => $posterEntity->getName(),
+                'lang' => 'uk'// todo: should this language be configurable?
+            ]
+        ];
+
         $newSalesboxCategory = [
             'available' => !$posterEntity->isHidden(),
-            'names' => [
-                [
-                    'name' => $posterEntity->getName(),
-                    'lang' => 'uk'
-                ]
-            ],
-            'externalId' => $posterId
+            'names' => $names,
+             'externalId' => $posterId
         ];
 
         if(!!$posterEntity->getParentCategory()) {

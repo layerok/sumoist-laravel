@@ -19,17 +19,11 @@ class CategoryAddedActionHandler extends AbstractActionHandler {
         $authRes = SalesboxApi::getToken();
         $authData = json_decode($authRes->getBody(), true);
 
-        $access_token =  $authData['data']['token'];
-        SalesboxApi::setAccessToken($access_token);
+        SalesboxApi::setAccessToken($authData['data']['token']);
 
         $salesboxCategory = $this->createSalesboxCategoryByPosterId($this->getObjectId());
 
-        if($salesboxCategory) {
-            return true;
-        } else {
-            // category already exists in salesbox
-            return false;
-        }
+        return !!$salesboxCategory;
     }
 
     public function createSalesboxCategoryByPosterId($posterId): ?array {
@@ -62,14 +56,16 @@ class CategoryAddedActionHandler extends AbstractActionHandler {
             return null;
         }
 
+        $names = [
+            [
+                'name' => $posterEntity->getName(),
+                'lang' => 'uk'
+            ]
+        ];
+
         $newSalesBoxCategory = [
-            'available' => false,
-            'names' => [
-                [
-                    'name' => $posterEntity->getName(),
-                    'lang' => 'uk'
-                ]
-            ],
+            'available' => !$posterEntity->isHidden(),
+            'names' => $names,
             'externalId' => $posterId
         ];
 
@@ -79,9 +75,9 @@ class CategoryAddedActionHandler extends AbstractActionHandler {
             if($salesboxParentCategory) {
                 $newSalesBoxCategory['parentId'] = $salesboxParentCategory['internalId'];
             } else {
-                $salesboxParentCategoryIds = $this->createSalesboxCategoryByPosterId($posterEntity->getParentCategory());
-                if(!is_null($salesboxParentCategoryIds)) {
-                    $newSalesBoxCategory['parentId'] = $salesboxParentCategoryIds['internalId'];
+                $newlyCreatedParent = $this->createSalesboxCategoryByPosterId($posterEntity->getParentCategory());
+                if(!is_null($newlyCreatedParent)) {
+                    $newSalesBoxCategory['parentId'] = $newlyCreatedParent['internalId'];
                 }
             }
         }
