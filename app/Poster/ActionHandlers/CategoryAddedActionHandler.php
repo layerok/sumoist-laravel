@@ -31,9 +31,7 @@ class CategoryAddedActionHandler extends AbstractActionHandler {
 
         $salesBoxCategoriesRes = SalesboxApi::getCategories();
 
-        $salesboxCategories = json_decode($salesBoxCategoriesRes->getBody(), true);
-
-        $collection = collect($salesboxCategories['data']);
+        $collection = collect($salesBoxCategoriesRes['data']);
 
         $saleboxCategory = $collection->firstWhere('externalId', $posterId);
 
@@ -76,9 +74,7 @@ class CategoryAddedActionHandler extends AbstractActionHandler {
 
         $createManyRes = SalesboxApi::createCategory($newSalesBoxCategory);
 
-        $createManyData = json_decode($createManyRes->getBody(), true);
-
-        return $createManyData['data']['ids'][0];
+        return $createManyRes['data']['ids'][0];
     }
 
 }

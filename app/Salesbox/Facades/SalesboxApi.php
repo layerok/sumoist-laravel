@@ -8,17 +8,16 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * Class SalesboxApi
  * @method static void setAccessToken(string $accessToken)
- * @method static ResponseInterface getAccessToken()
  * @method static string authenticate(string $token = '')
  *
- * @method static ResponseInterface getCategories(array $guzzleOptions = [])
- * @method static ResponseInterface createManyCategories(array $categories, array $guzzleOptions = [])
- * @method static ResponseInterface updateManyCategories(array $categories, array $guzzleOptions = [])
- * @method static ResponseInterface deleteManyCategories(array $categories, array $guzzleOptions = [], $recursively = false)
- * @method static ResponseInterface getCategory(array $guzzleOptions = [])
- * @method static ResponseInterface createCategory(array $category, array $guzzleOptions = [])
- * @method static ResponseInterface updateCategory(array $category, array $guzzleOptions = [])
- * @method static ResponseInterface deleteCategory(array $category, array $guzzleOptions = [], $recursively = false)
+ * @method static array getAccessToken()
+ * @method static array getCategories(array $guzzleOptions = [])
+ * @method static array createManyCategories(array $categories, array $guzzleOptions = [])
+ * @method static array updateManyCategories(array $categories, array $guzzleOptions = [])
+ * @method static array deleteManyCategories(array $categories, array $guzzleOptions = [], $recursively = false)
+ * @method static array createCategory(array $category, array $guzzleOptions = [])
+ * @method static array updateCategory(array $category, array $guzzleOptions = [])
+ * @method static array deleteCategory(array $category, array $guzzleOptions = [], $recursively = false)
  *
  * @see  \App\Salesbox\SalesboxApi;
  */

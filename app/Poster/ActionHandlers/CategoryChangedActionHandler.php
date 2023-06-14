@@ -34,9 +34,7 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
 
         $salesBoxCategoriesRes = SalesboxApi::getCategories();
 
-        $salesboxCategories = json_decode($salesBoxCategoriesRes->getBody(), true);
-
-        $collection = collect($salesboxCategories['data']);
+        $collection = collect($salesBoxCategoriesRes['data']);
 
         $salesboxCategory = $collection->firstWhere('externalId', $posterId);
 
@@ -83,9 +81,7 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
 
         $updateManyRes = SalesboxApi::updateCategory($changedSalesBoxCategory);
 
-        $updateManyData = json_decode($updateManyRes->getBody(), true);
-
-        return $updateManyData['data']['ids'][0];
+        return $updateManyRes['data']['ids'][0];
     }
 
     public function createSalesboxCategoryByPosterId($posterId): ?array {
@@ -115,9 +111,7 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
         if(!!$posterEntity->getParentCategory()) {
             $salesBoxCategoriesRes = SalesboxApi::getCategories();
 
-            $salesboxCategories = json_decode($salesBoxCategoriesRes->getBody(), true);
-
-            $collection = collect($salesboxCategories['data']);
+            $collection = collect($salesBoxCategoriesRes['data']);
 
             $salesboxParentCategory = $collection->firstWhere('externalId', $posterEntity->getParentCategory());
 
@@ -141,8 +135,6 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
 
         $createManyRes = SalesboxApi::createCategory($newSalesboxCategory);
 
-        $createManyData = json_decode($createManyRes->getBody(), true);
-
-        return $createManyData['data']['ids'][0];
+        return $createManyRes['data']['ids'][0];
     }
 }

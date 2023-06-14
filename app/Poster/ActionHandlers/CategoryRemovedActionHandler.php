@@ -12,8 +12,7 @@ class CategoryRemovedActionHandler extends AbstractActionHandler
 
         $salesboxCategoriesRes = SalesboxApi::getCategories();
 
-        $salesboxCategoriesData = json_decode($salesboxCategoriesRes->getBody(), true);
-        $collection = collect($salesboxCategoriesData['data']);
+        $collection = collect($salesboxCategoriesRes['data']);
         $salesboxCategory = $collection->firstWhere('externalId', $this->getObjectId());
 
         if (!$salesboxCategory) {

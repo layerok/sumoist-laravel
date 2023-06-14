@@ -6,7 +6,6 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 use \GuzzleHttp\Client;
 
 class SalesboxApi {
@@ -49,12 +48,13 @@ class SalesboxApi {
         $this->accessToken = $token;
     }
 
-    public function getAccessToken(): ResponseInterface {
-        return $this->guzzleClient->post('auth', [
+    public function getAccessToken(): array {
+        $res = $this->guzzleClient->post('auth', [
             'json' => [
                 'phone' => $this->phone
             ]
         ]);
+        return json_decode($res->getBody(), true);
     }
 
     public function authenticate($providedToken = ''): string {
@@ -64,14 +64,14 @@ class SalesboxApi {
         }
 
         $authRes = $this->getAccessToken();
-        $authData = json_decode($authRes->getBody(), true);
-        $token = $authData['data']['token'];
+
+        $token = $authRes['data']['token'];
 
         $this->setAccessToken($token);
         return $token;
     }
 
-    public function getCategories(array $guzzleOptions = []): ResponseInterface {
+    public function getCategories(array $guzzleOptions = []): array {
         $query = [
             'lang' => $this->lang
         ];
@@ -79,10 +79,11 @@ class SalesboxApi {
             'query' => $query
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
-        return $this->guzzleClient->get('categories', $mergedOptions);
+        $res = $this->guzzleClient->get('categories', $mergedOptions);
+        return json_decode($res->getBody(), true);
     }
 
-    public function createManyCategories(array $categories, array $guzzleOptions = []): ResponseInterface {
+    public function createManyCategories(array $categories, array $guzzleOptions = []): array {
         $json = [
             'categories' => $categories
         ];
@@ -90,14 +91,15 @@ class SalesboxApi {
             'json' => $json,
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
-        return $this->guzzleClient->post('categories/createMany', $mergedOptions);
+        $res = $this->guzzleClient->post('categories/createMany', $mergedOptions);
+        return json_decode($res->getBody(), true);
     }
 
-    public function createCategory(array $category, array $guzzleOptions = []): ResponseInterface {
+    public function createCategory(array $category, array $guzzleOptions = []): array {
         return $this->createManyCategories([$category], $guzzleOptions);
     }
 
-    public function updateManyCategories(array $categories, array $guzzleOptions = []): ResponseInterface {
+    public function updateManyCategories(array $categories, array $guzzleOptions = []): array {
         $json = [
             'categories' => $categories
         ];
@@ -105,14 +107,15 @@ class SalesboxApi {
             'json' => $json
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
-        return $this->guzzleClient->post('categories/updateMany', $mergedOptions);
+        $res = $this->guzzleClient->post('categories/updateMany', $mergedOptions);
+        return json_decode($res->getBody(), true);
     }
 
-    public function updateCategory(array $category): ResponseInterface {
+    public function updateCategory(array $category): array {
         return $this->updateManyCategories([$category]);
     }
 
-    public function deleteManyCategories($ids, array $guzzleOptions = [], $recursively = false): ResponseInterface {
+    public function deleteManyCategories($ids, array $guzzleOptions = [], $recursively = false): array {
         $json = [
             'ids' => $ids
         ];
@@ -125,10 +128,15 @@ class SalesboxApi {
             ];
         }
         $mergedOptions = array_merge($options, $guzzleOptions);
-        return $this->guzzleClient->delete('categories', $mergedOptions);
+        $res = $this->guzzleClient->delete('categories', $mergedOptions);
+        return json_decode($res->getBody(), true);
     }
 
-    public function deleteCategory($id, array $guzzleOptions = [], $recursively = false): ResponseInterface {
+    public function deleteCategory($id, array $guzzleOptions = [], $recursively = false): array {
         return $this->deleteManyCategories([$id], $guzzleOptions, $recursively);
     }
+
+//    public function getOffers(): ResponseInterface {
+//
+//    }
 }
