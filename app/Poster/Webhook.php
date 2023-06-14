@@ -7,6 +7,8 @@ use poster\src\PosterApi;
 
 class Webhook {
     public function handle(Request $request) {
+        // environment variables aren't accessible after config caching
+        // so if you cache config, then don't forget to pass config to 'init' method
         PosterApi::init();
         $isVerified = PosterApi::auth()->verifyWebHook($request->getContent());
 
