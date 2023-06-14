@@ -20,7 +20,10 @@ class CategoryRemovedActionHandler extends AbstractActionHandler
             return false;
         }
 
-        SalesboxApi::deleteCategory($salesboxCategory['id'], []);
+        SalesboxApi::deleteCategory([
+            'id' => $salesboxCategory['id'],
+            'recursively' => false
+        ], []);
 
         return true;
     }

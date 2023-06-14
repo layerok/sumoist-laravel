@@ -48,11 +48,12 @@ class SalesboxApi {
         $this->accessToken = $token;
     }
 
-    public function getAccessToken(): array {
+    public function getAccessToken(array $params = []): array {
         $res = $this->guzzleClient->post('auth', [
             'json' => [
                 'phone' => $this->phone
-            ]
+            ],
+            'query' => $params
         ]);
         return json_decode($res->getBody(), true);
     }
@@ -71,21 +72,36 @@ class SalesboxApi {
         return $token;
     }
 
-    public function getCategories(array $guzzleOptions = []): array {
+    public function getCategories($params = [], array $guzzleOptions = []): array {
         $query = [
             'lang' => $this->lang
         ];
         $options = [
-            'query' => $query
+            'query' => array_merge($query, $params)
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->get('categories', $mergedOptions);
         return json_decode($res->getBody(), true);
     }
 
-    public function createManyCategories(array $categories, array $guzzleOptions = []): array {
+    public function createCategory($params = [], array $guzzleOptions = []): array {
+        return $this->createManyCategories([$params], $guzzleOptions);
+    }
+
+    public function updateCategory(array $params = [], array $guzzleOptions = []): array {
+        return $this->updateManyCategories([$params], $guzzleOptions);
+    }
+
+    public function deleteCategory(array $params = [], array $guzzleOptions = []): array {
+        return $this->deleteManyCategories([
+            'ids' => [$params['id']],
+            'recursively' => $params['recursively']
+        ], $guzzleOptions);
+    }
+
+    public function createManyCategories(array $params = [], array $guzzleOptions = []): array {
         $json = [
-            'categories' => $categories
+            'categories' => $params['categories']
         ];
         $options = [
             'json' => $json,
@@ -93,10 +109,6 @@ class SalesboxApi {
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->post('categories/createMany', $mergedOptions);
         return json_decode($res->getBody(), true);
-    }
-
-    public function createCategory(array $category, array $guzzleOptions = []): array {
-        return $this->createManyCategories([$category], $guzzleOptions);
     }
 
     public function updateManyCategories(array $categories, array $guzzleOptions = []): array {
@@ -111,18 +123,15 @@ class SalesboxApi {
         return json_decode($res->getBody(), true);
     }
 
-    public function updateCategory(array $category): array {
-        return $this->updateManyCategories([$category]);
-    }
 
-    public function deleteManyCategories($ids, array $guzzleOptions = [], $recursively = false): array {
+    public function deleteManyCategories(array $params = [], array $guzzleOptions = []): array {
         $json = [
-            'ids' => $ids
+            'ids' => $params['ids']
         ];
         $options = [
             'json' => $json
         ];
-        if($recursively) {
+        if($params['recursively']) {
             $options['query'] = [
                 'recursively' => true
             ];
@@ -132,11 +141,32 @@ class SalesboxApi {
         return json_decode($res->getBody(), true);
     }
 
-    public function deleteCategory($id, array $guzzleOptions = [], $recursively = false): array {
-        return $this->deleteManyCategories([$id], $guzzleOptions, $recursively);
-    }
+    public function getOffers(array $params = [], array $guzzleOptions = []): array {
+        $query = [
+            'lang' => $this->lang
+        ];
+        if($params['onlyAvailable']) {
+            $query['onlyAvailable'] = $params['onlyAvailable'];
+            unset($params['onlyAvailable']);
+        }
+        if($params['isGrouped']) {
+            $query['isGrouped'] = $params['isGrouped'];
+            unset($params['isGrouped']);
+        }
+        if($params['page']) {
+            $query['page'] = $params['page'];
+            unset($params['page']);
+        }
+        if($params['pageSize']) {
+            $query['pageSize'] = $params['pageSize'];
+            unset($params['pageSize']);
+        }
 
-//    public function getOffers(): ResponseInterface {
-//
-//    }
+        $options = [
+            'query' => array_merge($query, $params)
+        ];
+        $mergedOptions = array_merge($options, $guzzleOptions);
+        $res = $this->guzzleClient->get('offers/filter', $mergedOptions);
+        return json_decode($res->getBody(), true);
+    }
 }
