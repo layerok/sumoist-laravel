@@ -21,10 +21,6 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
     }
 
     public function changeSalesboxCategoryByPosterId($posterId): ?array {
-        PosterApi::init([
-            'account_name' => config('poster.account_name'),
-            'access_token' => config('poster.access_token'),
-        ]);
         $posterCategoryRes = PosterApi::menu()->getCategory([
             'category_id' => $posterId
         ]);
@@ -93,11 +89,6 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
     }
 
     public function createSalesboxCategoryByPosterId($posterId): ?array {
-        PosterApi::init([
-            'account_name' => config('poster.account_name'),
-            'access_token' => config('poster.access_token'),
-        ]);
-
         $posterCategoryRes = PosterApi::menu()->getCategory([
             'category_id' => $posterId
         ]);
