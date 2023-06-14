@@ -21,9 +21,11 @@ class Webhook {
         $parsed = json_decode($request->getContent(), true);
 
         // some meta programming below
-        $namespace = 'App\\Poster\\ActionHandlers\\';
-        $className = studly_case($parsed['object'] . '_' . $parsed['action'] . '_action_handler'); // e.g. DishCreatedAction
-        $class = $namespace . $className;
+        // dynamically build class by convention
+        // for example
+        // if object is 'dish' and action is 'added',
+        // then class will be DishAddedAction
+        $class = $this->buildClass($parsed['object'], $parsed['action']);
 
         if(class_exists($class)) {
             $instance = new $class($parsed);
@@ -48,5 +50,12 @@ class Webhook {
         }
 
         return response('nothing was handled', 200);
+    }
+
+    public function buildClass($object, $action): string {
+        // some meta programming below
+        $namespace = 'App\\Poster\\ActionHandlers\\';
+        $className = studly_case($object . '_' . $action . '_action_handler'); // e.g. DishCreatedAction
+        return $namespace . $className;
     }
 }
