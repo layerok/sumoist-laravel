@@ -11,17 +11,9 @@ use Psr\Http\Message\RequestInterface;
 
 class CategoryChangedActionHandler extends AbstractActionHandler  {
 
-    public function authenticate() {
-        $authRes = SalesboxApi::getToken();
-        $authData = json_decode($authRes->getBody(), true);
-        $token = $authData['data']['token'];
-
-        SalesboxApi:: setHeaders(['Authorization' => sprintf('Bearer %s', $token)]);
-    }
-
     public function handle(): bool
     {
-        $this->authenticate();
+        SalesboxApi::authenticate();
 
         $category = $this->changeSalesboxCategoryByPosterId($this->getObjectId());
 

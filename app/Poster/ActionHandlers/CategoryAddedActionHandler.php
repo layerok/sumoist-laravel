@@ -8,18 +8,9 @@ use poster\src\PosterApi;
 use App\Salesbox\Facades\SalesboxApi;
 
 class CategoryAddedActionHandler extends AbstractActionHandler {
-
-    public function authenticate() {
-        $authRes = SalesboxApi::getToken();
-        $authData = json_decode($authRes->getBody(), true);
-        $token = $authData['data']['token'];
-
-        SalesboxApi:: setHeaders(['Authorization' => sprintf('Bearer %s', $token)]);
-    }
-
     public function handle(): bool
     {
-        $this->authenticate();
+        SalesboxApi::authenticate();
 
         $salesboxCategory = $this->createSalesboxCategoryByPosterId($this->getObjectId());
 

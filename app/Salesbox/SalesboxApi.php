@@ -15,8 +15,7 @@ class SalesboxApi {
     protected $companyId;
     protected $phone;
     protected $lang;
-    protected $guzzleHandler;
-    protected $headers = [];
+    protected $accessToken;
 
     public function __construct(array $config = [])
     {
@@ -25,12 +24,14 @@ class SalesboxApi {
         $this->companyId = $config['company_id'];
         $this->lang = $config['lang'];
 
-        $this->guzzleHandler = HandlerStack::create();
+        $handler = HandlerStack::create();
 
-        $this->guzzleHandler->push(Middleware::mapRequest(function (RequestInterface $request) {
-            if(count($this->headers) > 0) {
+        $handler->push(Middleware::mapRequest(function (RequestInterface $request) {
+            if($this->accessToken) {
                 return Utils::modifyRequest($request, [
-                    'set_headers' => $this->headers
+                    'set_headers' => [
+                        'Authorization' => sprintf('Bearer %s', $this->accessToken)
+                    ]
                 ]);
             }
             return $request;
@@ -39,25 +40,35 @@ class SalesboxApi {
         $baseUrl = $this->baseUrl . '/' . $this->companyId. '/';
         $baseConfig = [
             'base_uri' => $baseUrl,
-            'handler' => $this->guzzleHandler
+            'handler' => $handler
         ];
         $this->guzzleClient = new Client($baseConfig);
     }
 
-    public function setHeaders($headers) {
-        $this->headers = $headers;
+    public function setAccessToken($token): void {
+        $this->accessToken = $token;
     }
 
-    public function getGuzzleHandler(): HandlerStack {
-        return $this->guzzleHandler;
-    }
-
-    public function getToken(): ResponseInterface {
+    public function getAccessToken(): ResponseInterface {
         return $this->guzzleClient->post('auth', [
             'json' => [
                 'phone' => $this->phone
             ]
         ]);
+    }
+
+    public function authenticate($providedToken = ''): string {
+        if($providedToken) {
+            $this->setAccessToken($providedToken);
+            return $providedToken;
+        }
+
+        $authRes = $this->getAccessToken();
+        $authData = json_decode($authRes->getBody(), true);
+        $token = $authData['data']['token'];
+
+        $this->setAccessToken($token);
+        return $token;
     }
 
     public function getCategories(array $guzzleOptions = []): ResponseInterface {
