@@ -23,8 +23,8 @@ class CategoryAddedActionHandler extends AbstractActionHandler {
             'category_id' => $posterId
         ]);
 
-        if (!isset($posterCategoryRes->response)) {
-            throw new PosterApiException($posterCategoryRes->error);
+        if (!isset($posterCategoryRes->response) || !$posterCategoryRes->response) {
+            throw new PosterApiException('getCategory', $posterCategoryRes);
         }
 
         $posterEntity = new Category($posterCategoryRes->response);

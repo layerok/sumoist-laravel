@@ -10,7 +10,7 @@ use \GuzzleHttp\Client;
 
 class SalesboxApi {
     protected $guzzleClient;
-    protected $baseUrl;
+    protected $openApiId;
     protected $companyId;
     protected $phone;
     protected $lang;
@@ -18,10 +18,12 @@ class SalesboxApi {
 
     public function __construct(array $config = [])
     {
-        $this->baseUrl = $config['base_url'];
+        $this->openApiId = $config['open_api_id'];
         $this->phone = $config['phone'];
         $this->companyId = $config['company_id'];
         $this->lang = $config['lang'];
+
+        $v1BaseUrl ='https://prod.salesbox.me/api/' . $this->openApiId. '/';
 
         $handler = HandlerStack::create();
 
@@ -36,9 +38,8 @@ class SalesboxApi {
             return $request;
         }));
 
-        $baseUrl = $this->baseUrl . '/' . $this->companyId. '/';
         $baseConfig = [
-            'base_uri' => $baseUrl,
+            'base_uri' => $v1BaseUrl,
             'handler' => $handler
         ];
         $this->guzzleClient = new Client($baseConfig);
@@ -142,31 +143,17 @@ class SalesboxApi {
     }
 
     public function getOffers(array $params = [], array $guzzleOptions = []): array {
+        // onlyAvailable, isGrouped, page, pageSize - query params
         $query = [
             'lang' => $this->lang
         ];
-        if($params['onlyAvailable']) {
-            $query['onlyAvailable'] = $params['onlyAvailable'];
-            unset($params['onlyAvailable']);
-        }
-        if($params['isGrouped']) {
-            $query['isGrouped'] = $params['isGrouped'];
-            unset($params['isGrouped']);
-        }
-        if($params['page']) {
-            $query['page'] = $params['page'];
-            unset($params['page']);
-        }
-        if($params['pageSize']) {
-            $query['pageSize'] = $params['pageSize'];
-            unset($params['pageSize']);
-        }
 
         $options = [
             'query' => array_merge($query, $params)
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
-        $res = $this->guzzleClient->get('offers/filter', $mergedOptions);
+        $v4BaseUrl = 'https://prod.salesbox.me/api/v4/companies/' . $this->companyId . '/';
+        $res = $this->guzzleClient->get($v4BaseUrl . 'offers/filter', $mergedOptions);
         return json_decode($res->getBody(), true);
     }
 }

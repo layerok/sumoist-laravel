@@ -18,6 +18,7 @@ use Psr\Http\Message\ResponseInterface;
  * @method static array createCategory(array $params = [], array $guzzleOptions = [])
  * @method static array updateCategory(array $params = [], array $guzzleOptions = [])
  * @method static array deleteCategory(array $params = [], array $guzzleOptions = [])
+ * @method static array getOffers(array $params = [], array $guzzleOptions = [])
  *
  * @see  \App\Salesbox\SalesboxApi;
  */

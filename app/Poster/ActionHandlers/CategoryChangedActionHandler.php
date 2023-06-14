@@ -25,8 +25,8 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
             'category_id' => $posterId
         ]);
 
-        if (!isset($posterCategoryRes->response)) {
-            throw new PosterApiException($posterCategoryRes->error);
+        if (!isset($posterCategoryRes->response) || !$posterCategoryRes->response) {
+            throw new PosterApiException('getCategory', $posterCategoryRes);
         }
 
         // todo: not sure if need this abstraction
@@ -89,8 +89,8 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
             'category_id' => $posterId
         ]);
 
-        if (!isset($posterCategoryRes->response)) {
-            throw new PosterApiException($posterCategoryRes->error);
+        if (!isset($posterCategoryRes->response) || !$posterCategoryRes->response) {
+            throw new PosterApiException('getCategory', $posterCategoryRes);
         }
 
         $posterEntity = new Category($posterCategoryRes->response);

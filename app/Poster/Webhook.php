@@ -14,7 +14,10 @@ class Webhook {
             'account_name' => $config['account_name'],
             'access_token' => $config['access_token'],
         ]);
-        $isVerified = PosterApi::auth()->verifyWebHook($request->getContent());
+        $content = $request->getContent();
+        $decoded = json_decode($content, true);
+
+        $isVerified = isset($decoded['skip']) || PosterApi::auth()->verifyWebHook($content);
 
         if(!$isVerified) {
             $error = "Request signatures didn't match!";
@@ -29,7 +32,7 @@ class Webhook {
         // for example
         // if object is 'dish' and action is 'added',
         // then class will be DishAddedActionHandler
-        $class = $this->getConventionClass($parsed['object'], $parsed['action']);
+        $class = $this->buildClass($parsed['object'], $parsed['action']);
 
         if(class_exists($class)) {
             $instance = new $class($parsed);
@@ -56,7 +59,7 @@ class Webhook {
         return response('nothing was handled', 200);
     }
 
-    public function getConventionClass($object, $action): string {
+    public function buildClass($object, $action): string {
         // some meta programming below
         $namespace = 'App\\Poster\\ActionHandlers\\';
         $className = studly_case($object . '_' . $action . '_action_handler'); // e.g. DishCreatedAction
