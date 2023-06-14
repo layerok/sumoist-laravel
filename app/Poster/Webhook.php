@@ -3,10 +3,14 @@ namespace App\Poster;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use poster\src\PosterApi;
 
 class Webhook {
     public function handle(Request $request) {
-        if(!$this->isVerifiedRequest($request)) {
+        PosterApi::init();
+        $isVerified = PosterApi::auth()->verifyWebHook($request->getContent());
+
+        if(!$isVerified) {
             $error = "Request signatures didn't match!";
             Log::error($error . $request->getContent());
             return response($error, 200);
@@ -42,31 +46,5 @@ class Webhook {
         }
 
         return response('nothing was handled', 200);
-    }
-
-    function isVerifiedRequest(Request $request): bool {
-        $parsed = json_decode($request->getContent(), true);
-
-        $verify_original = $parsed['verify'];
-
-        $verify = [
-            $parsed['account'],
-            $parsed['object'],
-            $parsed['object_id'],
-            $parsed['action'],
-        ];
-
-        // Если есть дополнительные параметры
-        if (isset($parsed['data'])) {
-            $verify[] = $parsed['data'];
-        }
-        $verify[] = $parsed['time'];
-        $verify[] = config('poster.application_secret');
-
-        // Создаём строку для верификации запроса клиентом
-        $verify = md5(implode(';', $verify));
-
-        // Сравниваем подписи
-        return $verify === $verify_original;
     }
 }
