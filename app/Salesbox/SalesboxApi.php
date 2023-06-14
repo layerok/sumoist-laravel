@@ -4,17 +4,20 @@ namespace App\Salesbox;
 
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use \GuzzleHttp\Client;
 
 class SalesboxApi {
-    public $guzzleClient;
-    public $accessToken;
-    public $baseUrl;
-    public $companyId;
-    public $phone;
-    public $lang;
+    protected $guzzleClient;
+    protected $baseUrl;
+    protected $companyId;
+    protected $phone;
+    protected $lang;
+    protected $guzzleHandler;
+    protected $headers = [];
+
     public function __construct(array $config = [])
     {
         $this->baseUrl = $config['base_url'];
@@ -22,11 +25,13 @@ class SalesboxApi {
         $this->companyId = $config['company_id'];
         $this->lang = $config['lang'];
 
-        $stack = HandlerStack::create();
+        $this->guzzleHandler = HandlerStack::create();
 
-        $stack->push(Middleware::mapRequest(function (RequestInterface $request) {
-            if($this->accessToken) {
-                return $request->withHeader('Authorization', sprintf('Bearer %s', $this->accessToken));
+        $this->guzzleHandler->push(Middleware::mapRequest(function (RequestInterface $request) {
+            if(count($this->headers) > 0) {
+                return Utils::modifyRequest($request, [
+                    'set_headers' => $this->headers
+                ]);
             }
             return $request;
         }));
@@ -34,13 +39,17 @@ class SalesboxApi {
         $baseUrl = $this->baseUrl . '/' . $this->companyId. '/';
         $baseConfig = [
             'base_uri' => $baseUrl,
-            'handler' => $stack
+            'handler' => $this->guzzleHandler
         ];
         $this->guzzleClient = new Client($baseConfig);
     }
 
-    public function setAccessToken($token) {
-        $this->accessToken = $token;
+    public function setHeaders($headers) {
+        $this->headers = $headers;
+    }
+
+    public function getGuzzleHandler(): HandlerStack {
+        return $this->guzzleHandler;
     }
 
     public function getToken(): ResponseInterface {

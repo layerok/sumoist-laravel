@@ -2,14 +2,13 @@
 
 namespace App\Salesbox\Facades;
 
+use GuzzleHttp\HandlerStack;
 use Illuminate\Support\Facades\Facade;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * Class WayForPay
- * @package Maksa988\WayForPay\Facades
+ * Class SalesboxApi
  * @method static ResponseInterface getToken()
- * @method static void setAccessToken($accessToken)
  * @method static ResponseInterface getCategories(array $guzzleOptions = [])
  * @method static ResponseInterface createManyCategories(array $categories, array $guzzleOptions = [])
  * @method static ResponseInterface updateManyCategories(array $categories, array $guzzleOptions = [])
@@ -18,6 +17,9 @@ use Psr\Http\Message\ResponseInterface;
  * @method static ResponseInterface createCategory(array $category, array $guzzleOptions = [])
  * @method static ResponseInterface updateCategory(array $category, array $guzzleOptions = [])
  * @method static ResponseInterface deleteCategory(array $category, array $guzzleOptions = [], $recursively = false)
+
+ * @method static HandlerStack getGuzzleHandler()
+ * @method static void setHeaders(array $headers = [])
  *
  * @see  \App\Salesbox\SalesboxApi;
  */
