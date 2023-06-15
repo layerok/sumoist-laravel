@@ -4,9 +4,9 @@ namespace App\Poster\ActionHandlers;
 
 use App\Poster\Entities\Category;
 use App\Poster\Entities\Product;
-use App\Poster\PosterApiException;
 use App\Poster\Utils;
 use App\Salesbox\Facades\SalesboxApi;
+use App\Salesbox\Facades\SalesboxApiV4;
 use poster\src\PosterApi;
 
 class ProductAddedActionHandler extends AbstractActionHandler
@@ -14,9 +14,10 @@ class ProductAddedActionHandler extends AbstractActionHandler
 
     public function handle(): bool
     {
-        SalesboxApi::authenticate();
+        $token = SalesboxApi::authenticate();
+        SalesboxApiV4::authenticate($token);
 
-        $salesboxOffer = SalesboxApi::getOfferByExternalId($this->getObjectId());
+        $salesboxOffer = SalesboxApiV4::getOfferByExternalId($this->getObjectId());
 
         if ($salesboxOffer) {
             return false;

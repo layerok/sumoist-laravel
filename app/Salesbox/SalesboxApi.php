@@ -23,7 +23,7 @@ class SalesboxApi {
         $this->companyId = $config['company_id'];
         $this->lang = $config['lang'];
 
-        $v1BaseUrl ='https://prod.salesbox.me/api/' . $this->openApiId. '/';
+        $baseUrl ='https://prod.salesbox.me/api/' . $this->openApiId. '/';
 
         $handler = HandlerStack::create();
 
@@ -39,13 +39,13 @@ class SalesboxApi {
         }));
 
         $baseConfig = [
-            'base_uri' => $v1BaseUrl,
+            'base_uri' => $baseUrl,
             'handler' => $handler
         ];
         $this->guzzleClient = new Client($baseConfig);
     }
 
-    public function setAccessToken($token): void {
+    protected function setAccessToken($token): void {
         $this->accessToken = $token;
     }
 
@@ -156,8 +156,7 @@ class SalesboxApi {
             'query' => array_merge($query, $params)
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
-        $v4BaseUrl = 'https://prod.salesbox.me/api/v4/companies/' . $this->companyId . '/';
-        $res = $this->guzzleClient->get($v4BaseUrl . 'offers/filter', $mergedOptions);
+        $res = $this->guzzleClient->get('offers/filter', $mergedOptions);
         return json_decode($res->getBody(), true);
     }
 
@@ -175,12 +174,6 @@ class SalesboxApi {
     public function getCategoryByExternalId($id): ?array {
         $categoriesRes = $this->getCategories();
         $collection = collect($categoriesRes['data']);
-        return $collection->firstWhere('externalId', $id);
-    }
-
-    public function getOfferByExternalId($id): ?array {
-        $res = $this->getOffers();
-        $collection = collect($res['data']);
         return $collection->firstWhere('externalId', $id);
     }
 }

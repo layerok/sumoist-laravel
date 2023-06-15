@@ -238,6 +238,7 @@ return [
         'Image' => App\Libraries\Image::class,
         'Date' => Jenssegers\Date\Date::class,
         'SalesboxApi' => \App\Salesbox\Facades\SalesboxApi::class,
+        'SalesboxApiV4' => \App\Salesbox\Facades\SalesboxApiV4::class,
     ],
 
 ];

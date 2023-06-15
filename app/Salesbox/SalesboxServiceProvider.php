@@ -16,6 +16,9 @@ class SalesboxServiceProvider extends ServiceProvider
         $this->app->singleton('salesboxapi', function () {
             return new SalesboxApi(config('salesbox'));
         });
+        $this->app->singleton('salesboxapi.v4', function () {
+            return new SalesboxApiV4(config('salesbox'));
+        });
     }
 
     /**

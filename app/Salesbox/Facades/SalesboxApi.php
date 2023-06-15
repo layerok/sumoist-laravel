@@ -7,7 +7,6 @@ use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class SalesboxApi
- * @method static void setAccessToken(string $accessToken)
  * @method static string authenticate(string $token = '')
  *
  * @method static array getAccessToken(array $params = [])
@@ -21,7 +20,6 @@ use Psr\Http\Message\ResponseInterface;
  * @method static array getOffers(array $params = [], array $guzzleOptions = [])
  * @method static array createManyOffers(array $params = [], array $guzzleOptions = [])
  * @method static array getCategoryByExternalId(string|int $id)
- * @method static array getOfferByExternalId(string|int $id)
  *
  * @see  \App\Salesbox\SalesboxApi;
  */
