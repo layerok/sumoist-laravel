@@ -3,12 +3,9 @@
 namespace App\Poster\ActionHandlers;
 
 use App\Poster\Entities\Category;
-use App\Poster\PosterApiException;
 use App\Poster\Utils;
-use GuzzleHttp\Middleware;
 use poster\src\PosterApi;
 use App\Salesbox\Facades\SalesboxApi;
-use Psr\Http\Message\RequestInterface;
 
 class CategoryChangedActionHandler extends AbstractActionHandler  {
 

@@ -176,4 +176,18 @@ class SalesboxApi {
         $collection = collect($categoriesRes['data']);
         return $collection->firstWhere('externalId', $id);
     }
+
+    public function deleteCategoryByExternalId($id, $recursively = false): ?array {
+        $category = $this->getCategoryByExternalId($id);
+
+        if (!$category) {
+            // todo: should I throw exception if category doesn't exist?
+            return null;
+        }
+
+        return $this->deleteCategory([
+            'id' => $category['id'],
+            'recursively' => $recursively
+        ], []);
+    }
 }
