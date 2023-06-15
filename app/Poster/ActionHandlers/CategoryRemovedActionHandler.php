@@ -9,6 +9,7 @@ class CategoryRemovedActionHandler extends AbstractActionHandler
     public function handle(): bool
     {
         SalesboxApi::authenticate();
-        return !!SalesboxApi::deleteCategoryByExternalId($this->getObjectId());
+        SalesboxApi::deleteCategoryByExternalId($this->getObjectId());
+        return true;
     }
 }

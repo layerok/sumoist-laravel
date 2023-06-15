@@ -10,6 +10,15 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
     public function handle(): bool
     {
         SalesboxApi::authenticate();
-        return !!SalesboxCategory::updateOrCreateIfNotExists($this->getObjectId());
+        $categories = collect(SalesboxApi::getCategories()['data']);
+        $category = $categories->firstWhere('externalId', $this->getObjectId());
+
+        if(!$category) {
+            SalesboxCategory::create($this->getObjectId(), $categories);
+            return true;
+        }
+
+        SalesboxCategory::update($this->getObjectId(), $category, $categories);
+        return true;
     }
 }

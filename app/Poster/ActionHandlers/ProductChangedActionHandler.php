@@ -14,7 +14,14 @@ class ProductChangedActionHandler extends AbstractActionHandler
     {
         $token = SalesboxApi::authenticate();
         SalesboxApiV4::authenticate($token);
+        $offer = SalesboxApiV4::getOfferByExternalId($this->getObjectId());
 
-        return !!SalesboxOffer::updateOrCreateIfNotExists($this->getObjectId());
+        if (!$offer) {
+            SalesboxOffer::create($this->getObjectId());
+            return true;
+        }
+
+        SalesboxOffer::update($this->getObjectId(), $offer);
+        return true;
     }
 }

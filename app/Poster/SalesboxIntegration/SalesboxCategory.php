@@ -5,13 +5,14 @@ namespace App\Poster\SalesboxIntegration;
 use App\Poster\Entities\Category;
 use App\Poster\Utils;
 use App\Salesbox\Facades\SalesboxApi;
+use Illuminate\Support\Collection;
 use poster\src\PosterApi;
 use function config;
 
 class SalesboxCategory
 {
 
-    static public function create($posterId) {
+    static public function create($posterId, Collection $categories) {
 
         $posterCategoryRes = PosterApi::menu()->getCategory([
             'category_id' => $posterId
@@ -35,8 +36,11 @@ class SalesboxCategory
         ];
 
         if(!!$posterEntity->getParentCategory()) {
-            $salesboxParentCategory = self::createIfNotExists($posterEntity->getParentCategory());
-            $newSalesBoxCategory['parentId'] = $salesboxParentCategory['internalId'];
+            $parentCategory = $categories->firstWhere('externalId', $posterId);
+            if(!$parentCategory) {
+                $parentCategory = self::create($posterId, $categories);
+            }
+            $newSalesBoxCategory['parentId'] = $parentCategory['internalId'];
         }
 
         if($posterEntity->getPhoto()) {
@@ -52,18 +56,7 @@ class SalesboxCategory
         return $createManyRes['data']['ids'][0];
     }
 
-    static public function createIfNotExists($posterId)
-    {
-        $category = SalesboxApi::getCategoryByExternalId($posterId);
-
-        if($category) {
-            return $category;
-        }
-
-        return self::create($posterId);
-    }
-
-    static public function update($posterId, $category) {
+    static public function update($posterId, $category, Collection $categories) {
 
         $posterCategoryRes = PosterApi::menu()->getCategory([
             'category_id' => $posterId
@@ -89,7 +82,10 @@ class SalesboxCategory
         ];
 
         if(!!$posterEntity->getParentCategory()) {
-            $parentCategory = self::createIfNotExists($posterEntity->getParentCategory());;
+            $parentCategory = $categories->firstWhere('externalId', $posterId);
+            if(!$parentCategory) {
+                $parentCategory = self::create($posterId, $categories);
+            }
             $changedCategory['parentId'] = $parentCategory['internalId'];
         }
 
@@ -107,18 +103,4 @@ class SalesboxCategory
         return $updateManyRes['data']['ids'][0];
     }
 
-    static public function updateOrCreateIfNotExists($posterId): ?array {
-
-        $salesboxCategory = SalesboxApi::getCategoryByExternalId($posterId);
-
-        if(!$salesboxCategory) {
-            // if somehow category doesn't already exist in salesbox,
-            // then create it first
-            // no need to update newly created category
-            return self::createIfNotExists($posterId);
-        }
-
-        return self::update($posterId, $salesboxCategory);
-
-    }
 }

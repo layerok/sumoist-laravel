@@ -5,7 +5,6 @@ namespace App\Poster\SalesboxIntegration;
 use App\Poster\Entities\Product;
 use App\Poster\Utils;
 use App\Salesbox\Facades\SalesboxApi;
-use App\Salesbox\Facades\SalesboxApiV4;
 use poster\src\PosterApi;
 
 class SalesboxOffer
@@ -32,9 +31,13 @@ class SalesboxOffer
                 'names' => []
             ];
 
-            if(!!$posterProductEntity->getMenuCategoryId()) {
-                $salesboxCategory = SalesboxCategory::createIfNotExists($posterProductEntity->getMenuCategoryId());
-                $common['categories'] = [$salesboxCategory['id']];
+            if($posterProductEntity->getMenuCategoryId() !== '0') {
+                $categories = collect(SalesboxApi::getCategories()['data']);
+                $category = $categories->firstWhere('externalId', $posterProductEntity->getMenuCategoryId());
+                if(!$category) {
+                    $category = SalesboxCategory::create($posterProductEntity->getMenuCategoryId(), $categories);
+                }
+                $common['categories'] = [$category['id']];
             }
 
             if ($posterProductEntity->getPhoto()) {
@@ -91,8 +94,13 @@ class SalesboxOffer
         $offer['categories'] = [];
 
         if(!!$posterProductEntity->getMenuCategoryId()) {
-            $salesboxCategory = SalesboxCategory::createIfNotExists($posterProductEntity->getMenuCategoryId());
-            $offer['categories'][] = $salesboxCategory['id'];
+            $categories = collect(SalesboxApi::getCategories()['data']);
+            $category = $categories->firstWhere('externalId', $posterProductEntity->getMenuCategoryId());
+            if(!$category) {
+                $category = SalesboxCategory::create($posterProductEntity->getMenuCategoryId(), $categories);
+            }
+
+            $offer['categories'][] = $category['id'];
         }
 
         $offer['photos'] = [];
@@ -129,9 +137,15 @@ class SalesboxOffer
             'available' => !$posterProductEntity->isHidden($spot->spot_id)
         ];
 
-        if(!!$posterProductEntity->getMenuCategoryId()) {
-            $salesboxCategory = SalesboxCategory::createIfNotExists($posterProductEntity->getMenuCategoryId());
-            $updatedOffer['categories'][] = $salesboxCategory['id'];
+        if($posterProductEntity->getMenuCategoryId() != '0') {
+            $categories = collect(SalesboxApi::getCategories()['data']);
+            $category = $categories->firstWhere('externalId', $posterId);
+
+            if(!$category) {
+                $category = SalesboxCategory::create($posterProductEntity->getMenuCategoryId(), $categories);
+            }
+
+            $updatedOffer['categories'][] = $category['id'];
         }
 
         // update photo only it isn't already present
@@ -156,18 +170,5 @@ class SalesboxOffer
         return $updateRes['data'];
     }
 
-    static public function createIfNotExists($posterId): array {
-        $offer = SalesboxApiV4::getOfferByExternalId($posterId);
 
-        if ($offer) {
-            return [$offer];
-        }
-
-        return self::create($posterId);
-    }
-
-    static public function updateOrCreateIfNotExists($posterId) {
-        $offers = self::createIfNotExists($posterId);
-        return self::update($posterId, $offers[0]);
-    }
 }

@@ -9,7 +9,14 @@ class CategoryAddedActionHandler extends AbstractActionHandler {
     public function handle(): bool
     {
         SalesboxApi::authenticate();
-        return !!SalesboxCategory::createIfNotExists($this->getObjectId());
+        $categories = collect(SalesboxApi::getCategories()['data']);
+        $category = $categories->firstWhere('externalId', $this->getObjectId());
+        if($category) {
+            // todo: should I update existing category?
+            return false;
+        }
+        SalesboxCategory::create($this->getObjectId(), $categories);
+        return true;
     }
 
 }
