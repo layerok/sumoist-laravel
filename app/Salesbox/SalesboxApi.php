@@ -177,4 +177,10 @@ class SalesboxApi {
         $collection = collect($categoriesRes['data']);
         return $collection->firstWhere('externalId', $id);
     }
+
+    public function getOfferByExternalId($id): ?array {
+        $res = $this->getOffers();
+        $collection = collect($res['data']);
+        return $collection->firstWhere('externalId', $id);
+    }
 }

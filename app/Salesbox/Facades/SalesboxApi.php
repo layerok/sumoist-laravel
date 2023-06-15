@@ -21,6 +21,7 @@ use Psr\Http\Message\ResponseInterface;
  * @method static array getOffers(array $params = [], array $guzzleOptions = [])
  * @method static array createManyOffers(array $params = [], array $guzzleOptions = [])
  * @method static array getCategoryByExternalId(string|int $id)
+ * @method static array getOfferByExternalId(string|int $id)
  *
  * @see  \App\Salesbox\SalesboxApi;
  */

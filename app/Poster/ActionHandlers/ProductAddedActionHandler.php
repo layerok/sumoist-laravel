@@ -16,13 +16,9 @@ class ProductAddedActionHandler extends AbstractActionHandler
     {
         SalesboxApi::authenticate();
 
-        $offersRes = SalesboxApi::getOffers();
+        $salesboxOffer = SalesboxApi::getOfferByExternalId($this->getObjectId());
 
-        $collection = collect($offersRes['data']);
-
-        $salesboxProduct = $collection->firstWhere('externalId', $this->getObjectId());
-
-        if ($salesboxProduct) {
+        if ($salesboxOffer) {
             return false;
         }
 
@@ -30,7 +26,7 @@ class ProductAddedActionHandler extends AbstractActionHandler
             'product_id' => $this->getObjectId()
         ]);
 
-        Utils::assertResponse($posterProduct, 'getCategory');
+        Utils::assertResponse($posterProduct, 'getProduct');
 
         $posterProductEntity = new Product($posterProduct->response);
         $spot = $posterProductEntity->getSpots()[0];
