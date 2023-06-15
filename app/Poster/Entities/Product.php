@@ -57,11 +57,11 @@ class Product {
         return $this->attributes->nodiscount;
     }
 
-    public function getPhoto(): string {
+    public function getPhoto(): ?string {
         return $this->attributes->photo;
     }
 
-    public function getPhotoOrigin(): string {
+    public function getPhotoOrigin(): ?string {
         return $this->attributes->photo_origin;
     }
 
@@ -119,7 +119,7 @@ class Product {
         // profit
         // profit_netto
         // visible
-        return $this->attributes->spots;
+        return $this->attributes->spots ?? [];
     }
 
     public function getIngredientId(): string {
@@ -138,4 +138,7 @@ class Product {
         return $this->attributes->out;
     }
 
+    public function getModifications(): ?array {
+        return $this->attributes->modifications ?? [];
+    }
 }

@@ -10,13 +10,7 @@ use poster\src\PosterApi;
 
 class SalesboxOffer
 {
-    static public function createIfNotExists($posterId): array {
-        $salesboxOffer = SalesboxApiV4::getOfferByExternalId($posterId);
-
-        if ($salesboxOffer) {
-            return $salesboxOffer;
-        }
-
+    static public function create($posterId): array {
         $posterProduct = PosterApi::menu()->getProduct([
             'product_id' => $posterId
         ]);
@@ -24,6 +18,58 @@ class SalesboxOffer
         Utils::assertResponse($posterProduct, 'getProduct');
 
         $posterProductEntity = new Product($posterProduct->response);
+
+        if(count($posterProductEntity->getModifications()) > 0) {
+            // create offer with modifiers
+            $offers = [];
+            $common = [
+                'externalId' => $posterProductEntity->getProductId(),
+                'units' => 'pc',
+                'stockType' => 'endless',
+                'descriptions' => [],
+                'photos' => [],
+                'categories' => [],
+                'names' => []
+            ];
+
+            if(!!$posterProductEntity->getMenuCategoryId()) {
+                $salesboxCategory = SalesboxCategory::createIfNotExists($posterProductEntity->getMenuCategoryId());
+                $common['categories'] = [$salesboxCategory['id']];
+            }
+
+            if ($posterProductEntity->getPhoto()) {
+                $common['photos'][] = [
+                    'url' => config('poster.url') . $posterProductEntity->getPhotoOrigin(),
+                    'previewURL' => config('poster.url') . $posterProductEntity->getPhoto(),
+                    'order' => 0,
+                    'type' => 'image',
+                    'resourceType' => 'image'
+                ];
+            }
+
+            foreach($posterProductEntity->getModifications() as $modification) {
+                $spot = $modification->spots[0];
+                $offer = [
+                    'price' =>  intval($spot->price) / 100,
+                    'available' => $spot->visible === "1",
+                    'modifierId' => $modification->modificator_id,
+                ];
+                $offer['names'] = [
+                    [
+                        'name' => $posterProductEntity->getProductName() . ' ' .$modification->modificator_name,
+                        'lang' => 'uk'
+                    ]
+                ];
+
+                $offers[] = array_merge($offer, $common);
+            }
+            $res = SalesboxApi::createManyOffers([
+                'offers' => $offers
+            ]);
+            return $res['data']['ids'];
+        }
+
+        // create offer without modifiers
         $spot = $posterProductEntity->getSpots()[0];
 
         $offer = [
@@ -64,17 +110,10 @@ class SalesboxOffer
             'offers' => [$offer]
         ]);
 
-        return $createResp['data']['ids'][0];
-
+        return $createResp['data']['ids'];
     }
 
-    static public function updateOrCreateIfNotExists($posterId) {
-        $salesboxOffer = SalesboxApiV4::getOfferByExternalId($posterId);
-
-        if (!$salesboxOffer) {
-            return self::createIfNotExists($posterId);
-        }
-
+    static public function update($posterId, $offer) {
         $posterProduct = PosterApi::menu()->getProduct([
             'product_id' => $posterId
         ]);
@@ -84,28 +123,20 @@ class SalesboxOffer
         $posterProductEntity = new Product($posterProduct->response);
         $spot = $posterProductEntity->getSpots()[0];
 
-        $offer = [
-            'id' => $salesboxOffer['id'],
+        $updatedOffer = [
+            'id' => $offer['id'],
             'price' => intval($posterProductEntity->getPrice($spot->spot_id)) / 100,
             'available' => !$posterProductEntity->isHidden($spot->spot_id)
         ];
 
-        // not sure if we need to update name
-//        $offer['names'] = [
-//            [
-//                'name' => $posterProductEntity->getProductName(),
-//                'lang' => 'uk'
-//            ]
-//        ];
-
         if(!!$posterProductEntity->getMenuCategoryId()) {
             $salesboxCategory = SalesboxCategory::createIfNotExists($posterProductEntity->getMenuCategoryId());
-            $offer['categories'][] = $salesboxCategory['id'];
+            $updatedOffer['categories'][] = $salesboxCategory['id'];
         }
 
         // update photo only it isn't already present
-        if(!$salesboxOffer['originalURL'] && $posterProductEntity->getPhoto()) {
-            $offer['photos'] = [
+        if(!$offer['originalURL'] && $posterProductEntity->getPhoto()) {
+            $updatedOffer['photos'] = [
                 [
                     'url' => config('poster.url') . $posterProductEntity->getPhotoOrigin(),
                     'previewURL' => config('poster.url') . $posterProductEntity->getPhoto(),
@@ -118,11 +149,25 @@ class SalesboxOffer
 
         $updateRes = SalesboxApi::updateManyOffers([
             'offers' => [
-                $offer
+                $updatedOffer
             ]
         ]);
 
-        return $updateRes['data'][0];
+        return $updateRes['data'];
+    }
 
+    static public function createIfNotExists($posterId): array {
+        $offer = SalesboxApiV4::getOfferByExternalId($posterId);
+
+        if ($offer) {
+            return [$offer];
+        }
+
+        return self::create($posterId);
+    }
+
+    static public function updateOrCreateIfNotExists($posterId) {
+        $offers = self::createIfNotExists($posterId);
+        return self::update($posterId, $offers[0]);
     }
 }
