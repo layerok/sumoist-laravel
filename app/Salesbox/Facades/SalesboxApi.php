@@ -19,6 +19,7 @@ use Psr\Http\Message\ResponseInterface;
  * @method static array deleteCategory(array $params = [], array $guzzleOptions = [])
  * @method static array getOffers(array $params = [], array $guzzleOptions = [])
  * @method static array createManyOffers(array $params = [], array $guzzleOptions = [])
+ * @method static array updateManyOffers(array $params = [], array $guzzleOptions = [])
  * @method static array getCategoryByExternalId(string|int $id)
  * @method static array deleteCategoryByExternalId(string|int $id, $recursively = false)
  *

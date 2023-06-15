@@ -17,6 +17,7 @@ class Webhook {
         $content = $request->getContent();
         $decoded = json_decode($content, true);
 
+        // todo: don't forget to delete 'skip' param
         $isVerified = isset($decoded['skip']) || PosterApi::auth()->verifyWebHook($content);
 
         if(!$isVerified) {

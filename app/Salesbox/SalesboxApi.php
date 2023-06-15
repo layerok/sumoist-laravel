@@ -171,6 +171,17 @@ class SalesboxApi {
         return json_decode($res->getBody(), true);
     }
 
+    public function updateManyOffers(array $params = [], array $guzzleOptions = []): array {
+        $options = [
+            'json' => [
+                'offers' => $params['offers']
+            ]
+        ];
+        $mergedOptions = array_merge($options, $guzzleOptions);
+        $res = $this->guzzleClient->post('offers/updateMany', $mergedOptions);
+        return json_decode($res->getBody(), true);
+    }
+
     public function getCategoryByExternalId($id): ?array {
         $categoriesRes = $this->getCategories();
         $collection = collect($categoriesRes['data']);

@@ -2,7 +2,14 @@
 
 namespace App\Poster\ActionHandlers;
 
-// category recovered action handler follows the same logic as category added action handler
-class CategoryRecoveredActionHandler extends CategoryAddedActionHandler {
+use App\Poster\SalesboxIntegration\SalesboxCategory;
+use App\Salesbox\Facades\SalesboxApi;
+
+class CategoryRecoveredActionHandler extends AbstractActionHandler {
+    public function handle(): bool
+    {
+        SalesboxApi::authenticate();
+        return !!SalesboxCategory::createIfNotExists($this->getObjectId());
+    }
 
 }

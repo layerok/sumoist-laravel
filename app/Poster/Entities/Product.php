@@ -36,8 +36,13 @@ class Product {
         return $this->attributes->hidden;
     }
 
-    public function isHidden(): bool {
-        return $this->getHidden() === "1";
+    public function isHidden($spot_id): bool {
+        foreach($this->getSpots() as $spot) {
+            if($spot_id == $spot->spot_id) {
+                return $spot->visible == "0";
+            }
+        }
+        return true;
     }
 
     public function getMenuCategoryId(): string {

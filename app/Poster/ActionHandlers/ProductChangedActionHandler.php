@@ -7,7 +7,7 @@ use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\Facades\SalesboxApiV4;
 
 
-class ProductAddedActionHandler extends AbstractActionHandler
+class ProductChangedActionHandler extends AbstractActionHandler
 {
 
     public function handle(): bool
@@ -15,6 +15,6 @@ class ProductAddedActionHandler extends AbstractActionHandler
         $token = SalesboxApi::authenticate();
         SalesboxApiV4::authenticate($token);
 
-        return !!SalesboxOffer::createIfNotExists($this->getObjectId());
+        return !!SalesboxOffer::updateOrCreateIfNotExists($this->getObjectId());
     }
 }
