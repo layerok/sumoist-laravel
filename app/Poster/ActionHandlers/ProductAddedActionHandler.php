@@ -5,6 +5,7 @@ namespace App\Poster\ActionHandlers;
 use App\Poster\Entities\Category;
 use App\Poster\Entities\Product;
 use App\Poster\PosterApiException;
+use App\Poster\Utils;
 use App\Salesbox\Facades\SalesboxApi;
 use poster\src\PosterApi;
 
@@ -29,9 +30,7 @@ class ProductAddedActionHandler extends AbstractActionHandler
             'product_id' => $this->getObjectId()
         ]);
 
-        if (!isset($posterProduct->response) || !$posterProduct->response) {
-            throw new PosterApiException('getProduct', $posterProduct);
-        }
+        Utils::assertResponse($posterProduct, 'getCategory');
 
         $posterProductEntity = new Product($posterProduct->response);
         $spot = $posterProductEntity->getSpots()[0];
@@ -60,9 +59,8 @@ class ProductAddedActionHandler extends AbstractActionHandler
             $posterCategory = PosterApi::menu()->getCategory([
                 'category_id' => $posterProductEntity->getMenuCategoryId()
             ]);
-            if (!isset($posterCategory->response) || !$posterCategory->response) {
-                throw new PosterApiException('getCategory', $posterCategory);
-            }
+            Utils::assertResponse($posterCategory, 'getCategory');
+
             $posterCategoryEntity = new Category($posterCategory->response);
 
             $salesboxCategory = SalesboxApi::getCategoryByExternalId($posterCategoryEntity->getId());

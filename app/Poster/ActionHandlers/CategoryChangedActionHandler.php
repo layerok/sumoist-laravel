@@ -4,6 +4,7 @@ namespace App\Poster\ActionHandlers;
 
 use App\Poster\Entities\Category;
 use App\Poster\PosterApiException;
+use App\Poster\Utils;
 use GuzzleHttp\Middleware;
 use poster\src\PosterApi;
 use App\Salesbox\Facades\SalesboxApi;
@@ -25,9 +26,7 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
             'category_id' => $posterId
         ]);
 
-        if (!isset($posterCategoryRes->response) || !$posterCategoryRes->response) {
-            throw new PosterApiException('getCategory', $posterCategoryRes);
-        }
+        Utils::assertResponse($posterCategoryRes, 'getCategory');
 
         // todo: not sure if need this abstraction
         $posterEntity = new Category($posterCategoryRes->response);
@@ -87,9 +86,7 @@ class CategoryChangedActionHandler extends AbstractActionHandler  {
             'category_id' => $posterId
         ]);
 
-        if (!isset($posterCategoryRes->response) || !$posterCategoryRes->response) {
-            throw new PosterApiException('getCategory', $posterCategoryRes);
-        }
+        Utils::assertResponse($posterCategoryRes, 'getCategory');
 
         $posterEntity = new Category($posterCategoryRes->response);
 
