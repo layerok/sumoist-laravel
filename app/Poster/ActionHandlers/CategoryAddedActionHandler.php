@@ -29,11 +29,7 @@ class CategoryAddedActionHandler extends AbstractActionHandler {
 
         $posterEntity = new Category($posterCategoryRes->response);
 
-        $salesBoxCategoriesRes = SalesboxApi::getCategories();
-
-        $collection = collect($salesBoxCategoriesRes['data']);
-
-        $saleboxCategory = $collection->firstWhere('externalId', $posterId);
+        $saleboxCategory = SalesboxApi::getCategoryByExternalId($posterId);
 
         // if it already exists
         if($saleboxCategory) {
@@ -54,7 +50,7 @@ class CategoryAddedActionHandler extends AbstractActionHandler {
         ];
 
         if(!!$posterEntity->getParentCategory()) {
-            $salesboxParentCategory = $collection->firstWhere('externalId', $posterEntity->getParentCategory());
+            $salesboxParentCategory = SalesboxApi::getCategoryByExternalId($posterEntity->getParentCategory());
 
             if($salesboxParentCategory) {
                 $newSalesBoxCategory['parentId'] = $salesboxParentCategory['internalId'];
@@ -72,7 +68,9 @@ class CategoryAddedActionHandler extends AbstractActionHandler {
             $newSalesBoxCategory['originalURL'] = $url;
         }
 
-        $createManyRes = SalesboxApi::createCategory($newSalesBoxCategory);
+        $createManyRes = SalesboxApi::createCategory([
+            'category' => $newSalesBoxCategory
+        ]);
 
         return $createManyRes['data']['ids'][0];
     }

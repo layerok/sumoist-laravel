@@ -9,11 +9,7 @@ class CategoryRemovedActionHandler extends AbstractActionHandler
     public function handle(): bool
     {
         SalesboxApi::authenticate();
-
-        $salesboxCategoriesRes = SalesboxApi::getCategories();
-
-        $collection = collect($salesboxCategoriesRes['data']);
-        $salesboxCategory = $collection->firstWhere('externalId', $this->getObjectId());
+        $salesboxCategory = SalesboxApi::getCategoryByExternalId($this->getObjectId());
 
         if (!$salesboxCategory) {
             // category doesn't exist in salesbox
