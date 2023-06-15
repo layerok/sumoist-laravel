@@ -60,20 +60,10 @@ class Product {
         return $this->attributes->photo_origin;
     }
 
-    /**
-     * ->getPrice()->$spot_id
-     *
-     * @return object;
-     */
     public function getPrice($spot_id) {
         return $this->attributes->price->$spot_id;
     }
 
-    /**
-     * ->getPrice()->$spot_id
-     *
-     * @return object;
-     */
     public function getProfit($spot_id) {
         return $this->attributes->profit->$spot_id;
     }
