@@ -86,11 +86,15 @@ class SalesboxApi {
     }
 
     public function createCategory($params = [], array $guzzleOptions = []): array {
-        return $this->createManyCategories([$params], $guzzleOptions);
+        return $this->createManyCategories([
+            'categories' => [$params['category']]
+        ], $guzzleOptions);
     }
 
     public function updateCategory(array $params = [], array $guzzleOptions = []): array {
-        return $this->updateManyCategories([$params], $guzzleOptions);
+        return $this->updateManyCategories([
+            'categories' => [$params['category']]
+        ], $guzzleOptions);
     }
 
     public function deleteCategory(array $params = [], array $guzzleOptions = []): array {
@@ -112,9 +116,9 @@ class SalesboxApi {
         return json_decode($res->getBody(), true);
     }
 
-    public function updateManyCategories(array $categories, array $guzzleOptions = []): array {
+    public function updateManyCategories(array $params = [], array $guzzleOptions = []): array {
         $json = [
-            'categories' => $categories
+            'categories' => $params['categories']
         ];
         $options = [
             'json' => $json
@@ -155,5 +159,22 @@ class SalesboxApi {
         $v4BaseUrl = 'https://prod.salesbox.me/api/v4/companies/' . $this->companyId . '/';
         $res = $this->guzzleClient->get($v4BaseUrl . 'offers/filter', $mergedOptions);
         return json_decode($res->getBody(), true);
+    }
+
+    public function createManyOffers(array $params = [], array $guzzleOptions = []): array {
+        $options = [
+            'json' => [
+                'offers' => $params['offers']
+            ]
+        ];
+        $mergedOptions = array_merge($options, $guzzleOptions);
+        $res = $this->guzzleClient->post('offers/createMany', $mergedOptions);
+        return json_decode($res->getBody(), true);
+    }
+
+    public function getCategoryByExternalId($id): ?array {
+        $categoriesRes = $this->getCategories();
+        $collection = collect($categoriesRes['data']);
+        return $collection->firstWhere('externalId', $id);
     }
 }
