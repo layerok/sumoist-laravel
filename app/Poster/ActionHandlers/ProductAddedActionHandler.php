@@ -14,9 +14,10 @@ class ProductAddedActionHandler extends AbstractActionHandler
     {
         $token = SalesboxApi::authenticate();
         SalesboxApiV4::authenticate($token);
-        $offer = SalesboxApiV4::getOfferByExternalId($this->getObjectId());
+        $allOffers = collect(SalesboxApiV4::getOffers()['data']);
+        $targetOffers = $allOffers->where('externalId', $this->getObjectId());
 
-        if (!$offer) {
+        if (!$targetOffers->count() < 1) {
             SalesboxOffer::create($this->getObjectId());
             return true;
         }

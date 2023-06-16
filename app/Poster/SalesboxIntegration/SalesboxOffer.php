@@ -9,6 +9,20 @@ use poster\src\PosterApi;
 
 class SalesboxOffer
 {
+
+    static protected function createCategoryIfNotExists($posterId) {
+        $salesboxCategories = collect(SalesboxApi::getCategories()['data']);
+        $salesboxCategory = $salesboxCategories->firstWhere('externalId', $posterId);
+        if(!$salesboxCategory) {
+            $posterCategoriesRes = PosterApi::menu()->getCategories();
+            Utils::assertResponse($posterCategoriesRes, 'getCategories');
+            $posterCategories = collect($posterCategoriesRes->response);
+
+            $salesboxCategory = SalesboxCategory::create($posterId, $salesboxCategories, $posterCategories);
+        }
+        return $salesboxCategory;
+    }
+
     static public function create($posterId): array {
         $posterProduct = PosterApi::menu()->getProduct([
             'product_id' => $posterId
@@ -16,39 +30,37 @@ class SalesboxOffer
 
         Utils::assertResponse($posterProduct, 'getProduct');
 
-        $posterProductEntity = new Product($posterProduct->response);
+        $posterProductEntity = new Product($posterProduct);
 
-        if(count($posterProductEntity->getModifications()) > 0) {
+        $common = [
+            'externalId' => $posterProductEntity->getProductId(),
+            'units' => 'pc',
+            'stockType' => 'endless',
+            'descriptions' => [],
+            'photos' => [],
+            'categories' => [],
+            'names' => []
+        ];
+
+        if ($posterProductEntity->getPhoto()) {
+            $common['photos'][] = [
+                'url' => config('poster.url') . $posterProductEntity->getPhotoOrigin(),
+                'previewURL' => config('poster.url') . $posterProductEntity->getPhoto(),
+                'order' => 0,
+                'type' => 'image',
+                'resourceType' => 'image'
+            ];
+        }
+
+        if(!!$posterProductEntity->getMenuCategoryId()) {
+            $salesboxCategory = self::createCategoryIfNotExists($posterProductEntity->getMenuCategoryId());
+            $common['categories'] = [$salesboxCategory['id']];
+        }
+
+        if(isset($posterProduct->response->modifications)) {
+
             // create offer with modifiers
             $offers = [];
-            $common = [
-                'externalId' => $posterProductEntity->getProductId(),
-                'units' => 'pc',
-                'stockType' => 'endless',
-                'descriptions' => [],
-                'photos' => [],
-                'categories' => [],
-                'names' => []
-            ];
-
-            if($posterProductEntity->getMenuCategoryId() !== '0') {
-                $categories = collect(SalesboxApi::getCategories()['data']);
-                $category = $categories->firstWhere('externalId', $posterProductEntity->getMenuCategoryId());
-                if(!$category) {
-                    $category = SalesboxCategory::create($posterProductEntity->getMenuCategoryId(), $categories);
-                }
-                $common['categories'] = [$category['id']];
-            }
-
-            if ($posterProductEntity->getPhoto()) {
-                $common['photos'][] = [
-                    'url' => config('poster.url') . $posterProductEntity->getPhotoOrigin(),
-                    'previewURL' => config('poster.url') . $posterProductEntity->getPhoto(),
-                    'order' => 0,
-                    'type' => 'image',
-                    'resourceType' => 'image'
-                ];
-            }
 
             foreach($posterProductEntity->getModifications() as $modification) {
                 $spot = $modification->spots[0];
@@ -76,11 +88,8 @@ class SalesboxOffer
         $spot = $posterProductEntity->getSpots()[0];
 
         $offer = [
-            'units' => 'pc',
-            'stockType' => 'endless',
             'available' => !$posterProductEntity->isHidden($spot->spot_id),
             'price' =>  intval($posterProductEntity->getPrice($spot->spot_id)) / 100,
-            'externalId' => $posterProductEntity->getProductId(),
         ];
 
         $offer['names'] = [
@@ -90,35 +99,12 @@ class SalesboxOffer
             ]
         ];
 
-        $offer['descriptions'] = [];
-        $offer['categories'] = [];
-
-        if(!!$posterProductEntity->getMenuCategoryId()) {
-            $categories = collect(SalesboxApi::getCategories()['data']);
-            $category = $categories->firstWhere('externalId', $posterProductEntity->getMenuCategoryId());
-            if(!$category) {
-                $category = SalesboxCategory::create($posterProductEntity->getMenuCategoryId(), $categories);
-            }
-
-            $offer['categories'][] = $category['id'];
-        }
-
-        $offer['photos'] = [];
-        if ($posterProductEntity->getPhoto()) {
-            $offer['photos'][] = [
-                'url' => config('poster.url') . $posterProductEntity->getPhotoOrigin(),
-                'previewURL' => config('poster.url') . $posterProductEntity->getPhoto(),
-                'order' => 0,
-                'type' => 'image',
-                'resourceType' => 'image'
-            ];
-        }
-
         $createResp = SalesboxApi::createManyOffers([
-            'offers' => [$offer]
+            'offers' => [array_merge($offer, $common)]
         ]);
 
         return $createResp['data']['ids'];
+
     }
 
     static public function update($posterId, $offer) {
@@ -137,15 +123,9 @@ class SalesboxOffer
             'available' => !$posterProductEntity->isHidden($spot->spot_id)
         ];
 
-        if($posterProductEntity->getMenuCategoryId() != '0') {
-            $categories = collect(SalesboxApi::getCategories()['data']);
-            $category = $categories->firstWhere('externalId', $posterId);
-
-            if(!$category) {
-                $category = SalesboxCategory::create($posterProductEntity->getMenuCategoryId(), $categories);
-            }
-
-            $updatedOffer['categories'][] = $category['id'];
+        if(!!$posterProductEntity->getMenuCategoryId()) {
+            $salesboxCategory = self::createCategoryIfNotExists($posterProductEntity->getMenuCategoryId());
+            $updatedOffer['categories'][] = $salesboxCategory['id'];
         }
 
         // update photo only it isn't already present

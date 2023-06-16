@@ -32,10 +32,6 @@ class Category {
         return $this->attributes->level;
     }
 
-    public function isHidden(): bool {
-        return $this->attributes->category_hidden;
-    }
-
     public function getParentCategory() {
         return $this->attributes->parent_category;
     }

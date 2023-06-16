@@ -7,5 +7,6 @@ class Utils {
         if (!isset($response->response) || !$response->response) {
             throw new PosterApiException($method, $response);
         }
+        return $response;
     }
 }

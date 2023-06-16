@@ -3,22 +3,28 @@
 namespace App\Poster\ActionHandlers;
 
 use App\Poster\SalesboxIntegration\SalesboxCategory;
+use App\Poster\Utils;
 use App\Salesbox\Facades\SalesboxApi;
+use poster\src\PosterApi;
 
 class CategoryChangedActionHandler extends AbstractActionHandler  {
 
     public function handle(): bool
     {
         SalesboxApi::authenticate();
-        $categories = collect(SalesboxApi::getCategories()['data']);
-        $category = $categories->firstWhere('externalId', $this->getObjectId());
+        $salesboxCategories = collect(SalesboxApi::getCategories()['data']);
+        $salesboxCategory = $salesboxCategories->firstWhere('externalId', $this->getObjectId());
 
-        if(!$category) {
-            SalesboxCategory::create($this->getObjectId(), $categories);
+        $posterCategoriesRes = Utils::assertResponse(PosterApi::menu()->getCategories(), 'getCategories');
+        Utils::assertResponse($posterCategoriesRes, 'getCategories');
+        $posterCategories = collect($posterCategoriesRes->response);
+
+        if(!$salesboxCategory) {
+            SalesboxCategory::create($this->getObjectId(), $salesboxCategories, $posterCategories);
             return true;
         }
 
-        SalesboxCategory::update($this->getObjectId(), $category, $categories);
+        SalesboxCategory::update($this->getObjectId(), $salesboxCategory, $salesboxCategories, $posterCategories);
         return true;
     }
 }

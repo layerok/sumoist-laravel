@@ -3,50 +3,41 @@
 namespace App\Poster\SalesboxIntegration;
 
 use App\Poster\Entities\Category;
-use App\Poster\Utils;
 use App\Salesbox\Facades\SalesboxApi;
 use Illuminate\Support\Collection;
-use poster\src\PosterApi;
 use function config;
 
 class SalesboxCategory
 {
+    static public function create($posterId, Collection $salesboxCategories, Collection $posterCategories) {
 
-    static public function create($posterId, Collection $categories) {
+        $posterCategory = $posterCategories->firstWhere('category_id', $posterId);
 
-        $posterCategoryRes = PosterApi::menu()->getCategory([
-            'category_id' => $posterId
-        ]);
-
-        Utils::assertResponse($posterCategoryRes, 'getCategory');
-
-        $posterEntity = new Category($posterCategoryRes->response);
-
-        $names = [
-            [
-                'name' => $posterEntity->getName(),
-                'lang' => 'uk'
-            ]
-        ];
+        $posterEntity = new Category($posterCategory);
 
         $newSalesBoxCategory = [
-            'available' => !$posterEntity->isHidden(),
-            'names' => $names,
+            'available' => !!$posterEntity->getVisible()[0]->visible,
+            'names' => [
+                [
+                    'name' => $posterEntity->getName(),
+                    'lang' => 'uk'
+                ]
+            ],
             'externalId' => $posterId
         ];
-
-        if(!!$posterEntity->getParentCategory()) {
-            $parentCategory = $categories->firstWhere('externalId', $posterId);
-            if(!$parentCategory) {
-                $parentCategory = self::create($posterId, $categories);
-            }
-            $newSalesBoxCategory['parentId'] = $parentCategory['internalId'];
-        }
 
         if($posterEntity->getPhoto()) {
             $url = config('poster.url') . $posterEntity->getPhoto();
             $newSalesBoxCategory['previewURL'] = $url;
             $newSalesBoxCategory['originalURL'] = $url;
+        }
+
+        if(!!$posterEntity->getParentCategory()) {
+            $parentCategory = $salesboxCategories->firstWhere('externalId', $posterEntity->getParentCategory());
+            if(!$parentCategory) {
+                $parentCategory = self::create($posterEntity->getParentCategory(), $salesboxCategories, $posterCategories);
+            }
+            $newSalesBoxCategory['parentId'] = $parentCategory['internalId'];
         }
 
         $createManyRes = SalesboxApi::createCategory([
@@ -56,35 +47,27 @@ class SalesboxCategory
         return $createManyRes['data']['ids'][0];
     }
 
-    static public function update($posterId, $category, Collection $categories) {
+    static public function update($posterId, $salesboxCategory, Collection $salesboxCategories, Collection $posterCategories) {
 
-        $posterCategoryRes = PosterApi::menu()->getCategory([
-            'category_id' => $posterId
-        ]);
+        $posterCategory = $posterCategories->firstWhere('category_id', $posterId);
 
-        Utils::assertResponse($posterCategoryRes, 'getCategory');
-
-        // todo: not sure if need this abstraction
-        $posterEntity = new Category($posterCategoryRes->response);
-
-        $names = [
-            [
-                'name' => $posterEntity->getName(),
-                'lang' => 'uk' // todo: should this language be configurable?
-            ]
-        ];
+        $posterEntity = new Category($posterCategory);
 
         $changedCategory = [
-            'id' => $category['id'],
-            'available' => !$posterEntity->isHidden(),
-            'names' => $names,
-            // 'externalId' => $posterEntity->getId() // externalId update makes no sense
+            'id' => $salesboxCategory['id'],
+            'available' => !!$posterEntity->getVisible()[0]->visible,
+            'names' => [
+                [
+                    'name' => $posterEntity->getName(),
+                    'lang' => 'uk' // todo: should this language be configurable?
+                ]
+            ],
         ];
 
         if(!!$posterEntity->getParentCategory()) {
-            $parentCategory = $categories->firstWhere('externalId', $posterId);
+            $parentCategory = $salesboxCategories->firstWhere('externalId', $posterEntity->getParentCategory());
             if(!$parentCategory) {
-                $parentCategory = self::create($posterId, $categories);
+                $parentCategory = self::create($posterEntity->getParentCategory(), $salesboxCategories, $posterCategories);
             }
             $changedCategory['parentId'] = $parentCategory['internalId'];
         }
