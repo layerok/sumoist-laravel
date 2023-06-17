@@ -29,7 +29,7 @@ class SalesboxOffer
         SalesboxApiV4::authenticate($accessToken);
 
 
-        $salesbox_offers = collect(SalesboxApiV4::getOffers()['data']);
+        $salesbox_offers = collect(SalesboxApiV4::getOffers()->data);
         $salesbox_relatedOffers = $salesbox_offers->where('externalId', $product->product_id);
 
         $poster_productModifications = collect($product->modifications);
@@ -128,7 +128,7 @@ class SalesboxOffer
         $res = SalesboxApi::createManyOffers([
             'offers' => $offers
         ]);
-        return $res['data']['ids'];
+        return $res->data->ids;
     }
 
     /**
@@ -139,7 +139,7 @@ class SalesboxOffer
     {
         $token = SalesboxApi::authenticate();
         SalesboxApiV4::authenticate($token);
-        $allOffers = collect(SalesboxApiV4::getOffers()['data']);
+        $allOffers = collect(SalesboxApiV4::getOffers()->data);
         // poster product either has modifications, either doesn't
         // and it can't be changed
         // so here we update just single offer
@@ -257,6 +257,12 @@ class SalesboxOffer
         }
 
         return true;
+    }
+
+    protected static function getOfferByExternalId($id): ?array {
+        $res = SalesboxApiV4::getOffers();
+        $collection = collect($res->data);
+        return $collection->firstWhere('externalId', $id);
     }
 
     static public function delete($posterId)

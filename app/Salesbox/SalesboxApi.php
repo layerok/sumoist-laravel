@@ -125,7 +125,12 @@ class SalesboxApi {
         ], $guzzleOptions);
     }
 
-    public function deleteCategory(array $params = [], array $guzzleOptions = []): array {
+    /**
+     * @param array $params
+     * @param array $guzzleOptions
+     * @return SalesboxApiResponse_meta
+     */
+    public function deleteCategory(array $params = [], array $guzzleOptions = []) {
         return $this->deleteManyCategories([
             'ids' => [$params['id']],
             'recursively' => $params['recursively']
@@ -166,8 +171,12 @@ class SalesboxApi {
         return json_decode($res->getBody());
     }
 
-
-    public function deleteManyCategories(array $params = [], array $guzzleOptions = []): array {
+    /**
+     * @param array $params
+     * @param array $guzzleOptions
+     * @return SalesboxApiResponse_meta
+     */
+    public function deleteManyCategories(array $params = [], array $guzzleOptions = []) {
         $json = [
             'ids' => $params['ids']
         ];
@@ -181,10 +190,15 @@ class SalesboxApi {
         }
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->delete('categories', $mergedOptions);
-        return json_decode($res->getBody(), true);
+        return json_decode($res->getBody());
     }
 
-    public function getOffers(array $params = [], array $guzzleOptions = []): array {
+    /**
+     * @param array $params
+     * @param array $guzzleOptions
+     * @return SalesboxApiResponse_meta
+     */
+    public function getOffers(array $params = [], array $guzzleOptions = []) {
         // onlyAvailable, isGrouped, page, pageSize - query params
         $query = [
             'lang' => $this->lang
@@ -195,10 +209,15 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->get('offers/filter', $mergedOptions);
-        return json_decode($res->getBody(), true);
+        return json_decode($res->getBody());
     }
 
-    public function createManyOffers(array $params = [], array $guzzleOptions = []): array {
+    /**
+     * @param array $params
+     * @param array $guzzleOptions
+     * @return SalesboxApiResponse_meta
+     */
+    public function createManyOffers(array $params = [], array $guzzleOptions = []) {
         $options = [
             'json' => [
                 'offers' => $params['offers']
@@ -206,10 +225,15 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->post('offers/createMany', $mergedOptions);
-        return json_decode($res->getBody(), true);
+        return json_decode($res->getBody());
     }
 
-    public function updateManyOffers(array $params = [], array $guzzleOptions = []): array {
+    /**
+     * @param array $params
+     * @param array $guzzleOptions
+     * @return SalesboxApiResponse_meta
+     */
+    public function updateManyOffers(array $params = [], array $guzzleOptions = []) {
         $options = [
             'json' => [
                 'offers' => $params['offers']
@@ -217,30 +241,15 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->post('offers/updateMany', $mergedOptions);
-        return json_decode($res->getBody(), true);
+        return json_decode($res->getBody());
     }
 
-    public function getCategoryByExternalId($id): ?array {
-        $categoriesRes = $this->getCategories();
-        $collection = collect($categoriesRes['data']);
-        return $collection->firstWhere('externalId', $id);
-    }
-
-    public function deleteCategoryByExternalId($id, $recursively = false): ?array {
-        $category = $this->getCategoryByExternalId($id);
-
-        if (!$category) {
-            // todo: should I throw exception if category doesn't exist?
-            return null;
-        }
-
-        return $this->deleteCategory([
-            'id' => $category['id'],
-            'recursively' => $recursively
-        ], []);
-    }
-
-    public function deleteManyOffers(array $params = [], array $guzzleOptions = []): array {
+    /**
+     * @param array $params
+     * @param array $guzzleOptions
+     * @return SalesboxApiResponse_meta
+     */
+    public function deleteManyOffers(array $params = [], array $guzzleOptions = []) {
         $json = [
             'ids' => $params['ids']
         ];
@@ -249,6 +258,6 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->delete('offers', $mergedOptions);
-        return json_decode($res->getBody(), true);
+        return json_decode($res->getBody());
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Poster\SalesboxIntegration;
 
-
 use App\Poster\CacheKeys;
 use App\Poster\meta\PosterApiResponse_meta;
 use App\Poster\meta\PosterCategory_meta;
@@ -182,12 +181,27 @@ class SalesboxCategory
         return $salesbox_updatedCategory;
     }
 
+    /**
+     * @param $posterId
+     * @return SalesboxApiResponse_meta|null
+     */
     public static function delete($posterId)
     {
         self::authenticate();
+
+        $category = self::salesbox_getCategory($posterId);
+
+        if (!$category) {
+            // todo: should I throw exception if category doesn't exist?
+            return null;
+        }
+
         // recursively=true is important,
         // without this param salesbox will throw an error if the category being deleted has child categories
-        SalesboxApi::deleteCategoryByExternalId($posterId, true);
+        return SalesboxApi::deleteCategory([
+            'id' => $category['id'],
+            'recursively' => true
+        ], []);
     }
 
 }

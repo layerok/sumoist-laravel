@@ -2,6 +2,7 @@
 
 namespace App\Salesbox;
 
+use App\Salesbox\meta\SalesboxApiResponse_meta;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Utils;
@@ -50,7 +51,11 @@ class SalesboxApiV4 {
         $this->accessToken = $token;
     }
 
-    public function getAccessToken(array $params = []): array {
+    /**
+     * @param array $params
+     * @return meta\SalesboxApiResponse_meta
+     */
+    public function getAccessToken(array $params = []) {
         return SalesboxApi::getAccessToken($params);
     }
 
@@ -68,7 +73,12 @@ class SalesboxApiV4 {
         return $token;
     }
 
-    public function getOffers(array $params = [], array $guzzleOptions = []): array {
+    /**
+     * @param array $params
+     * @param array $guzzleOptions
+     * @return SalesboxApiResponse_meta
+     */
+    public function getOffers(array $params = [], array $guzzleOptions = []) {
         // onlyAvailable, isGrouped, page, pageSize - query params
         $query = [
             'lang' => $this->lang
@@ -79,12 +89,7 @@ class SalesboxApiV4 {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->get( 'offers/filter', $mergedOptions);
-        return json_decode($res->getBody(), true);
+        return json_decode($res->getBody());
     }
 
-    public function getOfferByExternalId($id): ?array {
-        $res = $this->getOffers();
-        $collection = collect($res['data']);
-        return $collection->firstWhere('externalId', $id);
-    }
 }
