@@ -2,20 +2,18 @@
 
 namespace App\Poster\SalesboxIntegration;
 
-use App\Poster\meta\PosterApiResponse_meta;
-use App\Poster\meta\PosterProduct_meta;
+use App\Poster\PosterApiWrapper;
+use App\Poster\SalesboxApiWrapper;
 use App\Poster\Utils;
 use App\Salesbox\Facades\SalesboxApi;
-use App\Salesbox\Facades\SalesboxApiV4;
-use poster\src\PosterApi;
 
 class SalesboxOffer
 {
     /**
-     * @param PosterProduct_meta $product
+     * @param $posterId
      * @return mixed
      */
-    protected static function syncProductWithModifications($product)
+    public static function syncProductWithModifications($posterId, $menuCategoryId = null)
     {
         // logic for syncing product with modifications
 
@@ -25,12 +23,10 @@ class SalesboxOffer
         // 3. modifications could have been updated on product
 
         // authenticate in salesbox
-        $accessToken = SalesboxApi::authenticate();
-        SalesboxApiV4::authenticate($accessToken);
+        SalesboxApiWrapper::authenticateV4();
+        $product = PosterApiWrapper::getProduct($posterId);
 
-
-        $salesbox_offers = collect(SalesboxApiV4::getOffers()->data);
-        $salesbox_relatedOffers = $salesbox_offers->where('externalId', $product->product_id);
+        $salesbox_relatedOffers = SalesboxApiWrapper::getOffers($product->product_id);
 
         $poster_productModifications = collect($product->modifications);
 
@@ -89,9 +85,8 @@ class SalesboxOffer
             ];
         }
 
-        if (!!$product->menu_category_id) {
-            $salesboxCategory = SalesboxCategory::sync($product->menu_category_id);
-            $common['categories'] = [$salesboxCategory['id']];
+        if (!!$menuCategoryId) {
+            $common['categories'] = [$menuCategoryId];
         }
 
         // create offer with modifiers
@@ -131,85 +126,107 @@ class SalesboxOffer
         return $res->data->ids;
     }
 
+    public static function getJsonForProductWithModifications($posterId) {
+
+    }
+
     /**
-     * @param PosterProduct_meta $product
+     * @param string|int $posterId
      * @return array|mixed
      */
-    protected static function syncSingleSimpleProduct($product)
+    public static function syncSimpleProduct($posterId)
     {
-        $token = SalesboxApi::authenticate();
-        SalesboxApiV4::authenticate($token);
-        $allOffers = collect(SalesboxApiV4::getOffers()->data);
-        // poster product either has modifications, either doesn't
-        // and it can't be changed
-        // so here we update just single offer
-        $offer = $allOffers->firstWhere('externalId', $product->product_id);
-        if (!$offer) {
-            $common = [
-                'externalId' => $product->product_id,
-                'units' => 'pc',
-                'stockType' => 'endless',
-                'descriptions' => [],
-                'photos' => [],
-                'categories' => [],
-                'names' => []
-            ];
+        $salesbox_offer = SalesboxApiWrapper::getOffer($posterId);
+        $poster_product = PosterApiWrapper::getProduct($posterId);
 
-            if ($product->photo) {
-                $common['photos'][] = [
-                    'url' => config('poster.url') . $product->photo_origin,
-                    'previewURL' => config('poster.url') . $product->photo,
-                    'order' => 0,
-                    'type' => 'image',
-                    'resourceType' => 'image'
-                ];
-            }
-
-            if (!!$product->menu_category_id) {
-                $salesboxCategory = SalesboxCategory::sync($product->menu_category_id);
-                $common['categories'] = [$salesboxCategory['id']];
-            }
-
-
-            // create offer without modifiers
-            $spot = $product->spots[0];
-
-            $offer = [
-                'available' => !Utils::productIsHidden($product, $spot->spot_id),
-                'price' => intval('100') / 100,
-            ];
-
-            $offer['names'] = [
-                [
-                    'name' => $product->product_name,
-                    'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
-                ]
-            ];
-
-            $createResp = SalesboxApi::createManyOffers([
-                'offers' => [array_merge($offer, $common)]
+        if($salesbox_offer) {
+            // todo: fix this
+            $categoryId = $poster_product->menu_category_id;
+            $offersJson = self::getJsonForSimpleProductUpdate($posterId, $categoryId);
+            SalesboxApi::updateManyOffers([
+                'offers' => $offersJson
             ]);
+        } else {
+            // todo: fix this
+            $categoryId = $poster_product->menu_category_id;
+            $offersJson = self::getJsonForSimpleProductCreation($posterId, $categoryId);
+            SalesboxApi::createManyOffers([
+                'offers' => $offersJson
+            ]);
+        }
 
-            return $createResp['data']['ids'];
+    }
+
+    public static function getJsonForSimpleProductCreation($posterId, $menuCategoryId) {
+        SalesboxApiWrapper::authenticateV4();
+        $poster_product = PosterApiWrapper::getProduct($posterId);
+
+        $json = [
+            'externalId' => $poster_product->product_id,
+            'units' => 'pc',
+            'stockType' => 'endless',
+            'descriptions' => [],
+            'photos' => [],
+            'categories' => [],
+            'names' => []
+        ];
+
+        if ($poster_product->photo) {
+            $json['photos'][] = [
+                'url' => config('poster.url') . $poster_product->photo_origin,
+                'previewURL' => config('poster.url') . $poster_product->photo,
+                'order' => 0,
+                'type' => 'image',
+                'resourceType' => 'image'
+            ];
+        }
+
+        if (!!$poster_product->menu_category_id) {
+            $json['categories'] = [$menuCategoryId];
         }
 
 
+        // create offer without modifiers
+        $spot = $poster_product->spots[0];
+
+        $json = [
+            'available' => !Utils::productIsHidden($poster_product, $spot->spot_id),
+            'price' => intval('100') / 100,
+        ];
+
+        $json['names'] = [
+            [
+                'name' => $poster_product->product_name,
+                'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
+            ]
+        ];
+
+        return [$json];
+    }
+
+
+    public static function getJsonForSimpleProductUpdate($posterId, $menuCategoryId) {
+        SalesboxApiWrapper::authenticateV4();
+        $product = PosterApiWrapper::getProduct($posterId);
+
+        $offer = SalesboxApiWrapper::getOffer($product->product_id);
+
         $spot = $product->spots[0];
 
-        $updatedOffer = [
+        $json = [
             'id' => $offer['id'],
             'price' => intval('100') / 100,
             'available' => !Utils::productIsHidden($product, $spot->spot_id)
         ];
 
         if (!!$product->menu_category_id) {
-            $salesboxCategory = SalesboxCategory::sync($product->menu_category_id);
-            $updatedOffer['categories'][] = $salesboxCategory['id'];
+            // todo: find salesbox category id by external id here
+            $json['categories'][] = $menuCategoryId;
         }
 
         // update photo only it isn't already present
         if (!$offer['originalURL'] && $product->photo) {
-            $updatedOffer['photos'] = [
+            $json['photos'] = [
                 [
                     'url' => config('poster.url') . $product->photo_origin,
                     'previewURL' => config('poster.url') . $product->photo,
@@ -219,50 +236,7 @@ class SalesboxOffer
                 ]
             ];
         }
-
-        return SalesboxApi::updateManyOffers([
-            'offers' => [
-                $updatedOffer
-            ]
-        ]);
-    }
-
-    public static function sync($posterId): bool
-    {
-        /** @var PosterApiResponse_meta $posterProductsResponse */
-        $posterProductsResponse = perRequestCache()
-            ->rememberForever('poster.products', function () {
-                return PosterApi::menu()->getProducts();
-            });
-
-        Utils::assertResponse($posterProductsResponse, 'getProducts');
-
-        $posterProductsCollection = collect($posterProductsResponse->response);
-
-
-        $productKey = $posterProductsCollection->search(
-            /** @param $product PosterProduct_meta */
-            function ($product) use ($posterId) {
-                return $product->product_id === $posterId;
-            }
-        );
-        /** @var PosterProduct_meta $product */
-        $product = $posterProductsCollection->get($productKey);
-
-        // branch logic depending on presence of modifications
-        if (property_exists($product, 'modifications')) {
-            self::syncProductWithModifications($product);
-        } else {
-            self::syncSingleSimpleProduct($product);
-        }
-
-        return true;
-    }
-
-    protected static function getOfferByExternalId($id): ?array {
-        $res = SalesboxApiV4::getOffers();
-        $collection = collect($res->data);
-        return $collection->firstWhere('externalId', $id);
+        return [$json];
     }
 
     static public function delete($posterId)
