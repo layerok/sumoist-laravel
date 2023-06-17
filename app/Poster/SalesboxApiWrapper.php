@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 
 class SalesboxApiWrapper {
     /**
-     * @param $posterId
+     * @param string|int $externalId
      * @return SalesboxCategory_meta | null
      */
     static public function getCategory($externalId)
@@ -24,6 +24,7 @@ class SalesboxApiWrapper {
     {
         return !!self::getCategory($posterId);
     }
+
     static public function getCategories(): Collection
     {
         self::authenticate();
