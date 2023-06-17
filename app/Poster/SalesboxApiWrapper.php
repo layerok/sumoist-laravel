@@ -16,11 +16,9 @@ class SalesboxApiWrapper {
      */
     static public function getCategory($externalId)
     {
-        return self::getCategories()->filter(
-        /** @param SalesboxCategory_meta $category */
-            function ($category) use ($externalId) {
-                return $category->externalId === $externalId;
-            })->first();
+        return self::getCategories()
+            ->filter(salesbox_filterCategoriesByExternalId($externalId))
+            ->first();
     }
     static public function categoryExists($posterId)
     {
@@ -67,12 +65,8 @@ class SalesboxApiWrapper {
         });
         $collection = collect($response->data);
         if($posterId) {
-            $collection = $collection->filter(
-            /* @param SalesboxOfferV4_meta $offer */
-                function ($offer) use ($posterId) {
-                    return $offer->externalId == $posterId;
-                }
-            );
+            $collection = $collection
+                ->filter(salesbox_filterOffersByExternalId($posterId));
         }
         return $collection;
     }

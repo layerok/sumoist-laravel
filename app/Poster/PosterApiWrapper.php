@@ -5,7 +5,6 @@ namespace App\Poster;
 use App\Poster\meta\PosterApiResponse_meta;
 use App\Poster\meta\PosterCategory_meta;
 use App\Poster\meta\PosterProduct_meta;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use poster\src\PosterApi;
 
@@ -31,12 +30,8 @@ class PosterApiWrapper
     static public function getCategory($posterId)
     {
         return self::getCategories()
-            ->filter(
-            /** @param PosterCategory_meta $category */
-                function ($category) use ($posterId) {
-                    return $category->category_id == $posterId;
-                }
-            )->first();
+            ->filter(poster_filterCategoriesById($posterId))
+            ->first();
     }
 
 
@@ -58,7 +53,7 @@ class PosterApiWrapper
     {
         /** @var PosterApiResponse_meta $posterProductsResponse */
         $poster_productsResponse = perRequestCache()
-            ->rememberForever('poster.products', function () {
+            ->rememberForever(CacheKeys::POSTER_PRODUCTS, function () {
                 return PosterApi::menu()->getProducts();
             });
 
@@ -67,15 +62,8 @@ class PosterApiWrapper
         $collection = collect($poster_productsResponse->response);
 
         if (!is_null($poster_ids)) {
-            $poster_ids = Arr::wrap($poster_ids);
-            $collection = $collection->filter(
-            /**
-             * @param PosterProduct_meta $product
-             */
-                function ($product) use ($poster_ids) {
-                    return in_array($product->product_id, $poster_ids);
-                }
-            );
+            $collection = $collection
+                ->filter(poster_filterProductsById($poster_ids));
         }
         return $collection;
     }
@@ -86,9 +74,8 @@ class PosterApiWrapper
      */
     public static function getProduct($posterId)
     {
-        return self::getProducts()->filter(/** @param $product PosterProduct_meta */
-            function ($product) use ($posterId) {
-                return $product->product_id === $posterId;
-            })->first();
+        return self::getProducts()
+            ->filter(poster_filterProductsById($posterId))
+            ->first();
     }
 }
