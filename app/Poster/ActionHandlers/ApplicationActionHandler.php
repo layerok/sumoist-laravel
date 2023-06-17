@@ -2,7 +2,7 @@
 
 namespace App\Poster\ActionHandlers;
 
-class ApplicationTestActionHandler extends AbstractActionHandler  {
+class ApplicationActionHandler extends AbstractActionHandler  {
     public function handle(): bool
     {
         return true;

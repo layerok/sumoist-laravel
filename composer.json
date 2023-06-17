@@ -41,6 +41,9 @@
         }
     },
     "autoload": {
+        "files": [
+            "app/Poster/helpers.php"
+        ],
         "psr-4": {
             "App\\": "app/"
         },

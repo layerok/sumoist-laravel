@@ -2,6 +2,7 @@
 
 namespace App\Salesbox;
 
+use App\Salesbox\meta\SalesboxApiResponse_meta;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Utils;
@@ -15,6 +16,10 @@ class SalesboxApi {
     protected $phone;
     protected $lang;
     protected $accessToken;
+    /**
+     * @property HandlerStack $handler
+     */
+    protected $handler;
 
     public function __construct(array $config = [])
     {
@@ -25,9 +30,9 @@ class SalesboxApi {
 
         $baseUrl ='https://prod.salesbox.me/api/' . $this->openApiId. '/';
 
-        $handler = HandlerStack::create();
+        $this->handler = HandlerStack::create();
 
-        $handler->push(Middleware::mapRequest(function (RequestInterface $request) {
+        $this->handler->push(Middleware::mapRequest(function (RequestInterface $request) {
             if($this->accessToken) {
                 return Utils::modifyRequest($request, [
                     'set_headers' => [
@@ -40,23 +45,31 @@ class SalesboxApi {
 
         $baseConfig = [
             'base_uri' => $baseUrl,
-            'handler' => $handler
+            'handler' => $this->handler
         ];
         $this->guzzleClient = new Client($baseConfig);
+    }
+
+    public function getGuzzleHandler(): HandlerStack {
+        return $this->handler;
     }
 
     protected function setAccessToken($token): void {
         $this->accessToken = $token;
     }
 
-    public function getAccessToken(array $params = []): array {
+    /**
+     * @param array $params
+     * @return SalesboxApiResponse_meta
+     */
+    public function getAccessToken(array $params = []) {
         $res = $this->guzzleClient->post('auth', [
             'json' => [
                 'phone' => $this->phone
             ],
             'query' => $params
         ]);
-        return json_decode($res->getBody(), true);
+        return json_decode($res->getBody());
     }
 
     public function authenticate($providedToken = ''): string {
@@ -67,13 +80,18 @@ class SalesboxApi {
 
         $authRes = $this->getAccessToken();
 
-        $token = $authRes['data']['token'];
+        $token = $authRes->data->token;
 
         $this->setAccessToken($token);
         return $token;
     }
 
-    public function getCategories($params = [], array $guzzleOptions = []): array {
+    /**
+     * @param $params
+     * @param array $guzzleOptions
+     * @return SalesboxApiResponse_meta
+     */
+    public function getCategories($params = [], array $guzzleOptions = []) {
         $query = [
             'lang' => $this->lang
         ];
@@ -82,16 +100,26 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->get('categories', $mergedOptions);
-        return json_decode($res->getBody(), true);
+        return json_decode($res->getBody());
     }
 
-    public function createCategory($params = [], array $guzzleOptions = []): array {
+    /**
+     * @param $params
+     * @param array $guzzleOptions
+     * @return SalesboxApiResponse_meta
+     */
+    public function createCategory($params = [], array $guzzleOptions = []) {
         return $this->createManyCategories([
             'categories' => [$params['category']]
         ], $guzzleOptions);
     }
 
-    public function updateCategory(array $params = [], array $guzzleOptions = []): array {
+    /**
+     * @param array $params
+     * @param array $guzzleOptions
+     * @return SalesboxApiResponse_meta
+     */
+    public function updateCategory(array $params = [], array $guzzleOptions = []) {
         return $this->updateManyCategories([
             'categories' => [$params['category']]
         ], $guzzleOptions);
@@ -104,7 +132,12 @@ class SalesboxApi {
         ], $guzzleOptions);
     }
 
-    public function createManyCategories(array $params = [], array $guzzleOptions = []): array {
+    /**
+     * @param array $params
+     * @param array $guzzleOptions
+     * @return SalesboxApiResponse_meta
+     */
+    public function createManyCategories(array $params = [], array $guzzleOptions = []) {
         $json = [
             'categories' => $params['categories']
         ];
@@ -113,10 +146,15 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->post('categories/createMany', $mergedOptions);
-        return json_decode($res->getBody(), true);
+        return json_decode($res->getBody());
     }
 
-    public function updateManyCategories(array $params = [], array $guzzleOptions = []): array {
+    /**
+     * @param array $params
+     * @param array $guzzleOptions
+     * @return SalesboxApiResponse_meta
+     */
+    public function updateManyCategories(array $params = [], array $guzzleOptions = []) {
         $json = [
             'categories' => $params['categories']
         ];
@@ -125,7 +163,7 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->post('categories/updateMany', $mergedOptions);
-        return json_decode($res->getBody(), true);
+        return json_decode($res->getBody());
     }
 
 
@@ -200,5 +238,17 @@ class SalesboxApi {
             'id' => $category['id'],
             'recursively' => $recursively
         ], []);
+    }
+
+    public function deleteManyOffers(array $params = [], array $guzzleOptions = []): array {
+        $json = [
+            'ids' => $params['ids']
+        ];
+        $options = [
+            'json' => $json
+        ];
+        $mergedOptions = array_merge($options, $guzzleOptions);
+        $res = $this->guzzleClient->delete('offers', $mergedOptions);
+        return json_decode($res->getBody(), true);
     }
 }

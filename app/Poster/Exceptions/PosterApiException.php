@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Poster;
+namespace App\Poster\Exceptions;
 
 class PosterApiException extends \RuntimeException {
     public function __construct($method, $response)
