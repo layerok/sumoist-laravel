@@ -11,23 +11,6 @@ class CategoryActionHandler extends AbstractActionHandler
     public $pendingCategoryIdsForCreation = [];
     public $pendingCategoryIdsForUpdate = [];
 
-    public function checkParent($posterId)
-    {
-        $salesbox_category = collect(salesbox_fetchCategories())
-            ->filter(salesbox_filterCategoriesByExternalId($posterId))
-            ->first();
-        $poster_category = collect(poster_fetchCategories())
-            ->filter(poster_filterCategoriesById($posterId))
-            ->first();
-
-        if (!$salesbox_category) {
-            $this->pendingCategoryIdsForCreation[] = $posterId;
-        }
-
-        if (!!$poster_category->parent_category) {
-            $this->checkParent($poster_category->parent_category);
-        }
-    }
 
     public function handle(): bool
     {
@@ -44,7 +27,8 @@ class CategoryActionHandler extends AbstractActionHandler
 
             $posterId = $this->getObjectId();
 
-            $poster_category = collect(salesbox_fetchCategories())
+            /** @var PosterCategory_meta $poster_category */
+            $poster_category = collect(poster_fetchCategories())
                 ->filter(poster_filterCategoriesById($posterId))
                 ->first();
 
@@ -62,18 +46,11 @@ class CategoryActionHandler extends AbstractActionHandler
 
             // make updates
             if (count($this->pendingCategoryIdsForCreation) > 0) {
-                function mapCategoryToCreateJson(): \Closure
+                function mapToJson(): \Closure
                 {
                     /** @param PosterCategory_meta $category */
                     return function ($category) {
-                        $salesbox_parentCategory = collect(salesbox_fetchCategories())
-                            ->filter(salesbox_filterCategoriesByExternalId($category->parent_category))
-                            ->first();
-                        $parentId = $salesbox_parentCategory->internalId ?? $category->parent_category;
-
                         return SalesboxCategory::getJsonForCreation(
-                            $category->category_id,
-                            $parentId,
                             $category->category_id
                         );
                     };
@@ -81,7 +58,7 @@ class CategoryActionHandler extends AbstractActionHandler
 
                 $categories = collect(poster_fetchCategories())
                     ->filter(poster_filterCategoriesById($this->pendingCategoryIdsForCreation))
-                    ->map(mapCategoryToCreateJson())
+                    ->map(mapToJson())
                     ->values()
                     ->toArray();
 
@@ -91,17 +68,11 @@ class CategoryActionHandler extends AbstractActionHandler
             }
 
             if (count($this->pendingCategoryIdsForUpdate) > 0) {
-                function mapCategoryToUpdateJson(): \Closure
+                function mapToJson(): \Closure
                 {
                     /** @param PosterCategory_meta $category */
                     return function ($category) {
-                        $salesbox_parentCategory = collect(salesbox_fetchCategories())
-                            ->filter(salesbox_filterCategoriesByExternalId($category->parent_category))
-                            ->first();
-                        $parentId = $salesbox_parentCategory->internalId ?? $category->parent_category;
                         return SalesboxCategory::getJsonForUpdate(
-                            $category->category_id,
-                            $parentId,
                             $category->category_id
                         );
                     };
@@ -109,7 +80,7 @@ class CategoryActionHandler extends AbstractActionHandler
 
                 $categories = collect(poster_fetchCategories())
                     ->filter(poster_filterCategoriesById($this->pendingCategoryIdsForUpdate))
-                    ->map(mapCategoryToUpdateJson())
+                    ->map(mapToJson())
                     ->values()
                     ->toArray();
 
@@ -126,6 +97,24 @@ class CategoryActionHandler extends AbstractActionHandler
         }
 
         return true;
+    }
+
+    public function checkParent($posterId)
+    {
+        $salesbox_category = collect(salesbox_fetchCategories())
+            ->filter(salesbox_filterCategoriesByExternalId($posterId))
+            ->first();
+        $poster_category = collect(poster_fetchCategories())
+            ->filter(poster_filterCategoriesById($posterId))
+            ->first();
+
+        if (!$salesbox_category) {
+            $this->pendingCategoryIdsForCreation[] = $posterId;
+        }
+
+        if (!!$poster_category->parent_category) {
+            $this->checkParent($poster_category->parent_category);
+        }
     }
 
 

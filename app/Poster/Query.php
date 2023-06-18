@@ -7,7 +7,7 @@ class Query {
     public $queryFn;
     public function __construct(array $key, \Closure $queryFn)
     {
-        $this->key = implode($key, '.');
+        $this->key = implode( '.', $key);
         $this->queryFn = $queryFn;
     }
 }

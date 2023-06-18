@@ -18,29 +18,13 @@ class PosterServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->instance(QueryClient::class, function () {
-            return new QueryClient();
-        });
+        $this->app->instance(QueryClient::class, new QueryClient());
 
-        $this->app->instance(SalesboxCategoriesQuery::class, function () {
-            return new SalesboxCategoriesQuery();
-        });
-
-        $this->app->instance(SalesboxAccessTokenQuery::class, function () {
-            return new SalesboxAccessTokenQuery();
-        });
-
-        $this->app->instance(SalesboxOffersQuery::class, function () {
-            return new SalesboxOffersQuery();
-        });
-
-        $this->app->instance(PosterProductsQuery::class, function () {
-            return new PosterProductsQuery();
-        });
-
-        $this->app->instance(PosterCategoriesQuery::class, function () {
-            return new PosterCategoriesQuery();
-        });
+        $this->app->instance(SalesboxCategoriesQuery::class, new SalesboxCategoriesQuery());
+        $this->app->instance(SalesboxAccessTokenQuery::class, new SalesboxAccessTokenQuery());
+        $this->app->instance(SalesboxOffersQuery::class, new SalesboxOffersQuery());
+        $this->app->instance(PosterProductsQuery::class, new PosterProductsQuery());
+        $this->app->instance(PosterCategoriesQuery::class, new PosterCategoriesQuery());
     }
 
     /**

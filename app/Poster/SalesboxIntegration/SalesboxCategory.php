@@ -6,6 +6,7 @@ use App\Poster\meta\PosterCategory_meta;
 use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\meta\CreatedSalesboxCategory_meta;
 use App\Salesbox\meta\SalesboxApiResponse_meta;
+use App\Salesbox\meta\SalesboxCategory_meta;
 use App\Salesbox\meta\UpdatedSalesboxCategory_meta;
 
 class SalesboxCategory
@@ -16,9 +17,16 @@ class SalesboxCategory
      * @param null|string|int $internalId
      * @return array
      */
-    static public function getJsonForCreation($posterId, $parentId = null, $internalId = null): array {
+    static public function getJsonForCreation($posterId): array {
+
+        /** @var PosterCategory_meta $poster_category */
         $poster_category = collect(poster_fetchCategories())
             ->filter(poster_filterCategoriesById($posterId))
+            ->first();
+
+        /** @var SalesboxCategory_meta|null $salesbox_parentCategory */
+        $salesbox_parentCategory = collect(salesbox_fetchCategories())
+            ->filter(salesbox_filterCategoriesByExternalId($poster_category->parent_category))
             ->first();
 
         $json = [
@@ -29,8 +37,15 @@ class SalesboxCategory
                     'lang' => 'uk'
                 ]
             ],
+            'internalId' => $posterId,
             'externalId' => $posterId
         ];
+
+        if($salesbox_parentCategory) {
+            $json['parentId'] = $salesbox_parentCategory->internalId;
+        } else if (!!$poster_category->parent_category) {
+            $json['parentId'] = $poster_category->parent_category;
+        }
 
         if (!empty($poster_category->category_photo_origin)) {
             $json['originalURL'] = config('poster.url') . $poster_category->category_photo_origin;;
@@ -38,14 +53,6 @@ class SalesboxCategory
 
         if (!empty($poster_category->category_photo)) {
             $json['previewURL'] = config('poster.url') . $poster_category->category_photo;
-        }
-
-        if (!is_null($parentId)) {
-            $json['parentId'] = $parentId;
-        }
-
-        if (!is_null($internalId)) {
-            $json['internalId'] = $internalId;
         }
 
         return $json;
@@ -57,8 +64,9 @@ class SalesboxCategory
      * @param null|string|int $internalId
      * @return array
      */
-    static public function getJsonForUpdate($posterId, $parentId = null, $internalId = null): array {
+    static public function getJsonForUpdate($posterId): array {
 
+        /** @var SalesboxCategory_meta $salesbox_category */
         $salesbox_category = collect(salesbox_fetchCategories())
             ->filter(salesbox_filterCategoriesByExternalId($posterId))
             ->first();
@@ -66,6 +74,12 @@ class SalesboxCategory
         $poster_category = collect(poster_fetchCategories())
             ->filter(poster_filterCategoriesById($posterId))
             ->first();
+
+        /** @var SalesboxCategory_meta $salesbox_parentCategory */
+        $salesbox_parentCategory = collect(salesbox_fetchCategories())
+            ->filter(salesbox_filterCategoriesByExternalId($poster_category->parent_category))
+            ->first();
+
 
         $json = [
             'id' => $salesbox_category->id,
@@ -81,13 +95,10 @@ class SalesboxCategory
             'photos' => [],
         ];
 
-        if (!!$parentId) {
-            // todo: not sure if I should use posterId as parentId
-            $json['parentId'] = $parentId;
-        }
-
-        if(!!$internalId) {
-            $json['internalId'] = $internalId;
+        if($salesbox_parentCategory) {
+            $json['parentId'] = $salesbox_parentCategory->internalId;
+        } else if(!!$poster_category->parent_category) {
+            $json['parentId'] = $poster_category->parent_category;
         }
 
         // update photo only if it isn't already present
