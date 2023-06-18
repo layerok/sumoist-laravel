@@ -5,6 +5,7 @@ namespace App\Salesbox\meta;
 /**
  * @property $externalId
  * @property $modifierId
+ * @property $id
  *
  */
 

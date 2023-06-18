@@ -21,7 +21,8 @@ class Utils
         return $response;
     }
 
-    static public function productIsHidden(PosterProduct_meta $product, $spot_id): bool
+    /** @param PosterProduct_meta $product */
+    static public function productIsHidden($product, $spot_id): bool
     {
         foreach ($product->spots as $spot) {
             if ($spot_id == $spot->spot_id) {

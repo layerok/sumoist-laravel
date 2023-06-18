@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Poster\ActionHandlers;
+
 use App\Poster\meta\PosterProduct_meta;
-use App\Poster\SalesboxIntegration\SalesboxOffer;
 use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\Facades\SalesboxApiV4;
 use App\Salesbox\meta\SalesboxOfferV4_meta;
@@ -13,6 +13,8 @@ class ProductActionHandler extends AbstractActionHandler
     public $productIdsToUpdate = [];
     public $categoryIdsToCreate = [];
 
+    public $createdCategories = [];
+
     public function handle(): bool
     {
         if ($this->isAdded() || $this->isRestored() || $this->isChanged()) {
@@ -22,15 +24,9 @@ class ProductActionHandler extends AbstractActionHandler
             SalesboxApi::authenticate($accessToken);
             SalesboxApiV4::authenticate($accessToken);
 
-            /** @var PosterProduct_meta $poster_product */
-            $poster_product = collect(poster_fetchProducts())
-                ->filter(poster_filterProductsById($posterId))
-                ->first();
+            $poster_product = poster_fetchProduct($posterId);
 
-            /** @var SalesboxOfferV4_meta $salesbox_offer */
-            $salesbox_offer = collect(salesboxV4_fetchOffers())
-                ->filter(salesbox_filterOffersByExternalId($posterId))
-                ->first();
+            $salesbox_offer = salesboxV4_fetchOffer($posterId);
 
             if (!$salesbox_offer) {
                 $this->productIdsToCreate[] = $posterId;
@@ -46,44 +42,119 @@ class ProductActionHandler extends AbstractActionHandler
             if (count($this->categoryIdsToCreate)) {
                 $categories = collect(poster_fetchCategories())
                     ->filter(poster_filterCategoriesByCategoryId($this->categoryIdsToCreate))
-                    ->map(poster_mapCategoryToJsonCreate())
+                    ->map('poster_mapCategoryToJson')
+                    ->map(function ($json) {
+                        return collect($json)->only([
+                            'internalId',
+                            'externalId',
+                            'parentId',
+                            'previewURL',
+                            'originalURL',
+                            'names',
+                            'available',
+                            'photos',
+                            'descriptions'
+                        ]);
+                    })
                     ->values()
                     ->toArray();
 
-                $createCategoriesResponse = SalesboxApi::createManyCategories([
-                    'categories' => $categories
-                ]);
+                perRequestCache()->rememberForever('salesbox.categories.created', function () use ($categories) {
+                    return SalesboxApi::createManyCategories([
+                        'categories' => $categories
+                    ])->data->ids;
+                });
+
             }
 
             if (count($this->productIdsToCreate) > 0) {
-                $poster_productsToCreate = collect(poster_fetchProducts())
-                    ->filter($this->productIdsToCreate);
 
-                function mapToJson(): \Closure
-                {
-                    /** @param PosterProduct_meta $product */
-                    return function ($product) {
-                        if (isset($product->modifications)) {
-                            return SalesboxOffer::getJsonForProductWithModificationsCreation($product->product_id);
-                        }
-                        return SalesboxOffer::getJsonForSimpleProductCreation(
-                            $product->product_id,
-                            null
-                        );
-                    };
-                }
+                $simpleOffers = collect(poster_fetchProducts())
+                    ->filter(poster_filterProductsById($this->productIdsToCreate))
+                    ->filter('poster_productWithoutModifications')
+                    ->map('poster_mapProductToJson')
+                    ->map(function($json) {
+                        return collect($json)
+                            ->only([
+                                'externalId',
+                                'units',
+                                'stockType',
+                                'descriptions',
+                                'photos',
+                                'categories',
+                                'names',
+                                'available',
+                                'price'
+                            ]);
+                    })
+                    ->values()
+                    ->toArray();
 
-                $offers = $poster_productsToCreate->map(mapToJson());
+//                $offers2 = $poster_productsToCreate
+//                    ->filter(function($product) {
+//                        return !poster_productHasModifications($product);
+//                    });
+//
+//                $foo = [];
+
+                SalesboxApi::createManyOffers([
+                    'offers' => $simpleOffers
+                ]);
+
             }
 
             if (count($this->productIdsToUpdate) > 0) {
 
+
+                $simpleOffers = collect(poster_fetchProducts())
+                    ->filter(poster_filterProductsById($this->productIdsToCreate))
+                    ->filter('poster_productWithoutModificators')
+                    ->map('poster_mapProductToJson')
+                    ->map(function($json) {
+                        return collect($json)
+                            ->only([
+                                'externalId',
+                                'units',
+                                'stockType',
+                                'descriptions',
+                                'photos',
+                                'categories',
+                                'names',
+                                'available',
+                                'price'
+                            ]);
+                    })
+                    ->values()
+                    ->toArray();
+
+                SalesboxApi::createManyOffers([
+                    'offers' => $simpleOffers
+                ]);
             }
 
         }
 
         if ($this->isRemoved()) {
-            SalesboxOffer::delete($this->getObjectId());
+            $token = salesbox_fetchAccessToken()->token;
+            SalesboxApi::authenticate($token);
+            SalesboxApiV4::authenticate($token);
+
+
+            $salesbox_offers_ids = collect(salesboxV4_fetchOffers())
+                ->filter(salesbox_filterOffersByExternalId($this->getObjectId()))
+                /** @param SalesboxOfferV4_meta $offer */
+                ->map(function($offer) {
+                    return $offer->id;
+                })
+                ->values()
+                ->toArray();
+
+
+            // delete products
+            SalesboxApi::deleteManyOffers([
+                'ids' => $salesbox_offers_ids
+            ]);
+
         }
 
 

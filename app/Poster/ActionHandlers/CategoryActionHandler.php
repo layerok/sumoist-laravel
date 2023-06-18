@@ -2,7 +2,6 @@
 
 namespace App\Poster\ActionHandlers;
 
-use App\Poster\meta\PosterCategory_meta;
 use App\Salesbox\Facades\SalesboxApi;
 
 class CategoryActionHandler extends AbstractActionHandler
@@ -25,10 +24,7 @@ class CategoryActionHandler extends AbstractActionHandler
 
             $posterId = $this->getObjectId();
 
-            /** @var PosterCategory_meta $poster_category */
-            $poster_category = collect(poster_fetchCategories())
-                ->filter(poster_filterCategoriesByCategoryId($posterId))
-                ->first();
+            $poster_category = poster_fetchCategory($posterId);
 
             if ($salesbox_categoryIds->contains($posterId) && !in_array($posterId, $this->pendingCategoryIdsForUpdate)) {
                 $this->pendingCategoryIdsForUpdate[] = $posterId;
@@ -46,7 +42,7 @@ class CategoryActionHandler extends AbstractActionHandler
             if (count($this->pendingCategoryIdsForCreation) > 0) {
                 $categories = collect(poster_fetchCategories())
                     ->filter(poster_filterCategoriesByCategoryId($this->pendingCategoryIdsForCreation))
-                    ->map(poster_mapCategoryToJson())
+                    ->map('poster_mapCategoryToJson')
                     ->map(function($json) {
                         return collect($json)->only([
                             'internalId',
@@ -72,7 +68,7 @@ class CategoryActionHandler extends AbstractActionHandler
 
                 $categories = collect(poster_fetchCategories())
                     ->filter(poster_filterCategoriesByCategoryId($this->pendingCategoryIdsForUpdate))
-                    ->map(poster_mapCategoryToJson())
+                    ->map('poster_mapCategoryToJson')
                     ->map(function($json) {
                         return collect($json)->only([
                             'id',
@@ -109,11 +105,9 @@ class CategoryActionHandler extends AbstractActionHandler
         if ($this->isRemoved()) {
             SalesboxApi::authenticate(salesbox_fetchAccessToken()->token);
 
-            $category = collect(salesbox_fetchCategories())
-                ->filter(salesbox_filterCategoriesByExternalId($posterId))
-                ->first();
+            $salesbox_category = salesbox_fetchCategory($posterId);
 
-            if (!$category) {
+            if (!$salesbox_category) {
                 // todo: should I throw exception if category doesn't exist?
                 return false;
             }
@@ -121,7 +115,7 @@ class CategoryActionHandler extends AbstractActionHandler
             // recursively=true is important,
             // without this param salesbox will throw an error if the category being deleted has child categories
             SalesboxApi::deleteCategory([
-                'id' => $category->id,
+                'id' => $salesbox_category->id,
                 'recursively' => true
             ], []);
         }
@@ -131,12 +125,8 @@ class CategoryActionHandler extends AbstractActionHandler
 
     public function checkParent($posterId)
     {
-        $salesbox_category = collect(salesbox_fetchCategories())
-            ->filter(salesbox_filterCategoriesByExternalId($posterId))
-            ->first();
-        $poster_category = collect(poster_fetchCategories())
-            ->filter(poster_filterCategoriesByCategoryId($posterId))
-            ->first();
+        $salesbox_category = salesbox_fetchCategory($posterId);
+        $poster_category = poster_fetchCategory($posterId);
 
         if (!$salesbox_category) {
             $this->pendingCategoryIdsForCreation[] = $posterId;
