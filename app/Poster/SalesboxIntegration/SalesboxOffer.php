@@ -33,7 +33,7 @@ class SalesboxOffer
 
 
         /** @var SalesboxApiResponse_meta $response */
-        $salesbox_relatedOffers = collect(salesbox_fetchOffers())
+        $salesbox_relatedOffers = collect(salesboxV4_fetchOffers())
             ->filter(salesbox_filterOffersByExternalId($product->product_id));
 
 
@@ -145,7 +145,7 @@ class SalesboxOffer
      */
     public static function syncSimpleProduct($posterId)
     {
-        $salesbox_offer = collect(salesbox_fetchOffers())
+        $salesbox_offer = collect(salesboxV4_fetchOffers())
             ->filter(salesbox_filterOffersByExternalId($posterId))
             ->first();
 
@@ -234,7 +234,7 @@ class SalesboxOffer
             ->filter($posterId)
             ->first();
 
-        $offer = collect(salesbox_fetchOffers())
+        $offer = collect(salesboxV4_fetchOffers())
             ->filter(salesbox_filterOffersByExternalId($product->product_id))
             ->first();
 

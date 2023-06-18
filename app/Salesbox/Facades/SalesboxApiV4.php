@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Facade;
  *
  * @method static SalesboxApiResponse_meta getAccessToken(array $params = [])
  * @method static SalesboxApiResponse_meta getOffers(array $params = [], array $guzzleOptions = [])
- * @method static SalesboxApiResponse_meta getOfferByExternalId(string|int $id)
  *
  * @see  \App\Salesbox\SalesboxApiV4;
  */

@@ -5,12 +5,12 @@ namespace App\Poster\ActionHandlers;
 use App\Poster\meta\PosterCategory_meta;
 use App\Poster\SalesboxIntegration\SalesboxCategory;
 use App\Salesbox\Facades\SalesboxApi;
+use App\Salesbox\meta\SalesboxCategory_meta;
 
 class CategoryActionHandler extends AbstractActionHandler
 {
     public $pendingCategoryIdsForCreation = [];
     public $pendingCategoryIdsForUpdate = [];
-
 
     public function handle(): bool
     {
@@ -29,7 +29,7 @@ class CategoryActionHandler extends AbstractActionHandler
 
             /** @var PosterCategory_meta $poster_category */
             $poster_category = collect(poster_fetchCategories())
-                ->filter(poster_filterCategoriesById($posterId))
+                ->filter(poster_filterCategoriesByCategoryId($posterId))
                 ->first();
 
             if ($salesbox_categoryIds->contains($posterId) && !in_array($posterId, $this->pendingCategoryIdsForUpdate)) {
@@ -46,20 +46,23 @@ class CategoryActionHandler extends AbstractActionHandler
 
             // make updates
             if (count($this->pendingCategoryIdsForCreation) > 0) {
-                function mapToJson(): \Closure
-                {
-                    /** @param PosterCategory_meta $category */
-                    return function ($category) {
-                        return SalesboxCategory::getJsonForCreation(
-                            $category->category_id
-                        );
-                    };
-                }
-
                 $categories = collect(poster_fetchCategories())
-                    ->filter(poster_filterCategoriesById($this->pendingCategoryIdsForCreation))
-                    ->map(mapToJson())
-                    ->values()
+                    ->filter(poster_filterCategoriesByCategoryId($this->pendingCategoryIdsForCreation))
+                    ->map(poster_mapCategoryToJson())
+                    ->map(function($json) {
+                        return collect($json)->only([
+                            'internalId',
+                            'externalId',
+                            'parentId',
+                            'previewURL',
+                            'originalURL',
+                            'names',
+                            'available',
+                            'photos',
+                            'descriptions'
+                        ]);
+                    })
+                    ->values()// array must be property indexed, otherwise salesbox api will fail
                     ->toArray();
 
                 SalesboxApi::createManyCategories([
@@ -68,20 +71,32 @@ class CategoryActionHandler extends AbstractActionHandler
             }
 
             if (count($this->pendingCategoryIdsForUpdate) > 0) {
-                function mapToJson(): \Closure
-                {
-                    /** @param PosterCategory_meta $category */
-                    return function ($category) {
-                        return SalesboxCategory::getJsonForUpdate(
-                            $category->category_id
-                        );
-                    };
-                }
 
                 $categories = collect(poster_fetchCategories())
-                    ->filter(poster_filterCategoriesById($this->pendingCategoryIdsForUpdate))
-                    ->map(mapToJson())
-                    ->values()
+                    ->filter(poster_filterCategoriesByCategoryId($this->pendingCategoryIdsForUpdate))
+                    ->map(poster_mapCategoryToJson())
+                    ->map(function($json) {
+                        return collect($json)->only([
+                            'id',
+                            'internalId',
+                            //'externalId',
+                            'previewURL',
+                            'originalURL',
+                            'parentId',
+                            'names',
+                            //'descriptions',
+                            'photos',
+                            'available'
+                        ]);
+                    })
+                    ->map(function($json) {
+                        if(salesbox_categoryHasPhoto($json['externalId'])) {
+                            unset($json['previewURL']);
+                            unset($json['originalURL']);
+                        }
+                        return $json;
+                    })
+                    ->values() // array must be property indexed, otherwise salesbox api will fail
                     ->toArray();
 
                 SalesboxApi::updateManyCategories([
@@ -93,7 +108,23 @@ class CategoryActionHandler extends AbstractActionHandler
         }
 
         if ($this->isRemoved()) {
-            SalesboxCategory::delete($this->getObjectId());
+            SalesboxApi::authenticate(salesbox_fetchAccessToken()->token);
+
+            $category = collect(salesbox_fetchCategories())
+                ->filter(salesbox_filterCategoriesByExternalId($posterId))
+                ->first();
+
+            if (!$category) {
+                // todo: should I throw exception if category doesn't exist?
+                return false;
+            }
+
+            // recursively=true is important,
+            // without this param salesbox will throw an error if the category being deleted has child categories
+            SalesboxApi::deleteCategory([
+                'id' => $category->id,
+                'recursively' => true
+            ], []);
         }
 
         return true;
@@ -105,7 +136,7 @@ class CategoryActionHandler extends AbstractActionHandler
             ->filter(salesbox_filterCategoriesByExternalId($posterId))
             ->first();
         $poster_category = collect(poster_fetchCategories())
-            ->filter(poster_filterCategoriesById($posterId))
+            ->filter(poster_filterCategoriesByCategoryId($posterId))
             ->first();
 
         if (!$salesbox_category) {
