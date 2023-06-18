@@ -40,7 +40,7 @@ if (!function_exists('salesbox_fetchCategory')) {
     function salesbox_fetchCategory($externalId)
     {
         return collect(salesbox_fetchCategories())
-            ->first('externalId', $externalId);
+            ->firstWhere('externalId', $externalId);
     }
 }
 
