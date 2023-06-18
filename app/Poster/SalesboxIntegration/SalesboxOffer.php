@@ -23,7 +23,7 @@ class SalesboxOffer
         // 3. modifications could have been updated on product
 
         // authenticate in salesbox
-        $token = salesbox_fetchAccessToken()->token;
+        $token = salesbox_fetchAccessToken();
         SalesboxApi::authenticate($token);
         SalesboxApiV4::authenticate($token);
 

@@ -9,7 +9,7 @@ class SalesboxAccessTokenQuery extends Query {
     public function __construct()
     {
         parent::__construct(['salesbox', 'accessToken'], function () {
-            return SalesboxApi::getAccessToken()->data;
+            return SalesboxApi::getAccessToken()->data->token;
         });
     }
 }

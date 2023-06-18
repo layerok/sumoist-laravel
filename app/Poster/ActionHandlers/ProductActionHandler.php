@@ -20,7 +20,7 @@ class ProductActionHandler extends AbstractActionHandler
         if ($this->isAdded() || $this->isRestored() || $this->isChanged()) {
             $posterId = $this->getObjectId();
 
-            $accessToken = salesbox_fetchAccessToken()->token;
+            $accessToken = salesbox_fetchAccessToken();
             SalesboxApi::authenticate($accessToken);
             SalesboxApiV4::authenticate($accessToken);
 
@@ -135,7 +135,7 @@ class ProductActionHandler extends AbstractActionHandler
         }
 
         if ($this->isRemoved()) {
-            $token = salesbox_fetchAccessToken()->token;
+            $token = salesbox_fetchAccessToken();
             SalesboxApi::authenticate($token);
             SalesboxApiV4::authenticate($token);
 

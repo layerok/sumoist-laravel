@@ -12,7 +12,7 @@ class CategoryActionHandler extends AbstractActionHandler
     public function handle(): bool
     {
         if ($this->isAdded() || $this->isRestored() || $this->isChanged()) {
-            SalesboxApi::authenticate(salesbox_fetchAccessToken()->token);
+            SalesboxApi::authenticate(salesbox_fetchAccessToken());
 
             $salesbox_categoryIds = collect(salesbox_fetchCategories())
                 ->filter(function ($id) {
@@ -103,7 +103,7 @@ class CategoryActionHandler extends AbstractActionHandler
         }
 
         if ($this->isRemoved()) {
-            SalesboxApi::authenticate(salesbox_fetchAccessToken()->token);
+            SalesboxApi::authenticate(salesbox_fetchAccessToken());
 
             $salesbox_category = salesbox_fetchCategory($posterId);
 
