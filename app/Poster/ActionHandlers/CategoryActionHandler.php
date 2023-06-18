@@ -41,7 +41,7 @@ class CategoryActionHandler extends AbstractActionHandler
             // make updates
             if (count($this->pendingCategoryIdsForCreation) > 0) {
                 $categories = collect(poster_fetchCategories())
-                    ->filter(poster_filterCategoriesByCategoryId($this->pendingCategoryIdsForCreation))
+                    ->whereIn('category_id', $this->pendingCategoryIdsForCreation)
                     ->map('poster_mapCategoryToJson')
                     ->map(function($json) {
                         return collect($json)->only([
@@ -67,7 +67,7 @@ class CategoryActionHandler extends AbstractActionHandler
             if (count($this->pendingCategoryIdsForUpdate) > 0) {
 
                 $categories = collect(poster_fetchCategories())
-                    ->filter(poster_filterCategoriesByCategoryId($this->pendingCategoryIdsForUpdate))
+                    ->whereIn('category_id', $this->pendingCategoryIdsForUpdate)
                     ->map('poster_mapCategoryToJson')
                     ->map(function($json) {
                         return collect($json)->only([

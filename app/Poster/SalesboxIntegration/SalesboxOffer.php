@@ -34,7 +34,7 @@ class SalesboxOffer
 
         /** @var SalesboxApiResponse_meta $response */
         $salesbox_relatedOffers = collect(salesboxV4_fetchOffers())
-            ->filter(salesbox_filterOffersByExternalId($product->product_id));
+            ->where('externalId', $product->product_id);
 
 
         $poster_productModifications = collect($product->modifications);

@@ -41,7 +41,7 @@ class ProductActionHandler extends AbstractActionHandler
 
             if (count($this->categoryIdsToCreate)) {
                 $categories = collect(poster_fetchCategories())
-                    ->filter(poster_filterCategoriesByCategoryId($this->categoryIdsToCreate))
+                    ->whereIn('category_id', $this->categoryIdsToCreate)
                     ->map('poster_mapCategoryToJson')
                     ->map(function ($json) {
                         return collect($json)->only([
@@ -70,7 +70,7 @@ class ProductActionHandler extends AbstractActionHandler
             if (count($this->productIdsToCreate) > 0) {
 
                 $simpleOffers = collect(poster_fetchProducts())
-                    ->filter(poster_filterProductsById($this->productIdsToCreate))
+                    ->whereIn('product_id', $this->productIdsToCreate)
                     ->filter('poster_productWithoutModifications')
                     ->map('poster_mapProductToJson')
                     ->map(function($json) {
@@ -107,7 +107,7 @@ class ProductActionHandler extends AbstractActionHandler
 
 
                 $simpleOffers = collect(poster_fetchProducts())
-                    ->filter(poster_filterProductsById($this->productIdsToCreate))
+                    ->whereIn('product_id', $this->productIdsToCreate)
                     ->filter('poster_productWithoutModificators')
                     ->map('poster_mapProductToJson')
                     ->map(function($json) {
@@ -141,7 +141,7 @@ class ProductActionHandler extends AbstractActionHandler
 
 
             $salesbox_offers_ids = collect(salesboxV4_fetchOffers())
-                ->filter(salesbox_filterOffersByExternalId($this->getObjectId()))
+                ->where('externalId', $this->getObjectId())
                 /** @param SalesboxOfferV4_meta $offer */
                 ->map(function($offer) {
                     return $offer->id;
@@ -163,12 +163,8 @@ class ProductActionHandler extends AbstractActionHandler
 
     public function checkCategory($posterId, $recursively = true)
     {
-        $salesbox_category = collect(salesbox_fetchCategories())
-            ->filter(salesbox_filterCategoriesByExternalId($posterId))
-            ->first();
-        $poster_category = collect(poster_fetchCategories())
-            ->filter(poster_filterCategoriesByCategoryId($posterId))
-            ->first();
+        $salesbox_category = salesbox_fetchCategory($posterId);
+        $poster_category = poster_fetchCategory($posterId);
 
         if (!$salesbox_category) {
             $this->categoryIdsToCreate[] = $posterId;

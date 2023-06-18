@@ -8,92 +8,11 @@ use App\Poster\Utils;
 use App\Salesbox\meta\CreatedSalesboxCategory_meta;
 use App\Salesbox\meta\SalesboxCategory_meta;
 use App\Salesbox\meta\SalesboxOfferV4_meta;
-use Illuminate\Support\Arr;
 
 if (!function_exists('perRequestCache')) {
     function perRequestCache()
     {
         return cache()->store('array');
-    }
-}
-
-if (!function_exists('poster_filterProductsById')) {
-    /**
-     * @param int|string|array $poster_ids
-     * @return Closure
-     */
-    function poster_filterProductsById($poster_ids): Closure
-    {
-        $poster_ids = Arr::wrap($poster_ids);
-        /**
-         * @param PosterProduct_meta $product
-         */
-        return function ($product) use ($poster_ids) {
-            return in_array($product->product_id, $poster_ids);
-        };
-    }
-}
-
-if (!function_exists('poster_filterCategoriesByCategoryId')) {
-    /**
-     * @param int|string|array $poster_ids
-     * @return Closure
-     */
-    function poster_filterCategoriesByCategoryId($poster_ids): Closure
-    {
-        $poster_ids = Arr::wrap($poster_ids);
-        /**
-         * @param PosterCategory_meta $category
-         */
-        return function ($category) use ($poster_ids) {
-            return in_array($category->category_id, $poster_ids);
-        };
-    }
-
-}
-
-if (!function_exists('salesbox_filterOffersByExternalId')) {
-    /**
-     * @param int|string|array $external_ids
-     * @return Closure
-     */
-    function salesbox_filterOffersByExternalId($external_ids): Closure
-    {
-        $external_ids = Arr::wrap($external_ids);
-        /* @param SalesboxOfferV4_meta $offer */
-        return function ($offer) use ($external_ids) {
-            return in_array($offer->externalId, $external_ids);
-        };
-    }
-}
-
-if (!function_exists('salesbox_filterCategoriesByExternalId')) {
-    /**
-     * @param int|string|array $external_ids
-     * @return Closure
-     */
-    function salesbox_filterCategoriesByExternalId($external_ids): Closure
-    {
-        $external_ids = Arr::wrap($external_ids);
-        /* @param SalesboxCategory_meta $category */
-        return function ($category) use ($external_ids) {
-            return in_array($category->externalId, $external_ids);
-        };
-    }
-}
-
-if (!function_exists('salesbox_filterCategoriesByInternalId')) {
-    /**
-     * @param int|string|array $external_ids
-     * @return Closure
-     */
-    function salesbox_filterCategoriesByInternalId($internalIds): Closure
-    {
-        $internalIds = Arr::wrap($internalIds);
-        /* @param SalesboxCategory_meta $category */
-        return function ($category) use ($internalIds) {
-            return in_array($category->internalId, $internalIds);
-        };
     }
 }
 
@@ -121,8 +40,7 @@ if (!function_exists('salesbox_fetchCategory')) {
     function salesbox_fetchCategory($externalId)
     {
         return collect(salesbox_fetchCategories())
-            ->filter(salesbox_filterCategoriesByExternalId($externalId))
-            ->first();
+            ->first('externalId', $externalId);
     }
 }
 
@@ -149,8 +67,7 @@ if(!function_exists('salesboxV4_fetchOffer')) {
      */
     function salesboxV4_fetchOffer($externalId) {
         return collect(salesboxV4_fetchOffers())
-            ->filter(salesbox_filterOffersByExternalId($externalId))
-            ->first();
+            ->firstWhere('externalId', $externalId);
     }
 }
 
@@ -172,8 +89,7 @@ if (!function_exists('poster_fetchCategory')) {
     function poster_fetchCategory($posterId)
     {
         return collect(poster_fetchCategories())
-            ->filter(poster_filterCategoriesByCategoryId($posterId))
-            ->first();
+            ->firstWhere('category_id', $posterId);
     }
 }
 
@@ -195,7 +111,7 @@ if(!function_exists('poster_fetchProduct')) {
      */
     function poster_fetchProduct($posterId) {
         return collect(poster_fetchProducts())
-            ->filter(poster_filterProductsById($posterId))
+            ->where('product_id', $posterId)
             ->first();
     }
 }
@@ -307,8 +223,7 @@ if (!function_exists('poster_mapProductToJson')) {
 
                 /** @var CreatedSalesboxCategory_meta|null $created_category */
                 $created_category = collect($created_categories)
-                    ->filter(salesbox_filterCategoriesByInternalId($poster_product->menu_category_id))
-                    ->first();
+                    ->firstWhere('internalId', $poster_product->menu_category_id);
 
                 if ($created_category) {
                     $json['categories'][] = $created_category->id;
