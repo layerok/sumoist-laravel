@@ -2,10 +2,10 @@
 
 namespace App\Poster\SalesboxIntegration;
 
-use App\Poster\PosterApiWrapper;
-use App\Poster\SalesboxApiWrapper;
 use App\Poster\Utils;
 use App\Salesbox\Facades\SalesboxApi;
+use App\Salesbox\Facades\SalesboxApiV4;
+use App\Salesbox\meta\SalesboxApiResponse_meta;
 
 class SalesboxOffer
 {
@@ -23,10 +23,19 @@ class SalesboxOffer
         // 3. modifications could have been updated on product
 
         // authenticate in salesbox
-        SalesboxApiWrapper::authenticateV4();
-        $product = PosterApiWrapper::getProduct($posterId);
+        $token = salesbox_fetchAccessToken()->token;
+        SalesboxApi::authenticate($token);
+        SalesboxApiV4::authenticate($token);
 
-        $salesbox_relatedOffers = SalesboxApiWrapper::getOffers($product->product_id);
+        $product = collect(poster_fetchProducts())
+            ->filter($posterId)
+            ->first();
+
+
+        /** @var SalesboxApiResponse_meta $response */
+        $salesbox_relatedOffers = collect(salesbox_fetchOffers())
+            ->filter(salesbox_filterOffersByExternalId($product->product_id));
+
 
         $poster_productModifications = collect($product->modifications);
 
@@ -136,8 +145,13 @@ class SalesboxOffer
      */
     public static function syncSimpleProduct($posterId)
     {
-        $salesbox_offer = SalesboxApiWrapper::getOffer($posterId);
-        $poster_product = PosterApiWrapper::getProduct($posterId);
+        $salesbox_offer = collect(salesbox_fetchOffers())
+            ->filter(salesbox_filterOffersByExternalId($posterId))
+            ->first();
+
+        $poster_product = collect(poster_fetchProducts())
+            ->filter($posterId)
+            ->first();
 
         if($salesbox_offer) {
             // todo: fix this
@@ -158,8 +172,14 @@ class SalesboxOffer
     }
 
     public static function getJsonForSimpleProductCreation($posterId, $menuCategoryId) {
-        SalesboxApiWrapper::authenticateV4();
-        $poster_product = PosterApiWrapper::getProduct($posterId);
+        // todo: salesbox authentication probably belongs to middleware
+        $token = salesbox_fetchAccessToken()->token;
+        SalesboxApi::authenticate($token);
+        SalesboxApiV4::authenticate($token);
+
+        $poster_product =  collect(poster_fetchProducts())
+            ->filter($posterId)
+            ->first();
 
         $json = [
             'externalId' => $poster_product->product_id,
@@ -206,10 +226,17 @@ class SalesboxOffer
 
 
     public static function getJsonForSimpleProductUpdate($posterId, $menuCategoryId) {
-        SalesboxApiWrapper::authenticateV4();
-        $product = PosterApiWrapper::getProduct($posterId);
+        $token = salesbox_fetchAccessToken()->token;
+        SalesboxApi::authenticate($token);
+        SalesboxApiV4::authenticate($token);
 
-        $offer = SalesboxApiWrapper::getOffer($product->product_id);
+        $product = collect(poster_fetchProducts())
+            ->filter($posterId)
+            ->first();
+
+        $offer = collect(salesbox_fetchOffers())
+            ->filter(salesbox_filterOffersByExternalId($product->product_id))
+            ->first();
 
         $spot = $product->spots[0];
 
@@ -241,7 +268,8 @@ class SalesboxOffer
 
     static public function delete($posterId)
     {
-        SalesboxApi::authenticate();
+        $token = salesbox_fetchAccessToken()->token;
+        SalesboxApi::authenticate($token);
         // delete product
     }
 }

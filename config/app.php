@@ -181,6 +181,7 @@ return [
         Maksa988\WayForPay\WayForPayServiceProvider::class,
         Jenssegers\Date\DateServiceProvider::class,
         App\Salesbox\SalesboxServiceProvider::class,
+        App\Poster\PosterServiceProvider::class,
 
     ],
 

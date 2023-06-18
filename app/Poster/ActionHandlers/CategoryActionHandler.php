@@ -3,8 +3,6 @@
 namespace App\Poster\ActionHandlers;
 
 use App\Poster\meta\PosterCategory_meta;
-use App\Poster\PosterApiWrapper;
-use App\Poster\SalesboxApiWrapper;
 use App\Poster\SalesboxIntegration\SalesboxCategory;
 use App\Salesbox\Facades\SalesboxApi;
 
@@ -15,8 +13,12 @@ class CategoryActionHandler extends AbstractActionHandler
 
     public function checkParent($posterId)
     {
-        $salesbox_category = SalesboxApiWrapper::getCategory($posterId);
-        $poster_category = PosterApiWrapper::getCategory($posterId);
+        $salesbox_category = collect(salesbox_fetchCategories())
+            ->filter(salesbox_filterCategoriesByExternalId($posterId))
+            ->first();
+        $poster_category = collect(poster_fetchCategories())
+            ->filter(poster_filterCategoriesById($posterId))
+            ->first();
 
         if (!$salesbox_category) {
             $this->pendingCategoryIdsForCreation[] = $posterId;
@@ -30,9 +32,9 @@ class CategoryActionHandler extends AbstractActionHandler
     public function handle(): bool
     {
         if ($this->isAdded() || $this->isRestored() || $this->isChanged()) {
-            SalesboxApiWrapper::authenticate();
+            SalesboxApi::authenticate(salesbox_fetchAccessToken()->token);
 
-            $salesbox_categoryIds = SalesboxApiWrapper::getCategories()
+            $salesbox_categoryIds = collect(salesbox_fetchCategories())
                 ->filter(function ($id) {
                     // todo: should I ignore all salesbox categories without external id?
                     // todo: or should I delete them as well in the synchronization process
@@ -42,7 +44,9 @@ class CategoryActionHandler extends AbstractActionHandler
 
             $posterId = $this->getObjectId();
 
-            $poster_category = PosterApiWrapper::getCategory($posterId);
+            $poster_category = collect(salesbox_fetchCategories())
+                ->filter(poster_filterCategoriesById($posterId))
+                ->first();
 
             if ($salesbox_categoryIds->contains($posterId) && !in_array($posterId, $this->pendingCategoryIdsForUpdate)) {
                 $this->pendingCategoryIdsForUpdate[] = $posterId;
@@ -58,24 +62,28 @@ class CategoryActionHandler extends AbstractActionHandler
 
             // make updates
             if (count($this->pendingCategoryIdsForCreation) > 0) {
-                $categories = PosterApiWrapper::getCategories()
-                    ->filter(
+                function mapCategoryToCreateJson(): \Closure
+                {
                     /** @param PosterCategory_meta $category */
-                        function ($category) {
-                            return in_array($category->category_id, $this->pendingCategoryIdsForCreation);
-                        }
-                    )->map(
-                    /** @param PosterCategory_meta $category */
-                        function ($category) {
-                            $salesbox_parentCategory = SalesboxApiWrapper::getCategory($category->parent_category);
-                            $parentId = $salesbox_parentCategory->internalId ?? $category->parent_category;
+                    return function ($category) {
+                        $salesbox_parentCategory = collect(salesbox_fetchCategories())
+                            ->filter(salesbox_filterCategoriesByExternalId($category->parent_category))
+                            ->first();
+                        $parentId = $salesbox_parentCategory->internalId ?? $category->parent_category;
 
-                            return SalesboxCategory::getJsonForCreation(
-                                $category->category_id,
-                                $parentId,
-                                $category->category_id
-                            );
-                        })->values()->toArray();
+                        return SalesboxCategory::getJsonForCreation(
+                            $category->category_id,
+                            $parentId,
+                            $category->category_id
+                        );
+                    };
+                }
+
+                $categories = collect(poster_fetchCategories())
+                    ->filter(poster_filterCategoriesById($this->pendingCategoryIdsForCreation))
+                    ->map(mapCategoryToCreateJson())
+                    ->values()
+                    ->toArray();
 
                 SalesboxApi::createManyCategories([
                     'categories' => $categories
@@ -83,23 +91,27 @@ class CategoryActionHandler extends AbstractActionHandler
             }
 
             if (count($this->pendingCategoryIdsForUpdate) > 0) {
-                $categories = PosterApiWrapper::getCategories()
-                    ->filter(
+                function mapCategoryToUpdateJson(): \Closure
+                {
                     /** @param PosterCategory_meta $category */
-                        function ($category) {
-                            return in_array($category->category_id, $this->pendingCategoryIdsForUpdate);
-                        }
-                    )->map(
-                    /** @param PosterCategory_meta $category */
-                        function ($category) {
-                            $salesbox_parentCategory = SalesboxApiWrapper::getCategory($category->parent_category);
-                            $parentId = $salesbox_parentCategory->internalId ?? $category->parent_category;
-                            return SalesboxCategory::getJsonForUpdate(
-                                $category->category_id,
-                                $parentId,
-                                $category->category_id
-                            );
-                        })->values()->toArray();
+                    return function ($category) {
+                        $salesbox_parentCategory = collect(salesbox_fetchCategories())
+                            ->filter(salesbox_filterCategoriesByExternalId($category->parent_category))
+                            ->first();
+                        $parentId = $salesbox_parentCategory->internalId ?? $category->parent_category;
+                        return SalesboxCategory::getJsonForUpdate(
+                            $category->category_id,
+                            $parentId,
+                            $category->category_id
+                        );
+                    };
+                }
+
+                $categories = collect(poster_fetchCategories())
+                    ->filter(poster_filterCategoriesById($this->pendingCategoryIdsForUpdate))
+                    ->map(mapCategoryToUpdateJson())
+                    ->values()
+                    ->toArray();
 
                 SalesboxApi::updateManyCategories([
                     'categories' => $categories

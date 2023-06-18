@@ -3,8 +3,6 @@
 namespace App\Poster\SalesboxIntegration;
 
 use App\Poster\meta\PosterCategory_meta;
-use App\Poster\PosterApiWrapper;
-use App\Poster\SalesboxApiWrapper;
 use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\meta\CreatedSalesboxCategory_meta;
 use App\Salesbox\meta\SalesboxApiResponse_meta;
@@ -19,7 +17,9 @@ class SalesboxCategory
      * @return array
      */
     static public function getJsonForCreation($posterId, $parentId = null, $internalId = null): array {
-        $poster_category = PosterApiWrapper::getCategory($posterId);
+        $poster_category = collect(poster_fetchCategories())
+            ->filter(poster_filterCategoriesById($posterId))
+            ->first();
 
         $json = [
             'available' => !!$poster_category->visible[0]->visible,
@@ -58,9 +58,14 @@ class SalesboxCategory
      * @return array
      */
     static public function getJsonForUpdate($posterId, $parentId = null, $internalId = null): array {
-        $salesbox_category = SalesboxApiWrapper::getCategory($posterId);
+
+        $salesbox_category = collect(salesbox_fetchCategories())
+            ->filter(salesbox_filterCategoriesByExternalId($posterId))
+            ->first();
         /** @var PosterCategory_meta $poster_category */
-        $poster_category = PosterApiWrapper::getCategory($posterId);
+        $poster_category = collect(poster_fetchCategories())
+            ->filter(poster_filterCategoriesById($posterId))
+            ->first();
 
         $json = [
             'id' => $salesbox_category->id,
@@ -137,9 +142,11 @@ class SalesboxCategory
      */
     public static function delete($posterId)
     {
-        SalesboxApiWrapper::authenticate();
+        SalesboxApi::authenticate(salesbox_fetchAccessToken()->token);
 
-        $category = SalesboxApiWrapper::getCategory($posterId);
+        $category = collect(salesbox_fetchCategories())
+            ->filter(salesbox_filterCategoriesByExternalId($posterId))
+            ->first();
 
         if (!$category) {
             // todo: should I throw exception if category doesn't exist?
