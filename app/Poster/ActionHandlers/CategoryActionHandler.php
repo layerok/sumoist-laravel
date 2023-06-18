@@ -3,9 +3,7 @@
 namespace App\Poster\ActionHandlers;
 
 use App\Poster\meta\PosterCategory_meta;
-use App\Poster\SalesboxIntegration\SalesboxCategory;
 use App\Salesbox\Facades\SalesboxApi;
-use App\Salesbox\meta\SalesboxCategory_meta;
 
 class CategoryActionHandler extends AbstractActionHandler
 {
@@ -79,7 +77,7 @@ class CategoryActionHandler extends AbstractActionHandler
                         return collect($json)->only([
                             'id',
                             'internalId',
-                            //'externalId',
+                            'externalId',
                             'previewURL',
                             'originalURL',
                             'parentId',
@@ -90,6 +88,7 @@ class CategoryActionHandler extends AbstractActionHandler
                         ]);
                     })
                     ->map(function($json) {
+                        // don't update photo if it is already present in salesbox
                         if(salesbox_categoryHasPhoto($json['externalId'])) {
                             unset($json['previewURL']);
                             unset($json['originalURL']);
