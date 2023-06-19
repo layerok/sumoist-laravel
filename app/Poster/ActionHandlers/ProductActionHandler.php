@@ -2,9 +2,13 @@
 
 namespace App\Poster\ActionHandlers;
 
-use App\Poster\meta\PosterProduct_meta;
+use App\Poster\PosterCategory;
+use App\Poster\PosterProduct;
+use App\Poster\SalesboxCategory;
+use App\Poster\SalesboxOffer;
 use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\Facades\SalesboxApiV4;
+use App\Salesbox\meta\CreatedSalesboxCategory_meta;
 use App\Salesbox\meta\SalesboxOfferV4_meta;
 
 class ProductActionHandler extends AbstractActionHandler
@@ -42,19 +46,24 @@ class ProductActionHandler extends AbstractActionHandler
             if (count($this->categoryIdsToCreate)) {
                 $categories = collect(poster_fetchCategories())
                     ->whereIn('category_id', $this->categoryIdsToCreate)
-                    ->map('poster_mapCategoryToJson')
-                    ->map(function ($json) {
-                        return collect($json)->only([
-                            'internalId',
-                            'externalId',
-                            'parentId',
-                            'previewURL',
-                            'originalURL',
-                            'names',
-                            'available',
-                            'photos',
-                            'descriptions'
-                        ]);
+                    ->map(function ($attributes) {
+                        return new PosterCategory($attributes);
+                    })
+                    ->map(function (PosterCategory $posterCategory) {
+                        return $posterCategory->asSalesboxCategory();
+                    })
+                    ->map(function (SalesboxCategory $category) {
+                        return [
+                            'externalId'        => $category->getExternalId(),
+                            'parentId'          => $category->getParentId(),
+                            'names'             => $category->getNames(),
+                            'descriptions'      => $category->getDescriptions(),
+                            'photos'            => $category->getPhotos(),
+                            'internalId'        => $category->getInternalId(),
+                            'previewURL'        => $category->getPreviewUrl(),
+                            'originalURL'       => $category->getOriginalUrl(),
+                            'available'         => $category->getAvailable(),
+                        ];
                     })
                     ->values()
                     ->toArray();
@@ -71,21 +80,47 @@ class ProductActionHandler extends AbstractActionHandler
 
                 $simpleOffers = collect(poster_fetchProducts())
                     ->whereIn('product_id', $this->productIdsToCreate)
-                    ->filter('poster_productWithoutModifications')
-                    ->map('poster_mapProductToJson')
-                    ->map(function($json) {
-                        return collect($json)
-                            ->only([
-                                'externalId',
-                                'units',
-                                'stockType',
-                                'descriptions',
-                                'photos',
-                                'categories',
-                                'names',
-                                'available',
-                                'price'
-                            ]);
+                    ->map(function ($attributes) {
+                        return new PosterProduct($attributes);
+                    })
+                    ->filter(function (PosterProduct $poster_product) {
+                        return !$poster_product->hasModifications();
+                    })
+                    ->map(function (PosterProduct $poster_product) {
+                        $salesbox_offer = $poster_product->asSalesboxOffer();
+
+                        $salesbox_category = salesbox_fetchCategory($poster_product->getMenuCategoryId());
+
+                        if ($salesbox_category) {
+                            $salesbox_offer->setCategories([$salesbox_category->id]);
+                        } else {
+                            /** @var CreatedSalesboxCategory_meta[]|null $created_categories */
+                            $created_categories = perRequestCache()
+                                ->get('salesbox.categories.created');
+
+                            /** @var CreatedSalesboxCategory_meta|null $created_category */
+                            $created_category = collect($created_categories)
+                                ->firstWhere('internalId', $poster_product->getMenuCategoryId());
+
+                            if ($created_category) {
+                                $salesbox_offer->setCategories([$created_category->id]);
+                            }
+                        }
+
+                        return $salesbox_offer;
+                    })
+                    ->map(function (SalesboxOffer $offer) {
+                        return [
+                            'externalId'            => $offer->getExternalId(),
+                            'units'                 => $offer->getUnits(),
+                            'stockType'             => $offer->getStockType(),
+                            'descriptions'          => $offer->getDescriptions(),
+                            'photos'                => $offer->getPhotos(),
+                            'categories'            => $offer->getCategories(),
+                            'names'                 => $offer->getNames(),
+                            'available'             => $offer->getAvailable(),
+                            'price'                 => $offer->getPrice(),
+                        ];
                     })
                     ->values()
                     ->toArray();
@@ -109,20 +144,41 @@ class ProductActionHandler extends AbstractActionHandler
                 $simpleOffers = collect(poster_fetchProducts())
                     ->whereIn('product_id', $this->productIdsToCreate)
                     ->filter('poster_productWithoutModificators')
-                    ->map('poster_mapProductToJson')
-                    ->map(function($json) {
-                        return collect($json)
-                            ->only([
-                                'externalId',
-                                'units',
-                                'stockType',
-                                'descriptions',
-                                'photos',
-                                'categories',
-                                'names',
-                                'available',
-                                'price'
-                            ]);
+                    ->map(function (PosterProduct $poster_product) {
+                        $salesbox_offer = $poster_product->asSalesboxOffer();
+
+                        $salesbox_category = salesbox_fetchCategory($poster_product->getMenuCategoryId());
+
+                        if ($salesbox_category) {
+                            $salesbox_offer->setCategories([$salesbox_category->id]);
+                        } else {
+                            /** @var CreatedSalesboxCategory_meta[]|null $created_categories */
+                            $created_categories = perRequestCache()
+                                ->get('salesbox.categories.created');
+
+                            /** @var CreatedSalesboxCategory_meta|null $created_category */
+                            $created_category = collect($created_categories)
+                                ->firstWhere('internalId', $poster_product->getMenuCategoryId());
+
+                            if ($created_category) {
+                                $salesbox_offer->setCategories([$created_category->id]);
+                            }
+                        }
+
+                        return $salesbox_offer;
+                    })
+                    ->map(function (SalesboxOffer $offer) {
+                        return [
+                            'externalId'            => $offer->getExternalId(),
+                            'units'                 => $offer->getUnits(),
+                            'stockType'             => $offer->getStockType(),
+                            'descriptions'          => $offer->getDescriptions(),
+                            'photos'                => $offer->getPhotos(),
+                            'categories'            => $offer->getCategories(),
+                            'names'                 => $offer->getNames(),
+                            'available'             => $offer->getAvailable(),
+                            'price'                 => $offer->getPrice(),
+                        ];
                     })
                     ->values()
                     ->toArray();
@@ -143,7 +199,7 @@ class ProductActionHandler extends AbstractActionHandler
             $salesbox_offers_ids = collect(salesboxV4_fetchOffers())
                 ->where('externalId', $this->getObjectId())
                 /** @param SalesboxOfferV4_meta $offer */
-                ->map(function($offer) {
+                ->map(function ($offer) {
                     return $offer->id;
                 })
                 ->values()

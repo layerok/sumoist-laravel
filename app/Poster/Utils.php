@@ -4,7 +4,6 @@ namespace App\Poster;
 
 use App\Poster\Exceptions\PosterApiException;
 use App\Poster\meta\PosterApiResponse_meta;
-use App\Poster\meta\PosterProduct_meta;
 
 class Utils
 {
@@ -21,14 +20,7 @@ class Utils
         return $response;
     }
 
-    /** @param PosterProduct_meta $product */
-    static public function productIsHidden($product, $spot_id): bool
-    {
-        foreach ($product->spots as $spot) {
-            if ($spot_id == $spot->spot_id) {
-                return $spot->visible == "0";
-            }
-        }
-        return true;
+    static public function poster_upload_url($path) {
+        return config('poster.url') . $path;
     }
 }
