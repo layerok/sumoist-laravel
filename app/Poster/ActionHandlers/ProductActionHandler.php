@@ -4,20 +4,15 @@ namespace App\Poster\ActionHandlers;
 
 use App\Poster\Facades\PosterStore;
 use App\Poster\Facades\SalesboxStore;
-use App\Poster\meta\PosterCategory_meta;
+use App\Poster\PosterCategory;
 use App\Poster\PosterProduct;
 use App\Poster\SalesboxOffer;
-use App\Poster\Utils;
 use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\meta\CreatedSalesboxCategory_meta;
 use App\Salesbox\meta\SalesboxOfferV4_meta;
 
 class ProductActionHandler extends AbstractActionHandler
 {
-    public $productIdsToUpdate = [];
-
-    public $createdCategories = [];
-
     /** @var CreatedSalesboxCategory_meta $created_categories */
     public $created_categories;
 
@@ -30,17 +25,46 @@ class ProductActionHandler extends AbstractActionHandler
             PosterStore::loadCategories();
             PosterStore::loadProducts();
 
-            $products_ids = $this->findOutWhatProductsNeedToBeCreated();
-            $categories_ids = $this->findOutWhatCategoriesNeedToBeCreated();
+            $poster_product = PosterStore::findProduct($this->getObjectId());
+            $poster_category = PosterStore::findCategory($poster_product->getMenuCategoryId());
 
-            if (count($categories_ids) > 0) {
-                $categories_to_create = array_filter(PosterStore::getCategories(), function ($poster_category) use ($categories_ids) {
-                    return in_array($poster_category->category_id, $categories_ids);
-                });
-                $this->createCategories($categories_to_create);
+            $product_create_ids = [];
+            $product_update_ids = [];
+            $category_create_ids = [];
+
+            if (!SalesboxStore::offerExists($this->getObjectId())) {
+                $product_create_ids[] = $this->getObjectId();
+            } else {
+                $product_update_ids[] = $this->getObjectId();
             }
 
-            if (count($products_ids) > 0) {
+            if (!SalesboxStore::categoryExists($poster_product->getMenuCategoryId())) {
+                $category_create_ids[] = $poster_product->getMenuCategoryId();
+            }
+
+            if ($poster_category->hasParentCategory()) {
+                $parent_poster_categories = $poster_category->getParents();
+
+                foreach ($parent_poster_categories as $parent_poster_category) {
+                    if (!SalesboxStore::categoryExists($parent_poster_category->getCategoryId())) {
+                        $category_create_ids[] = $parent_poster_category->getCategoryId();
+                    }
+                }
+            }
+
+            if (count($category_create_ids) > 0) {
+                $poster_ategories_to_create = array_filter(PosterStore::getCategories(), function ($poster_category) use ($categories_ids) {
+                    return in_array($poster_category->getCategoryId(), $categories_ids);
+                });
+
+                $poster_categories_as_salesbox = array_map(function(PosterCategory $poster_category) {
+                    return $poster_category->asSalesboxCategory();
+                }, $poster_ategories_to_create);
+
+                SalesboxStore::createManyCategories($poster_categories_as_salesbox);
+            }
+
+            if (count($product_create_ids) > 0) {
 
                 $simpleOffers = collect(PosterStore::getProducts())
                     ->whereIn('product_id', $products_ids)
@@ -89,12 +113,6 @@ class ProductActionHandler extends AbstractActionHandler
                     ->values()
                     ->toArray();
 
-//                $offers2 = $poster_productsToCreate
-//                    ->filter(function($product) {
-//                        return !poster_productHasModifications($product);
-//                    });
-//
-//                $foo = [];
 
                 SalesboxApi::createManyOffers([
                     'offers' => $simpleOffers
@@ -102,7 +120,7 @@ class ProductActionHandler extends AbstractActionHandler
 
             }
 
-            if (count($this->productIdsToUpdate) > 0) {
+            if (count($product_update_ids) > 0) {
 
 
                 $simpleOffers = collect(PosterStore::getProducts())
@@ -179,138 +197,5 @@ class ProductActionHandler extends AbstractActionHandler
     }
 
 
-
-
-
-    public function findOutWhatProductsNeedToBeCreated()
-    {
-        $ids = [];
-        $salesbox_offer = $this->findOffer($this->getObjectId());
-        if (!$salesbox_offer) {
-            $ids[] = $this->getObjectId();
-        } else {
-            $ids[] = $this->getObjectId();
-        }
-        return $ids;
-    }
-
-    /**
-     * @param $externalId
-     * @return mixed|null
-     */
-    public function findSalesboxCategory($externalId)
-    {
-        $key = array_search($externalId, array_column($this->salesbox_categories, 'externalId'));
-
-        if ($key !== false) {
-            return $this->salesbox_categories[$key];
-        }
-        return null;
-    }
-
-    /**
-     * @param $poster_id
-     * @return PosterCategory_meta|null
-     */
-    public function findPosterCategory($poster_id)
-    {
-        foreach ($this->poster_categories as $category) {
-            if ($category->category_id === $poster_id) {
-                return $category;
-            }
-        }
-        return null;
-    }
-
-    public function findOutWhatCategoriesNeedToBeCreated(): array
-    {
-        $ids = [];
-        $poster_product = $this->findProduct($this->getObjectId());
-
-        $poster_category = $this->findPosterCategory($poster_product->menu_category_id);
-        $salesbox_category = $this->findSalesboxCategory($poster_product->menu_category_id);
-
-        if (!$salesbox_category) {
-            $ids[] = $poster_product->menu_category_id;
-        }
-
-        if (!!$poster_category->parent_category) {
-            $list = array_map(function ($poster_category) {
-                return [
-                    'id' => $poster_category->category_id,
-                    'parent_id' => $poster_category->parent_category
-                ];
-            }, $this->poster_categories);
-
-            $parent_ids = array_filter(find_parents($list, $poster_category->category_id), function ($id) {
-                return $id !== "0";
-            });
-
-            foreach ($parent_ids as $parent_id) {
-                $salesbox_category = $this->findSalesboxCategory($parent_id);
-
-                // if parent category doesn't exists
-                // remember it we will create it later
-                if (!$salesbox_category) {
-                    $ids[] = $parent_id;
-                }
-            }
-        }
-        return $ids;
-    }
-
-    public function createCategories($create_categories)
-    {
-        $categories = [];
-
-        foreach ($create_categories as $poster_category) {
-            $categories[] = $this->asJsonForCreate($poster_category);
-        }
-
-        return SalesboxApi::createManyCategories([
-            'categories' => $categories
-        ])['data']['ids'];
-    }
-
-    /**
-     * @param PosterCategory_meta $poster_category
-     * @return array
-     */
-    public function asJsonForCreate($poster_category)
-    {
-        $json = [];
-
-        if (!!$poster_category->parent_category) {
-            $parent_salesbox_category = $this->findSalesboxCategory($poster_category->parent_category);
-
-            if ($parent_salesbox_category) {
-                $json['parentId'] = $parent_salesbox_category['internalId'];
-            } else {
-                $json['parentId'] = $poster_category->parent_category;
-            }
-        }
-
-        if ($poster_category->category_photo) {
-            $json['previewURL'] = Utils::poster_upload_url($poster_category->category_photo);
-        }
-
-        if ($poster_category->category_photo_origin) {
-            $json['previewURL'] = Utils::poster_upload_url($poster_category->category_photo_origin);
-        }
-
-        $json['available'] = $poster_category->visible[0]->visible === 1;
-        $json['externalId'] = $poster_category->category_id;
-        $json['names'] = [
-            [
-                'name' => $poster_category->category_name,
-                'lang' => 'uk'
-            ]
-        ];
-        $json['descriptions'] = [];
-        $json['photos'] = [];
-        $json['internalId'] = $poster_category->category_id;
-
-        return $json;
-    }
 
 }

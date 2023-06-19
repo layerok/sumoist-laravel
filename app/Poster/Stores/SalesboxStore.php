@@ -7,6 +7,10 @@ use App\Poster\SalesboxOffer;
 use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\Facades\SalesboxApiV4;
 
+/**
+ * @see  \App\Poster\Facades\SalesboxStore
+ */
+
 class SalesboxStore {
     /** @var SalesboxCategory[] $categories */
     public $categories = [];
@@ -53,6 +57,11 @@ class SalesboxStore {
             }
         }
         return null;
+    }
+
+    public function offerExists($externalId): bool
+    {
+        return !!$this->findOffer($externalId);
     }
 
     /**

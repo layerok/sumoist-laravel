@@ -7,6 +7,9 @@ use App\Poster\PosterProduct;
 use App\Poster\Utils;
 use poster\src\PosterApi;
 
+/**
+ * @see  \App\Poster\Facades\PosterStore
+ */
 class PosterStore {
     /** @var PosterCategory[] $categories */
     public $categories = [];
