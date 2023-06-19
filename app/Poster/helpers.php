@@ -1,11 +1,14 @@
 <?php
 
+use App\Poster\meta\PosterApiResponse_meta;
 use App\Poster\meta\PosterCategory_meta;
 use App\Poster\meta\PosterProduct_meta;
-use App\Poster\Query;
-use App\Poster\QueryClient;
+use App\Poster\Utils;
+use App\Salesbox\Facades\SalesboxApi;
+use App\Salesbox\Facades\SalesboxApiV4;
 use App\Salesbox\meta\SalesboxCategory_meta;
 use App\Salesbox\meta\SalesboxOfferV4_meta;
+use poster\src\PosterApi;
 
 if (!function_exists('perRequestCache')) {
     function perRequestCache()
@@ -14,19 +17,13 @@ if (!function_exists('perRequestCache')) {
     }
 }
 
-if (!function_exists('fetch_query')) {
-    function fetch_query(Query $query)
-    {
-        $queryClient = app(QueryClient::class);
-        return $queryClient->fetch($query);
-    }
-}
-
 if (!function_exists('salesbox_fetchCategories')) {
     function salesbox_fetchCategories()
     {
-        $query = app(\App\Poster\Queries\SalesboxCategoriesQuery::class);
-        return fetch_query($query);
+        $cacheKey = 'salesbox.categories';
+        return perRequestCache()->rememberForever($cacheKey, function() {
+            return SalesboxApi::getCategories()->data;
+        });
     }
 }
 
@@ -45,16 +42,20 @@ if (!function_exists('salesbox_fetchCategory')) {
 if (!function_exists('salesbox_fetchAccessToken')) {
     function salesbox_fetchAccessToken()
     {
-        $query = app(\App\Poster\Queries\SalesboxAccessTokenQuery::class);
-        return fetch_query($query);
+        $cacheKey = 'salesbox.accessToken';
+        return perRequestCache()->rememberForever($cacheKey, function() {
+            return SalesboxApi::getAccessToken()->data->token;
+        });
     }
 }
 
 if (!function_exists('salesboxV4_fetchOffers')) {
     function salesboxV4_fetchOffers()
     {
-        $query = app(\App\Poster\Queries\SalesboxV4OffersQuery::class);
-        return fetch_query($query);
+        $cacheKey = 'salesboxv4.offers';
+        return perRequestCache()->rememberForever($cacheKey, function() {
+            return SalesboxApiV4::getOffers()->data;
+        });
     }
 }
 
@@ -75,8 +76,14 @@ if (!function_exists('poster_fetchCategories')) {
      */
     function poster_fetchCategories()
     {
-        $query = app(\App\Poster\Queries\PosterCategoriesQuery::class);
-        return fetch_query($query);
+        $cacheKey = 'poster.categories';
+
+        return perRequestCache()->rememberForever($cacheKey, function() {
+            /** @var PosterApiResponse_meta $response */
+            $response = PosterApi::menu()->getCategories();
+            Utils::assertResponse($response, 'getCategories');
+            return $response->response;
+        });
     }
 }
 
@@ -97,9 +104,16 @@ if (!function_exists('poster_fetchProducts')) {
      */
     function poster_fetchProducts()
     {
-        $query = app(\App\Poster\Queries\PosterProductsQuery::class);
-        return fetch_query($query);
+        $cacheKey = 'poster.products';
+
+        return perRequestCache()->rememberForever($cacheKey, function() {
+            $response = PosterApi::menu()->getProducts();
+            /** @var PosterApiResponse_meta $response */
+            Utils::assertResponse($response, 'getProducts');
+            return $response->response;
+        });
     }
+
 }
 
 if(!function_exists('poster_fetchProduct')) {

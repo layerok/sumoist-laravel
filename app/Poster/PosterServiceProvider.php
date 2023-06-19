@@ -2,11 +2,6 @@
 
 namespace App\Poster;
 
-use App\Poster\Queries\PosterCategoriesQuery;
-use App\Poster\Queries\PosterProductsQuery;
-use App\Poster\Queries\SalesboxAccessTokenQuery;
-use App\Poster\Queries\SalesboxCategoriesQuery;
-use App\Poster\Queries\SalesboxV4OffersQuery;
 use Illuminate\Support\ServiceProvider;
 
 class PosterServiceProvider extends ServiceProvider
@@ -18,13 +13,7 @@ class PosterServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->instance(QueryClient::class, new QueryClient());
 
-        $this->app->instance(SalesboxCategoriesQuery::class, new SalesboxCategoriesQuery());
-        $this->app->instance(SalesboxAccessTokenQuery::class, new SalesboxAccessTokenQuery());
-        $this->app->instance(SalesboxV4OffersQuery::class, new SalesboxV4OffersQuery());
-        $this->app->instance(PosterProductsQuery::class, new PosterProductsQuery());
-        $this->app->instance(PosterCategoriesQuery::class, new PosterCategoriesQuery());
     }
 
     /**
