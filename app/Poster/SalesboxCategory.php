@@ -2,31 +2,30 @@
 
 namespace App\Poster;
 
+use App\Poster\Stores\SalesboxStore;
+
 class SalesboxCategory {
-    private $internalId;
-    private $id;
-    private $externalId;
-    private $parentId;
-    private $names;
-    private $descriptions;
-    private $photos;
-    private $originalUrl;
-    private $previewUrl;
-    private $available;
+    public $attributes;
+    public $store;
+
+    public function __construct($attributes, SalesboxStore $store) {
+        $this->attributes = $attributes;
+        $this->store = $store;
+    }
 
     /**
      * @return mixed
      */
     public function getAvailable()
     {
-        return $this->available;
+        return $this->attributes['available'];
     }
     /**
      * @return mixed
      */
     public function getDescriptions()
     {
-        return $this->descriptions;
+        return $this->attributes['descriptions'];
     }
 
     /**
@@ -34,7 +33,7 @@ class SalesboxCategory {
      */
     public function getExternalId()
     {
-        return $this->externalId;
+        return $this->attributes['externalId'];
     }
 
     /**
@@ -42,7 +41,7 @@ class SalesboxCategory {
      */
     public function getId()
     {
-        return $this->id;
+        return $this->attributes['id'] ?? null;
     }
 
     /**
@@ -50,7 +49,7 @@ class SalesboxCategory {
      */
     public function getInternalId()
     {
-        return $this->internalId;
+        return $this->attributes['internalId'];
     }
 
     /**
@@ -58,15 +57,15 @@ class SalesboxCategory {
      */
     public function getNames()
     {
-        return $this->names;
+        return $this->attributes['names'];
     }
 
     /**
      * @return mixed
      */
-    public function getOriginalUrl()
+    public function getOriginalURL()
     {
-        return $this->originalUrl;
+        return $this->attributes['originalURL'] ?? null;
     }
 
     /**
@@ -74,7 +73,7 @@ class SalesboxCategory {
      */
     public function getParentId()
     {
-        return $this->parentId;
+        return $this->attributes['parentId'];
     }
 
     /**
@@ -82,15 +81,15 @@ class SalesboxCategory {
      */
     public function getPhotos()
     {
-        return $this->photos;
+        return $this->attributes['photos'];
     }
 
     /**
      * @return mixed
      */
-    public function getPreviewUrl()
+    public function getPreviewURL()
     {
-        return $this->previewUrl;
+        return $this->attributes['previewURL'];
     }
 
     /**
@@ -98,7 +97,7 @@ class SalesboxCategory {
      */
     public function setDescriptions($descriptions): void
     {
-        $this->descriptions = $descriptions;
+        $this->attributes['descriptions'] = $descriptions;
     }
 
     /**
@@ -107,7 +106,7 @@ class SalesboxCategory {
      */
     public function setNames($names)
     {
-        $this->names = $names;
+        $this->attributes['names'] = $names;
         return $this;
     }
 
@@ -117,7 +116,7 @@ class SalesboxCategory {
      */
     public function setParentId($parentId)
     {
-        $this->parentId = $parentId;
+        $this->attributes['parentId'] = $parentId;
         return $this;
     }
 
@@ -127,7 +126,7 @@ class SalesboxCategory {
      */
     public function setExternalId($externalId)
     {
-        $this->externalId = $externalId;
+        $this->attributes['externalId'] = $externalId;
         return $this;
     }
 
@@ -137,7 +136,7 @@ class SalesboxCategory {
      */
     public function setId($id)
     {
-        $this->id = $id;
+        $this->attributes['id'] = $id;
         return $this;
     }
 
@@ -147,7 +146,7 @@ class SalesboxCategory {
      */
     public function setInternalId($internalId)
     {
-        $this->internalId = $internalId;
+        $this->attributes['internalId'] = $internalId;
         return $this;
     }
 
@@ -157,7 +156,7 @@ class SalesboxCategory {
      */
     public function setPhotos($photos)
     {
-        $this->photos = $photos;
+        $this->attributes['photos'] = $photos;
         return $this;
     }
 
@@ -167,7 +166,7 @@ class SalesboxCategory {
      */
     public function setOriginalUrl($originalUrl)
     {
-        $this->originalUrl = $originalUrl;
+        $this->attributes['originalURL'] = $originalUrl;
         return $this;
     }
 
@@ -177,7 +176,7 @@ class SalesboxCategory {
      */
     public function setPreviewUrl($previewUrl)
     {
-        $this->previewUrl = $previewUrl;
+        $this->attributes['previewURL'] = $previewUrl;
         return $this;
     }
 
@@ -187,7 +186,74 @@ class SalesboxCategory {
      */
     public function setAvailable($available)
     {
-        $this->available = $available;
+        $this->attributes['available'] = $available;
         return $this;
+    }
+
+    public function hasPreviewURL(): bool {
+        return !!$this->getPreviewURL();
+    }
+
+    public function hasOriginalUrl(): bool {
+        return !!$this->getOriginalURL();
+    }
+
+    public function asJson() {
+        return [
+            'names' => $this->getNames(),
+            'available' => $this->getAvailable(),
+            'internalId' => $this->getInternalId(),
+            'descriptions' => $this->getDescriptions(),
+            'originalURL' => $this->getOriginalURL(),
+            'previewURL' => $this->getPreviewURL(),
+            'externalId' => $this->getExternalId(),
+            'id'=> $this->getId(),
+            'parentId' => $this->getParentId(),
+            'photos' => $this->getPhotos(),
+        ];
+    }
+
+    public function fromPosterCategory(PosterCategory $posterCategory) {
+        $this->setExternalId($posterCategory->getCategoryId());
+        $this->setInternalId($posterCategory->getCategoryId());
+
+        $this->setOriginalUrl(null);
+        $this->setPreviewUrl(null);
+
+        if($posterCategory->hasPhotoOrigin()) {
+            $this->setOriginalUrl(
+                Utils::poster_upload_url($posterCategory->getPhotoOrigin())
+            );
+        }
+
+        if($posterCategory->hasPhoto()) {
+            $this->setPreviewUrl(
+                Utils::poster_upload_url($posterCategory->getPhoto())
+            );
+        }
+
+        $this->setParentId(null);
+
+        // check parent category
+        if($posterCategory->hasParentCategory()) {
+            $this->setParentId($posterCategory->getParentCategory());
+
+            $parent_salesbox_category = $this->store->findCategory($posterCategory->getParentCategory());
+
+            if($parent_salesbox_category) {
+                $this->setParentId($parent_salesbox_category->getInternalId());
+            }
+        }
+
+        $this->setDescriptions([]);
+        $this->setNames([
+            [
+                'name' => $posterCategory->getCategoryName(),
+                'lang' => 'uk'
+            ]
+        ]);
+
+        $this->setPhotos([]);
+        $this->setAvailable($posterCategory->isVisible());
     }
 }

@@ -3,15 +3,9 @@
 namespace App\Poster;
 
 use App\Poster\Exceptions\PosterApiException;
-use App\Poster\meta\PosterApiResponse_meta;
 
 class Utils
 {
-    /**
-     * @param PosterApiResponse_meta $response
-     * @param string $method
-     * @return PosterApiResponse_meta
-     */
     static public function assertResponse($response, $method)
     {
         if (!isset($response->response) || !$response->response) {

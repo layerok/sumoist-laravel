@@ -2,84 +2,48 @@
 
 namespace App\Poster\ActionHandlers;
 
-use App\Poster\PosterCategory;
+use App\Poster\Facades\PosterStore;
+use App\Poster\Facades\SalesboxStore;
+use App\Poster\meta\PosterCategory_meta;
 use App\Poster\PosterProduct;
-use App\Poster\SalesboxCategory;
 use App\Poster\SalesboxOffer;
+use App\Poster\Utils;
 use App\Salesbox\Facades\SalesboxApi;
-use App\Salesbox\Facades\SalesboxApiV4;
 use App\Salesbox\meta\CreatedSalesboxCategory_meta;
 use App\Salesbox\meta\SalesboxOfferV4_meta;
 
 class ProductActionHandler extends AbstractActionHandler
 {
-    public $productIdsToCreate = [];
     public $productIdsToUpdate = [];
-    public $categoryIdsToCreate = [];
 
     public $createdCategories = [];
+
+    /** @var CreatedSalesboxCategory_meta $created_categories */
+    public $created_categories;
 
     public function handle(): bool
     {
         if ($this->isAdded() || $this->isRestored() || $this->isChanged()) {
-            $posterId = $this->getObjectId();
+            SalesboxStore::authenticate();
+            SalesboxStore::loadCategories();
+            SalesboxStore::loadOffers();
+            PosterStore::loadCategories();
+            PosterStore::loadProducts();
 
-            $accessToken = salesbox_fetchAccessToken();
-            SalesboxApi::authenticate($accessToken);
-            SalesboxApiV4::authenticate($accessToken);
+            $products_ids = $this->findOutWhatProductsNeedToBeCreated();
+            $categories_ids = $this->findOutWhatCategoriesNeedToBeCreated();
 
-            $poster_product = poster_fetchProduct($posterId);
-
-            $salesbox_offer = salesboxV4_fetchOffer($posterId);
-
-            if (!$salesbox_offer) {
-                $this->productIdsToCreate[] = $posterId;
-            } else {
-                $this->productIdsToUpdate[] = $posterId;
-            }
-
-            if (!!$poster_product->menu_category_id) {
-                // recursively check parent categories for existence
-                $this->checkCategory($poster_product->menu_category_id);
-            }
-
-            if (count($this->categoryIdsToCreate)) {
-                $categories = collect(poster_fetchCategories())
-                    ->whereIn('category_id', $this->categoryIdsToCreate)
-                    ->map(function ($attributes) {
-                        return new PosterCategory($attributes);
-                    })
-                    ->map(function (PosterCategory $posterCategory) {
-                        return $posterCategory->asSalesboxCategory();
-                    })
-                    ->map(function (SalesboxCategory $category) {
-                        return [
-                            'externalId'        => $category->getExternalId(),
-                            'parentId'          => $category->getParentId(),
-                            'names'             => $category->getNames(),
-                            'descriptions'      => $category->getDescriptions(),
-                            'photos'            => $category->getPhotos(),
-                            'internalId'        => $category->getInternalId(),
-                            'previewURL'        => $category->getPreviewUrl(),
-                            'originalURL'       => $category->getOriginalUrl(),
-                            'available'         => $category->getAvailable(),
-                        ];
-                    })
-                    ->values()
-                    ->toArray();
-
-                perRequestCache()->rememberForever('salesbox.categories.created', function () use ($categories) {
-                    return SalesboxApi::createManyCategories([
-                        'categories' => $categories
-                    ])->data->ids;
+            if (count($categories_ids) > 0) {
+                $categories_to_create = array_filter(PosterStore::getCategories(), function ($poster_category) use ($categories_ids) {
+                    return in_array($poster_category->category_id, $categories_ids);
                 });
-
+                $this->createCategories($categories_to_create);
             }
 
-            if (count($this->productIdsToCreate) > 0) {
+            if (count($products_ids) > 0) {
 
-                $simpleOffers = collect(poster_fetchProducts())
-                    ->whereIn('product_id', $this->productIdsToCreate)
+                $simpleOffers = collect(PosterStore::getProducts())
+                    ->whereIn('product_id', $products_ids)
                     ->map(function ($attributes) {
                         return new PosterProduct($attributes);
                     })
@@ -111,15 +75,15 @@ class ProductActionHandler extends AbstractActionHandler
                     })
                     ->map(function (SalesboxOffer $offer) {
                         return [
-                            'externalId'            => $offer->getExternalId(),
-                            'units'                 => $offer->getUnits(),
-                            'stockType'             => $offer->getStockType(),
-                            'descriptions'          => $offer->getDescriptions(),
-                            'photos'                => $offer->getPhotos(),
-                            'categories'            => $offer->getCategories(),
-                            'names'                 => $offer->getNames(),
-                            'available'             => $offer->getAvailable(),
-                            'price'                 => $offer->getPrice(),
+                            'externalId' => $offer->getExternalId(),
+                            'units' => $offer->getUnits(),
+                            'stockType' => $offer->getStockType(),
+                            'descriptions' => $offer->getDescriptions(),
+                            'photos' => $offer->getPhotos(),
+                            'categories' => $offer->getCategories(),
+                            'names' => $offer->getNames(),
+                            'available' => $offer->getAvailable(),
+                            'price' => $offer->getPrice(),
                         ];
                     })
                     ->values()
@@ -141,8 +105,8 @@ class ProductActionHandler extends AbstractActionHandler
             if (count($this->productIdsToUpdate) > 0) {
 
 
-                $simpleOffers = collect(poster_fetchProducts())
-                    ->whereIn('product_id', $this->productIdsToCreate)
+                $simpleOffers = collect(PosterStore::getProducts())
+                    ->whereIn('product_id', PosterStore::getProducts())
                     ->filter('poster_productWithoutModificators')
                     ->map(function (PosterProduct $poster_product) {
                         $salesbox_offer = $poster_product->asSalesboxOffer();
@@ -169,15 +133,15 @@ class ProductActionHandler extends AbstractActionHandler
                     })
                     ->map(function (SalesboxOffer $offer) {
                         return [
-                            'externalId'            => $offer->getExternalId(),
-                            'units'                 => $offer->getUnits(),
-                            'stockType'             => $offer->getStockType(),
-                            'descriptions'          => $offer->getDescriptions(),
-                            'photos'                => $offer->getPhotos(),
-                            'categories'            => $offer->getCategories(),
-                            'names'                 => $offer->getNames(),
-                            'available'             => $offer->getAvailable(),
-                            'price'                 => $offer->getPrice(),
+                            'externalId' => $offer->getExternalId(),
+                            'units' => $offer->getUnits(),
+                            'stockType' => $offer->getStockType(),
+                            'descriptions' => $offer->getDescriptions(),
+                            'photos' => $offer->getPhotos(),
+                            'categories' => $offer->getCategories(),
+                            'names' => $offer->getNames(),
+                            'available' => $offer->getAvailable(),
+                            'price' => $offer->getPrice(),
                         ];
                     })
                     ->values()
@@ -191,10 +155,7 @@ class ProductActionHandler extends AbstractActionHandler
         }
 
         if ($this->isRemoved()) {
-            $token = salesbox_fetchAccessToken();
-            SalesboxApi::authenticate($token);
-            SalesboxApiV4::authenticate($token);
-
+            SalesboxStore::authenticate();
 
             $salesbox_offers_ids = collect(salesboxV4_fetchOffers())
                 ->where('externalId', $this->getObjectId())
@@ -217,19 +178,139 @@ class ProductActionHandler extends AbstractActionHandler
         return true;
     }
 
-    public function checkCategory($posterId, $recursively = true)
+
+
+
+
+    public function findOutWhatProductsNeedToBeCreated()
     {
-        $salesbox_category = salesbox_fetchCategory($posterId);
-        $poster_category = poster_fetchCategory($posterId);
-
-        if (!$salesbox_category) {
-            $this->categoryIdsToCreate[] = $posterId;
+        $ids = [];
+        $salesbox_offer = $this->findOffer($this->getObjectId());
+        if (!$salesbox_offer) {
+            $ids[] = $this->getObjectId();
+        } else {
+            $ids[] = $this->getObjectId();
         }
-
-        if (!!$poster_category->parent_category && $recursively) {
-            $this->checkCategory($poster_category->parent_category, $recursively);
-        }
+        return $ids;
     }
 
+    /**
+     * @param $externalId
+     * @return mixed|null
+     */
+    public function findSalesboxCategory($externalId)
+    {
+        $key = array_search($externalId, array_column($this->salesbox_categories, 'externalId'));
+
+        if ($key !== false) {
+            return $this->salesbox_categories[$key];
+        }
+        return null;
+    }
+
+    /**
+     * @param $poster_id
+     * @return PosterCategory_meta|null
+     */
+    public function findPosterCategory($poster_id)
+    {
+        foreach ($this->poster_categories as $category) {
+            if ($category->category_id === $poster_id) {
+                return $category;
+            }
+        }
+        return null;
+    }
+
+    public function findOutWhatCategoriesNeedToBeCreated(): array
+    {
+        $ids = [];
+        $poster_product = $this->findProduct($this->getObjectId());
+
+        $poster_category = $this->findPosterCategory($poster_product->menu_category_id);
+        $salesbox_category = $this->findSalesboxCategory($poster_product->menu_category_id);
+
+        if (!$salesbox_category) {
+            $ids[] = $poster_product->menu_category_id;
+        }
+
+        if (!!$poster_category->parent_category) {
+            $list = array_map(function ($poster_category) {
+                return [
+                    'id' => $poster_category->category_id,
+                    'parent_id' => $poster_category->parent_category
+                ];
+            }, $this->poster_categories);
+
+            $parent_ids = array_filter(find_parents($list, $poster_category->category_id), function ($id) {
+                return $id !== "0";
+            });
+
+            foreach ($parent_ids as $parent_id) {
+                $salesbox_category = $this->findSalesboxCategory($parent_id);
+
+                // if parent category doesn't exists
+                // remember it we will create it later
+                if (!$salesbox_category) {
+                    $ids[] = $parent_id;
+                }
+            }
+        }
+        return $ids;
+    }
+
+    public function createCategories($create_categories)
+    {
+        $categories = [];
+
+        foreach ($create_categories as $poster_category) {
+            $categories[] = $this->asJsonForCreate($poster_category);
+        }
+
+        return SalesboxApi::createManyCategories([
+            'categories' => $categories
+        ])['data']['ids'];
+    }
+
+    /**
+     * @param PosterCategory_meta $poster_category
+     * @return array
+     */
+    public function asJsonForCreate($poster_category)
+    {
+        $json = [];
+
+        if (!!$poster_category->parent_category) {
+            $parent_salesbox_category = $this->findSalesboxCategory($poster_category->parent_category);
+
+            if ($parent_salesbox_category) {
+                $json['parentId'] = $parent_salesbox_category['internalId'];
+            } else {
+                $json['parentId'] = $poster_category->parent_category;
+            }
+        }
+
+        if ($poster_category->category_photo) {
+            $json['previewURL'] = Utils::poster_upload_url($poster_category->category_photo);
+        }
+
+        if ($poster_category->category_photo_origin) {
+            $json['previewURL'] = Utils::poster_upload_url($poster_category->category_photo_origin);
+        }
+
+        $json['available'] = $poster_category->visible[0]->visible === 1;
+        $json['externalId'] = $poster_category->category_id;
+        $json['names'] = [
+            [
+                'name' => $poster_category->category_name,
+                'lang' => 'uk'
+            ]
+        ];
+        $json['descriptions'] = [];
+        $json['photos'] = [];
+        $json['internalId'] = $poster_category->category_id;
+
+        return $json;
+    }
 
 }

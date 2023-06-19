@@ -51,10 +51,6 @@ class SalesboxApiV4 {
         $this->accessToken = $token;
     }
 
-    /**
-     * @param array $params
-     * @return meta\SalesboxApiResponse_meta
-     */
     public function getAccessToken(array $params = []) {
         return SalesboxApi::getAccessToken($params);
     }
@@ -73,11 +69,6 @@ class SalesboxApiV4 {
         return $token;
     }
 
-    /**
-     * @param array $params
-     * @param array $guzzleOptions
-     * @return SalesboxApiResponse_meta
-     */
     public function getOffers(array $params = [], array $guzzleOptions = []) {
         // onlyAvailable, isGrouped, page, pageSize - query params
         $query = [
@@ -89,7 +80,7 @@ class SalesboxApiV4 {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->get( 'offers/filter', $mergedOptions);
-        return json_decode($res->getBody());
+        return json_decode($res->getBody(), true);
     }
 
 }

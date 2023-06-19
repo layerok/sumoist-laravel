@@ -2,214 +2,143 @@
 
 namespace App\Poster;
 
-class SalesboxOffer {
-    private $available;
-    private $names;
-    private $descriptions;
-    private $photos;
-    private $externalId;
-    private $categories;
-    private $originalUrl;
-    private $previewUrl;
-    private $units;
-    private $stockType;
-    private $price;
+use App\Poster\Stores\SalesboxStore;
+
+class SalesboxOffer
+{
+    public $attributes;
+    public $store;
+
+    public function __construct($attributes, SalesboxStore $store)
+    {
+        $this->attributes = $attributes;
+        $this->store = $store;
+    }
 
     /**
      * @return mixed
      */
     public function getAvailable()
     {
-        return $this->available;
+        return $this->attributes['available'];
     }
 
-    /**
-     * @param mixed $available
-     * @return SalesboxOffer
-     */
     public function setAvailable($available)
     {
-        $this->available = $available;
+        $this->attributes['available'] = $available;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
     public function getNames()
     {
-        return $this->names;
+        return $this->attributes['names'];
     }
 
-    /**
-     * @param mixed $names
-     * @return SalesboxOffer
-     */
+
     public function setNames($names)
     {
-        $this->names = $names;
+        $this->attributes['names'] = $names;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
+
     public function getDescriptions()
     {
-        return $this->descriptions;
+        return $this->attributes['descriptions'];
     }
 
-    /**
-     * @param mixed $descriptions
-     * @return SalesboxOffer
-     */
+
     public function setDescriptions($descriptions)
     {
-        $this->descriptions = $descriptions;
+        $this->attributes['descriptions'] = $descriptions;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
     public function getPhotos()
     {
-        return $this->photos;
+        return $this->attributes['photos'];
     }
 
-    /**
-     * @param mixed $photos
-     * @return SalesboxOffer
-     */
     public function setPhotos($photos)
     {
-        $this->photos = $photos;
+        $this->attributes['photos'] = $photos;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
     public function getExternalId()
     {
-        return $this->externalId;
+        return $this->attributes['externalId'];
     }
 
-    /**
-     * @param mixed $externalId
-     * @return SalesboxOffer
-     */
     public function setExternalId($externalId)
     {
-        $this->externalId = $externalId;
+        $this->attributes['externalId'] = $externalId;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
     public function getCategories()
     {
-        return $this->categories;
+        return $this->attributes['categories'];
     }
 
-    /**
-     * @param mixed $categories
-     * @return SalesboxOffer
-     */
     public function setCategories($categories)
     {
-        $this->categories = $categories;
+        $this->attributes['categories'] = $categories;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
     public function getOriginalUrl()
     {
-        return $this->originalUrl;
+        return $this->attributes['originalUrl'];
     }
 
-    /**
-     * @param mixed $originalUrl
-     * @return SalesboxOffer
-     */
     public function setOriginalUrl($originalUrl)
     {
-        $this->originalUrl = $originalUrl;
+        $this->attributes['originalUrl'] = $originalUrl;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
     public function getPreviewUrl()
     {
-        return $this->previewUrl;
+        return $this->attributes['previewUrl'];
     }
 
-    /**
-     * @param mixed $previewUrl
-     * @return SalesboxOffer
-     */
     public function setPreviewUrl($previewUrl)
     {
-        $this->previewUrl = $previewUrl;
+        $this->attributes['previewUrl'] = $previewUrl;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
     public function getUnits()
     {
-        return $this->units;
+        return $this->attributes['units'];
     }
 
-    /**
-     * @param mixed $units
-     * @return SalesboxOffer
-     */
     public function setUnits($units)
     {
-        $this->units = $units;
+        $this->attributes['units'] = $units;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
     public function getStockType()
     {
-        return $this->stockType;
+        return $this->attributes['stockType'];
     }
 
-    /**
-     * @param mixed $stockType
-     * @return SalesboxOffer
-     */
     public function setStockType($stockType)
     {
-        $this->stockType = $stockType;
+        $this->attributes['stockType'] = $stockType;
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getPrice()
     {
-        return $this->price;
+        return $this->attributes['price'];
     }
 
-    /**
-     * @param int $price
-     * @return SalesboxOffer
-     */
     public function setPrice($price)
     {
-        $this->price = $price;
+        $this->attributes['price'] = $price;
         return $this;
     }
 }

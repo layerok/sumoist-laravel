@@ -13,6 +13,9 @@ namespace App\Salesbox\meta;
  * @property $companyId
  * @property $names
  * @property $name
+ * @property $descriptions;
+ * @property $photos;
+ * @property $originalURL;
  *
  */
 

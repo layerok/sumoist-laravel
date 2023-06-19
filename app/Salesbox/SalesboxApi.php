@@ -2,7 +2,6 @@
 
 namespace App\Salesbox;
 
-use App\Salesbox\meta\SalesboxApiResponse_meta;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Utils;
@@ -58,10 +57,6 @@ class SalesboxApi {
         $this->accessToken = $token;
     }
 
-    /**
-     * @param array $params
-     * @return SalesboxApiResponse_meta
-     */
     public function getAccessToken(array $params = []) {
         $res = $this->guzzleClient->post('auth', [
             'json' => [
@@ -69,7 +64,7 @@ class SalesboxApi {
             ],
             'query' => $params
         ]);
-        return json_decode($res->getBody());
+        return json_decode($res->getBody(), true);
     }
 
     public function authenticate($providedToken = ''): string {
@@ -86,11 +81,6 @@ class SalesboxApi {
         return $token;
     }
 
-    /**
-     * @param $params
-     * @param array $guzzleOptions
-     * @return SalesboxApiResponse_meta
-     */
     public function getCategories($params = [], array $guzzleOptions = []) {
         $query = [
             'lang' => $this->lang
@@ -100,36 +90,21 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->get('categories', $mergedOptions);
-        return json_decode($res->getBody());
+        return json_decode($res->getBody(), true);
     }
 
-    /**
-     * @param $params
-     * @param array $guzzleOptions
-     * @return SalesboxApiResponse_meta
-     */
     public function createCategory($params = [], array $guzzleOptions = []) {
         return $this->createManyCategories([
             'categories' => [$params['category']]
         ], $guzzleOptions);
     }
 
-    /**
-     * @param array $params
-     * @param array $guzzleOptions
-     * @return SalesboxApiResponse_meta
-     */
     public function updateCategory(array $params = [], array $guzzleOptions = []) {
         return $this->updateManyCategories([
             'categories' => [$params['category']]
         ], $guzzleOptions);
     }
 
-    /**
-     * @param array $params
-     * @param array $guzzleOptions
-     * @return SalesboxApiResponse_meta
-     */
     public function deleteCategory(array $params = [], array $guzzleOptions = []) {
         return $this->deleteManyCategories([
             'ids' => [$params['id']],
@@ -137,11 +112,6 @@ class SalesboxApi {
         ], $guzzleOptions);
     }
 
-    /**
-     * @param array $params
-     * @param array $guzzleOptions
-     * @return SalesboxApiResponse_meta
-     */
     public function createManyCategories(array $params = [], array $guzzleOptions = []) {
         $json = [
             'categories' => $params['categories']
@@ -151,14 +121,9 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->post('categories/createMany', $mergedOptions);
-        return json_decode($res->getBody());
+        return json_decode($res->getBody(), true);
     }
 
-    /**
-     * @param array $params
-     * @param array $guzzleOptions
-     * @return SalesboxApiResponse_meta
-     */
     public function updateManyCategories(array $params = [], array $guzzleOptions = []) {
         $json = [
             'categories' => $params['categories']
@@ -168,14 +133,9 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->post('categories/updateMany', $mergedOptions);
-        return json_decode($res->getBody());
+        return json_decode($res->getBody(), true);
     }
 
-    /**
-     * @param array $params
-     * @param array $guzzleOptions
-     * @return SalesboxApiResponse_meta
-     */
     public function deleteManyCategories(array $params = [], array $guzzleOptions = []) {
         $json = [
             'ids' => $params['ids']
@@ -190,14 +150,9 @@ class SalesboxApi {
         }
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->delete('categories', $mergedOptions);
-        return json_decode($res->getBody());
+        return json_decode($res->getBody(), true);
     }
 
-    /**
-     * @param array $params
-     * @param array $guzzleOptions
-     * @return SalesboxApiResponse_meta
-     */
     public function getOffers(array $params = [], array $guzzleOptions = []) {
         // onlyAvailable, isGrouped, page, pageSize - query params
         $query = [
@@ -209,14 +164,9 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->get('offers/filter', $mergedOptions);
-        return json_decode($res->getBody());
+        return json_decode($res->getBody(), true);
     }
 
-    /**
-     * @param array $params
-     * @param array $guzzleOptions
-     * @return SalesboxApiResponse_meta
-     */
     public function createManyOffers(array $params = [], array $guzzleOptions = []) {
         $options = [
             'json' => [
@@ -225,14 +175,9 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->post('offers/createMany', $mergedOptions);
-        return json_decode($res->getBody());
+        return json_decode($res->getBody(), true);
     }
 
-    /**
-     * @param array $params
-     * @param array $guzzleOptions
-     * @return SalesboxApiResponse_meta
-     */
     public function updateManyOffers(array $params = [], array $guzzleOptions = []) {
         $options = [
             'json' => [
@@ -241,14 +186,9 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->post('offers/updateMany', $mergedOptions);
-        return json_decode($res->getBody());
+        return json_decode($res->getBody(), true);
     }
 
-    /**
-     * @param array $params
-     * @param array $guzzleOptions
-     * @return SalesboxApiResponse_meta
-     */
     public function deleteManyOffers(array $params = [], array $guzzleOptions = []) {
         $json = [
             'ids' => $params['ids']
@@ -258,6 +198,6 @@ class SalesboxApi {
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);
         $res = $this->guzzleClient->delete('offers', $mergedOptions);
-        return json_decode($res->getBody());
+        return json_decode($res->getBody(), true);
     }
 }
