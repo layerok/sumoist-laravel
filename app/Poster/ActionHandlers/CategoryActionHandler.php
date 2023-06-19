@@ -8,12 +8,11 @@ use App\Salesbox\Facades\SalesboxApi;
 
 class CategoryActionHandler extends AbstractActionHandler
 {
-    public $pendingCategoryIdsForCreation = [];
-    public $pendingCategoryIdsForUpdate = [];
-
     public function handle(): bool
     {
         if ($this->isAdded() || $this->isRestored() || $this->isChanged()) {
+            $pendingCategoryIdsForCreation = [];
+            $pendingCategoryIdsForUpdate = [];
             SalesboxApi::authenticate(salesbox_fetchAccessToken());
 
             $salesbox_categoryIds = collect(salesbox_fetchCategories())
@@ -28,29 +27,37 @@ class CategoryActionHandler extends AbstractActionHandler
 
             $poster_category = poster_fetchCategory($posterId);
 
-            if ($salesbox_categoryIds->contains($posterId) && !in_array($posterId, $this->pendingCategoryIdsForUpdate)) {
-                $this->pendingCategoryIdsForUpdate[] = $posterId;
+            if ($salesbox_categoryIds->contains($posterId) && !in_array($posterId, $pendingCategoryIdsForUpdate)) {
+                $pendingCategoryIdsForUpdate[] = $posterId;
             }
 
-            if (!$salesbox_categoryIds->contains($posterId) && !in_array($posterId, $this->pendingCategoryIdsForCreation)) {
-                $this->pendingCategoryIdsForCreation[] = $posterId;
+            if (!$salesbox_categoryIds->contains($posterId) && !in_array($posterId, $pendingCategoryIdsForCreation)) {
+                $pendingCategoryIdsForCreation[] = $posterId;
             }
 
-            if (!!$poster_category->parent_category) {
-                $this->checkParent($poster_category->parent_category);
+            $parentIds = $this->collectParentIds($poster_category->category_id);
+
+
+            foreach ($parentIds as $parentId) {
+                $salesbox_category = salesbox_fetchCategory($parentId);
+
+                if (!$salesbox_category) {
+                    $pendingCategoryIdsForCreation[] = $parentId;
+                }
             }
+
 
             // make updates
-            if (count($this->pendingCategoryIdsForCreation) > 0) {
+            if (count($pendingCategoryIdsForCreation) > 0) {
                 $categories = collect(poster_fetchCategories())
-                    ->whereIn('category_id', $this->pendingCategoryIdsForCreation)
-                    ->map(function($attributes) {
+                    ->whereIn('category_id', $pendingCategoryIdsForCreation)
+                    ->map(function ($attributes) {
                         return new PosterCategory($attributes);
                     })
-                    ->map(function(PosterCategory $poster_category) {
+                    ->map(function (PosterCategory $poster_category) {
                         $salesbox_category = $poster_category->asSalesboxCategory();
 
-                        if($poster_category->hasParentCategory()) {
+                        if ($poster_category->hasParentCategory()) {
                             // check if parent category already exists in salesbox
                             // and set its internalId as parentId
                             // I do this because, there may be situation when parent category was created manually
@@ -64,15 +71,15 @@ class CategoryActionHandler extends AbstractActionHandler
                     })
                     ->map(function (SalesboxCategory $category) {
                         return [
-                            'available'         => $category->getAvailable(),
-                            'externalId'        => $category->getExternalId(),
-                            'names'             => $category->getNames(),
-                            'descriptions'      => $category->getDescriptions(),
-                            'photos'            => $category->getPhotos(),
-                            'internalId'        => $category->getInternalId(),
-                            'previewURL'        => $category->getPreviewUrl(),
-                            'originalURL'       => $category->getOriginalUrl(),
-                            'parentId'          => $category->getParentId(),
+                            'available' => $category->getAvailable(),
+                            'externalId' => $category->getExternalId(),
+                            'names' => $category->getNames(),
+                            'descriptions' => $category->getDescriptions(),
+                            'photos' => $category->getPhotos(),
+                            'internalId' => $category->getInternalId(),
+                            'previewURL' => $category->getPreviewUrl(),
+                            'originalURL' => $category->getOriginalUrl(),
+                            'parentId' => $category->getParentId(),
                         ];
                     })
                     ->values()// array must be property indexed, otherwise salesbox api will fail
@@ -83,18 +90,18 @@ class CategoryActionHandler extends AbstractActionHandler
                 ]);
             }
 
-            if (count($this->pendingCategoryIdsForUpdate) > 0) {
+            if (count($pendingCategoryIdsForUpdate) > 0) {
 
                 $categories = collect(poster_fetchCategories())
-                    ->whereIn('category_id', $this->pendingCategoryIdsForUpdate)
-                    ->map(function($attributes) {
+                    ->whereIn('category_id', $pendingCategoryIdsForUpdate)
+                    ->map(function ($attributes) {
                         return new PosterCategory($attributes);
                     })
-                    ->map(function(PosterCategory $poster_category) {
+                    ->map(function (PosterCategory $poster_category) {
                         $salesbox_category = $poster_category->asSalesboxCategory();
 
 
-                        if($poster_category->hasParentCategory()) {
+                        if ($poster_category->hasParentCategory()) {
                             $salesbox_parentCategoryAttributes = salesbox_fetchCategory($poster_category->getParentCategory());
                             if ($salesbox_parentCategoryAttributes) {
                                 $salesbox_category->setParentId($salesbox_parentCategoryAttributes->internalId);
@@ -113,22 +120,22 @@ class CategoryActionHandler extends AbstractActionHandler
                     ->map(function (SalesboxCategory $category) {
                         $salesbox_category = salesbox_fetchCategory($category->getExternalId());
 
-                        $json =  [
-                            'id'                => $category->getId(),
-                            'externalId'        => $category->getExternalId(),
-                            'internalId'        => $category->getInternalId(),
-                            'parentId'          => $category->getParentId(),
-                            'names'             => $category->getNames(),
-                            'previewURL'        => $category->getPreviewUrl(),
-                            'originalURL'       => $category->getOriginalUrl(),
-                            'available'         => $category->getAvailable(),
+                        $json = [
+                            'id' => $category->getId(),
+                            'externalId' => $category->getExternalId(),
+                            'internalId' => $category->getInternalId(),
+                            'parentId' => $category->getParentId(),
+                            'names' => $category->getNames(),
+                            'previewURL' => $category->getPreviewUrl(),
+                            'originalURL' => $category->getOriginalUrl(),
+                            'available' => $category->getAvailable(),
                             //'descriptions'      => $category->getDescriptions(),
                             //'photos'            => $category->getPhotos(),
                         ];
                         // update photo if it isn't already present in salesbox
-                        if(!$salesbox_category->previewURL) {
+                        if (!$salesbox_category->previewURL) {
                             $json['previewURL'] = $category->getPreviewUrl();
-                            $json['originalURL' ] = $category->getOriginalUrl();
+                            $json['originalURL'] = $category->getOriginalUrl();
                         }
 
                         return $json;
@@ -165,18 +172,16 @@ class CategoryActionHandler extends AbstractActionHandler
         return true;
     }
 
-    public function checkParent($posterId)
+    public function collectParentIds($posterId, $arr = []): array
     {
-        $salesbox_category = salesbox_fetchCategory($posterId);
         $poster_category = poster_fetchCategory($posterId);
 
-        if (!$salesbox_category) {
-            $this->pendingCategoryIdsForCreation[] = $posterId;
+        if (!!$poster_category->parent_category) {
+            $arr[] = $poster_category->parent_category;
+            return $this->collectParentIds($poster_category->parent_category, $arr);
         }
 
-        if (!!$poster_category->parent_category) {
-            $this->checkParent($poster_category->parent_category);
-        }
+        return $arr;
     }
 
 

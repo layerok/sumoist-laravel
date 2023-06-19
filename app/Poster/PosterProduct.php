@@ -91,7 +91,7 @@ class PosterProduct implements AsSalesboxOffer {
         $offer->setExternalId($this->getProductId());
         $offer->setCategories([]);
         // to find out categories ids I have to fetch them from salesbox
-        // but I won't do it here, I'll do it later
+        // but I won't do it here, because it is side effect
 
         $offer->setAvailable(!$this->isHidden());
         $offer->setPrice($price);
