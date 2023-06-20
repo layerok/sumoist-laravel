@@ -53,7 +53,7 @@ class CategoryActionHandler extends AbstractActionHandler
             }
 
             if (count($update_ids) > 0) {
-                $poster_categories_as_salesbox_ones = PosterStore::asSalesboxCategories(
+                $poster_categories_as_salesbox_ones = SalesboxStore::updateFromPosterCategories(
                     PosterStore::findCategory($update_ids)
                 );
                 SalesboxStore::updateManyCategories($poster_categories_as_salesbox_ones);

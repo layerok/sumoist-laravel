@@ -13,8 +13,8 @@ use Illuminate\Support\Arr;
 /**
  * @see  \App\Poster\Facades\SalesboxStore
  */
-
-class SalesboxStore {
+class SalesboxStore
+{
 
     /** @var SalesboxCategory[] $categories */
     private $categories = [];
@@ -28,21 +28,24 @@ class SalesboxStore {
     /** @var RootStore $rootStore */
     private $rootStore;
 
-    public function __construct(RootStore $rootStore) {
+    public function __construct(RootStore $rootStore)
+    {
         $this->rootStore = $rootStore;
     }
 
     /**
      * @return RootStore
      */
-    public function getRootStore(): RootStore {
+    public function getRootStore(): RootStore
+    {
         return $this->rootStore;
     }
 
     /**
      * @return void
      */
-    function authenticate() {
+    function authenticate()
+    {
         $this->accessToken = SalesboxApi::getAccessToken()['data']['token'];
         SalesboxApi::authenticate($this->accessToken);
         SalesboxApiV4::authenticate($this->accessToken);
@@ -51,8 +54,9 @@ class SalesboxStore {
     /**
      * @return SalesboxOffer[]
      */
-    public function loadOffers() {
-        $this->offers = array_map(function($item) {
+    public function loadOffers()
+    {
+        $this->offers = array_map(function ($item) {
             return new SalesboxOffer($item, $this);
         }, SalesboxApiV4::getOffers()['data']);
         return $this->offers;
@@ -61,7 +65,8 @@ class SalesboxStore {
     /**
      * @return SalesboxOffer[]
      */
-    public function getOffers() {
+    public function getOffers()
+    {
         return $this->offers;
     }
 
@@ -72,10 +77,10 @@ class SalesboxStore {
     public function findOffer($external_id)
     {
         $ids = Arr::wrap($external_id);
-        $found = array_filter($this->offers, function(SalesboxOffer $offer) use($ids) {
+        $found = array_filter($this->offers, function (SalesboxOffer $offer) use ($ids) {
             return in_array($offer->getExternalId(), $ids);
         });
-        if(is_array($external_id)) {
+        if (is_array($external_id)) {
             return $found;
         }
         return array_values($found)[0] ?? null;
@@ -89,8 +94,9 @@ class SalesboxStore {
     /**
      * @return SalesboxCategory[]
      */
-    public function loadCategories() {
-        $this->categories = array_map(function($item) {
+    public function loadCategories()
+    {
+        $this->categories = array_map(function ($item) {
             return new SalesboxCategory($item, $this);
         }, SalesboxApi::getCategories()['data']);
         return $this->categories;
@@ -99,11 +105,13 @@ class SalesboxStore {
     /**
      * @return SalesboxCategory[]
      */
-    public function getCategories() {
+    public function getCategories()
+    {
         return $this->categories;
     }
 
-    public function categoryExists($externalId): bool {
+    public function categoryExists($externalId): bool
+    {
         return !!$this->findCategory($externalId);
     }
 
@@ -111,12 +119,13 @@ class SalesboxStore {
      * @param $external_id
      * @return SalesboxCategory|SalesboxCategory[]|null
      */
-    public function findCategory($external_id) {
+    public function findCategory($external_id)
+    {
         $ids = Arr::wrap($external_id);
-        $found = array_filter($this->categories, function(SalesboxCategory $category) use($ids) {
+        $found = array_filter($this->categories, function (SalesboxCategory $category) use ($ids) {
             return in_array($category->getExternalId(), $ids);
         });
-        if(is_array($external_id)) {
+        if (is_array($external_id)) {
             return $found;
         }
         return array_values($found)[0] ?? null;
@@ -126,7 +135,8 @@ class SalesboxStore {
      * @param SalesboxCategory $salesboxCategory
      * @return array
      */
-    public function deleteCategory(SalesboxCategory $salesboxCategory) {
+    public function deleteCategory(SalesboxCategory $salesboxCategory)
+    {
         // recursively=true is important,
         // without this param salesbox will throw an error if the category being deleted has child categories
         return SalesboxApi::deleteCategory([
@@ -139,14 +149,44 @@ class SalesboxStore {
      * @param SalesboxCategory[] $categories
      * @return array
      */
-    public function updateManyCategories($categories) {
-        $categories = array_map(function(SalesboxCategory $salesbox_category) {
-            return $salesbox_category
-                ->asJson();
-        }, $categories);
+    public function updateManyCategories($categories)
+    {
+        $categories = collect($categories)
+            ->map(function (SalesboxCategory $salesbox_category) {
+
+                $json = $salesbox_category->asJson();
+
+                $only = [
+                    'id',
+                    'parentId',
+                    'internalId',
+                    'externalId',
+                    'categories',
+                    'photos',
+                    'names',
+                    'available'
+                ];
+                // don't override photo if it is already present
+                if($salesbox_category->getOriginalAttributes('previewURL')) {
+                    $json['previewURL'] = $salesbox_category->getOriginalAttributes('previewURL');
+                }
+
+                // the same applies to 'originalURL'
+                if($salesbox_category->getOriginalAttributes('originalURL')) {
+                    $json['originalURL'] = $salesbox_category->getOriginalAttributes('originalURL');
+                }
+
+                if(count($salesbox_category->getOriginalAttributes('names')) > 0) {
+                    $json['names'] = $salesbox_category->getOriginalAttributes('names');
+                }
+
+                return collect($json)->only($only);
+            })
+            ->values()
+            ->toArray();
 
         return SalesboxApi::updateManyCategories([
-            'categories' => array_values($categories) // reindex array
+            'categories' => $categories // reindex array
         ]);
     }
 
@@ -154,8 +194,9 @@ class SalesboxStore {
      * @param SalesboxCategory[] $categories
      * @return array
      */
-    public function createManyCategories($categories) {
-        $categories = array_map(function(SalesboxCategory $salesbox_category) {
+    public function createManyCategories($categories)
+    {
+        $categories = array_map(function (SalesboxCategory $salesbox_category) {
             return $salesbox_category->asJson();
         }, $categories);
 
@@ -168,7 +209,8 @@ class SalesboxStore {
      * @param SalesboxOffer[] $offers
      * @return array
      */
-    public function createManyOffers($offers) {
+    public function createManyOffers($offers)
+    {
         $offersAsJson = array_map(function (SalesboxOffer $offer) {
             return $offer->asJson();
         }, $offers);
@@ -182,7 +224,8 @@ class SalesboxStore {
      * @param SalesboxOffer[] $offers
      * @return array
      */
-    public function updateManyOffers($offers) {
+    public function updateManyOffers($offers)
+    {
         $offersAsJson = array_map(function (SalesboxOffer $offer) {
             return $offer->asJson();
         }, $offers);
@@ -194,17 +237,33 @@ class SalesboxStore {
 
     /**
      * @param PosterProduct[] $poster_categories
-     * @return SalesboxOffer[]
+     * @return SalesboxOffer[]|array
      */
-    public function updateFromPosterProducts($poster_products) {
-        $found_poster_products = array_filter($poster_products, function($poster_product) {
-            return SalesboxStore::offerExists($poster_product->getProductId());
+    public function updateFromPosterProducts($poster_products)
+    {
+        $found_poster_products = array_filter($poster_products, function (PosterProduct $poster_product) {
+            return $this->offerExists($poster_product->getProductId());
         });
 
-        return array_map(function(PosterProduct $poster_product) {
+        return array_map(function (PosterProduct $poster_product) {
             $offer = $this->findOffer($poster_product->getProductId());
             return $offer->updateFromPosterProduct($poster_product);
         }, $found_poster_products);
     }
 
+    /**
+     * @param PosterCategory[] $poster_categories
+     * @return SalesboxCategory[]|array
+     */
+    public function updateFromPosterCategories($poster_categories)
+    {
+        $found_poster_categories = array_filter($poster_categories, function (PosterCategory $poster_category) {
+            return $this->categoryExists($poster_category->getCategoryId());
+        });
+        return array_map(function (PosterCategory $poster_category) {
+            $category = $this->findCategory($poster_category->getCategoryId());
+            return $category->updateFromPosterCategory($poster_category);
+        }, $found_poster_categories);
+
+    }
 }

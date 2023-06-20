@@ -6,12 +6,25 @@ use App\Poster\Stores\SalesboxStore;
 use App\Poster\Utils;
 
 class SalesboxCategory {
-    public $attributes;
-    public $store;
+    private $attributes;
+    private $originalAttributes;
+    private $store;
 
     public function __construct($attributes, SalesboxStore $store) {
         $this->attributes = $attributes;
+        $this->originalAttributes = $attributes;
         $this->store = $store;
+    }
+
+    /**
+     * @param string|null $key
+     * @return mixed
+     */
+    public function getOriginalAttributes($key = null) {
+        if(!is_null($key)) {
+            return $this->originalAttributes[$key] ?? null;
+        }
+        return $this->originalAttributes;
     }
 
     /**
@@ -20,13 +33,6 @@ class SalesboxCategory {
     public function getAvailable()
     {
         return $this->attributes['available'];
-    }
-    /**
-     * @return mixed
-     */
-    public function getDescriptions()
-    {
-        return $this->attributes['descriptions'];
     }
 
     /**
@@ -91,14 +97,6 @@ class SalesboxCategory {
     public function getPreviewURL()
     {
         return $this->attributes['previewURL'];
-    }
-
-    /**
-     * @param mixed $descriptions
-     */
-    public function setDescriptions($descriptions): void
-    {
-        $this->attributes['descriptions'] = $descriptions;
     }
 
     /**
@@ -204,7 +202,6 @@ class SalesboxCategory {
             'names' => $this->getNames(),
             'available' => $this->getAvailable(),
             'internalId' => $this->getInternalId(),
-            'descriptions' => $this->getDescriptions(),
             'originalURL' => $this->getOriginalURL(),
             'previewURL' => $this->getPreviewURL(),
             'externalId' => $this->getExternalId(),
@@ -246,7 +243,6 @@ class SalesboxCategory {
             }
         }
 
-        $this->setDescriptions([]);
         $this->setNames([
             [
                 'name' => $posterCategory->getCategoryName(),

@@ -140,10 +140,6 @@ class PosterStore
      */
     public function asSalesboxCategories(array $poster_categories): array {
         return array_map(function(PosterCategory $poster_category) {
-            if(SalesboxStore::categoryExists($poster_category->getCategoryId())) {
-                $salesbox_category = SalesboxStore::findCategory($poster_category->getCategoryId());
-                return $salesbox_category->updateFromPosterCategory($poster_category);
-            }
             return $poster_category->asSalesboxCategory();
         }, $poster_categories);
     }
