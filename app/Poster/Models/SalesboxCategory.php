@@ -27,6 +27,10 @@ class SalesboxCategory {
         return $this->originalAttributes;
     }
 
+    public function resetAttributeToOriginalOne($key) {
+        $this->attributes[$key] = $this->originalAttributes[$key];
+    }
+
     /**
      * @return mixed
      */

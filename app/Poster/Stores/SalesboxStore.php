@@ -153,7 +153,6 @@ class SalesboxStore
     {
         $categories = collect($categories)
             ->map(function (SalesboxCategory $salesbox_category) {
-
                 $json = $salesbox_category->asJson();
 
                 $only = [
@@ -161,24 +160,13 @@ class SalesboxStore
                     'parentId',
                     'internalId',
                     'externalId',
+                    'previewURL',
+                    'originalURL',
                     'categories',
                     'photos',
                     'names',
                     'available'
                 ];
-                // don't override photo if it is already present
-                if($salesbox_category->getOriginalAttributes('previewURL')) {
-                    $json['previewURL'] = $salesbox_category->getOriginalAttributes('previewURL');
-                }
-
-                // the same applies to 'originalURL'
-                if($salesbox_category->getOriginalAttributes('originalURL')) {
-                    $json['originalURL'] = $salesbox_category->getOriginalAttributes('originalURL');
-                }
-
-                if(count($salesbox_category->getOriginalAttributes('names')) > 0) {
-                    $json['names'] = $salesbox_category->getOriginalAttributes('names');
-                }
 
                 return collect($json)->only($only);
             })

@@ -4,6 +4,8 @@ namespace App\Poster\ActionHandlers;
 
 use App\Poster\Facades\PosterStore;
 use App\Poster\Facades\SalesboxStore;
+use App\Poster\Models\SalesboxCategory;
+
 class CategoryActionHandler extends AbstractActionHandler
 {
     public function __construct($params)
@@ -56,6 +58,23 @@ class CategoryActionHandler extends AbstractActionHandler
                 $poster_categories_as_salesbox_ones = SalesboxStore::updateFromPosterCategories(
                     PosterStore::findCategory($update_ids)
                 );
+
+                array_map(function(SalesboxCategory $salesbox_category) {
+                    // don't override photo if it is already present
+                    if($salesbox_category->getOriginalAttributes('previewURL')) {
+                        $salesbox_category->resetAttributeToOriginalOne('previewURL');
+                    }
+
+                    if($salesbox_category->getOriginalAttributes('originalURL')) {
+                        $salesbox_category->resetAttributeToOriginalOne('originalURL');
+                    }
+
+                    // the same applies to 'names'
+                    if(count($salesbox_category->getOriginalAttributes('names')) > 0) {
+                        $salesbox_category->resetAttributeToOriginalOne('names');
+                    }
+                }, $poster_categories_as_salesbox_ones);
+
                 SalesboxStore::updateManyCategories($poster_categories_as_salesbox_ones);
             }
         }
