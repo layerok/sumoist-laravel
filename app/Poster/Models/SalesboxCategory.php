@@ -5,7 +5,7 @@ namespace App\Poster\Models;
 use App\Poster\Stores\SalesboxStore;
 use App\Poster\Utils;
 
-class SalesboxCategory extends AbstractSalesboxModel {
+class SalesboxCategory extends SalesboxModel {
     private $store;
 
     public function __construct($attributes, SalesboxStore $store) {

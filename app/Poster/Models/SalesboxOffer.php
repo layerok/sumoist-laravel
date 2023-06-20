@@ -5,7 +5,7 @@ namespace App\Poster\Models;
 use App\Poster\Stores\SalesboxStore;
 use App\Poster\Utils;
 
-class SalesboxOffer extends AbstractSalesboxModel
+class SalesboxOffer extends SalesboxModel
 {
     private $store;
 

@@ -2,7 +2,7 @@
 
 namespace App\Poster\Models;
 
-abstract class AbstractSalesboxModel {
+abstract class SalesboxModel {
     protected $attributes = [];
     protected $originalAttributes = [];
 
