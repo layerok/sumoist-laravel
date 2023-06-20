@@ -26,7 +26,6 @@ use Illuminate\Support\Facades\Facade;
  *
  * @method static SalesboxOffer[] updateFromPosterProducts(PosterProduct[] $poster_product)
  * @method static SalesboxCategory[] updateFromPosterCategories(PosterCategory[] $poster_category)
-
  * @method static void authenticate()
  * @method static RootStore getRootStore()
  *

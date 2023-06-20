@@ -5,14 +5,13 @@ namespace App\Poster\Models;
 use App\Poster\Stores\SalesboxStore;
 use App\Poster\Utils;
 
-class SalesboxOffer
+class SalesboxOffer extends AbstractSalesboxModel
 {
-    public $attributes;
-    public $store;
+    private $store;
 
     public function __construct($attributes, SalesboxStore $store)
     {
-        $this->attributes = $attributes;
+        parent::__construct($attributes);
         $this->store = $store;
     }
 

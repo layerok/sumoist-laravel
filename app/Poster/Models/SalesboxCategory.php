@@ -5,30 +5,12 @@ namespace App\Poster\Models;
 use App\Poster\Stores\SalesboxStore;
 use App\Poster\Utils;
 
-class SalesboxCategory {
-    private $attributes;
-    private $originalAttributes;
+class SalesboxCategory extends AbstractSalesboxModel {
     private $store;
 
     public function __construct($attributes, SalesboxStore $store) {
-        $this->attributes = $attributes;
-        $this->originalAttributes = $attributes;
+        parent::__construct($attributes);
         $this->store = $store;
-    }
-
-    /**
-     * @param string|null $key
-     * @return mixed
-     */
-    public function getOriginalAttributes($key = null) {
-        if(!is_null($key)) {
-            return $this->originalAttributes[$key] ?? null;
-        }
-        return $this->originalAttributes;
-    }
-
-    public function resetAttributeToOriginalOne($key) {
-        $this->attributes[$key] = $this->originalAttributes[$key];
     }
 
     /**
