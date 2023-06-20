@@ -4,8 +4,6 @@ namespace App\Poster\ActionHandlers;
 
 use App\Poster\Facades\PosterStore;
 use App\Poster\Facades\SalesboxStore;
-use App\Poster\PosterCategory;
-
 class CategoryActionHandler extends AbstractActionHandler
 {
     public function __construct($params)
@@ -43,27 +41,17 @@ class CategoryActionHandler extends AbstractActionHandler
 
             // make updates
             if (count($create_ids) > 0) {
-                $poster_categories_to_create = array_filter(PosterStore::getCategories(), function($poster_category) use($create_ids) {
-                    return in_array($poster_category->getCategoryId(), $create_ids);
-                });
-
-                $poster_categories_as_salesbox_ones = array_map(function(PosterCategory $poster_category) {
-                    return $poster_category
-                        ->asSalesboxCategory();
-                }, $poster_categories_to_create);
+                $poster_categories_as_salesbox_ones = PosterStore::asSalesboxCategories(
+                    PosterStore::findCategory($create_ids)
+                );
 
                 SalesboxStore::createManyCategories($poster_categories_as_salesbox_ones);
             }
 
             if (count($update_ids) > 0) {
-                $categories_to_update = array_filter(PosterStore::getCategories(), function($poster_category) use($update_ids) {
-                    return in_array($poster_category->getCategoryId(), $update_ids);
-                });
-                $poster_categories_as_salesbox_ones = array_map(function(PosterCategory $poster_category) {
-                    return $poster_category
-                        ->asSalesboxCategory();
-                }, $categories_to_update);
-
+                $poster_categories_as_salesbox_ones = PosterStore::asSalesboxCategories(
+                    PosterStore::findCategory($update_ids)
+                );
                 SalesboxStore::updateManyCategories($poster_categories_as_salesbox_ones);
             }
         }

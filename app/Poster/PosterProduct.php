@@ -2,6 +2,7 @@
 
 namespace App\Poster;
 
+use App\Poster\Facades\SalesboxStore;
 use App\Poster\meta\PosterProduct_meta;
 use App\Poster\Stores\PosterStore;
 
@@ -64,6 +65,11 @@ class PosterProduct {
         return $this->attributes->price;
     }
 
+    public function getFirstPrice(): int {
+        $spot = $this->getFirstSpot();
+        return intval($this->getPrice()->{$spot->spot_id}) / 100;
+    }
+
     public function hasPhoto(): bool {
         return !!$this->getPhoto();
     }
@@ -75,7 +81,10 @@ class PosterProduct {
 
     public function asSalesboxOffer(): SalesboxOffer
     {
-        $offer = new SalesboxOffer();
+
+
+
+        $offer = new SalesboxOffer([], $salesboxStore);
 
         $spot = $this->getFirstSpot();
         $price = intval($this->getPrice()->{$spot->spot_id}) / 100;
@@ -108,6 +117,12 @@ class PosterProduct {
         // but I won't do it here, because it side effect
         // so I'll set categories later, upper in the scope
         $offer->setCategories([]);
+
+        $category = SalesboxStore::findCategory($this->getMenuCategoryId());
+
+        if ($category) {
+            $offer->setCategories([$category->getId()]);
+        }
 
 
         $offer->setAvailable(!$this->isHidden());

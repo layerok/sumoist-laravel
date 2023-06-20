@@ -2,45 +2,52 @@
 
 namespace App\Poster\Stores;
 
+use App\Poster\Facades\SalesboxStore;
 use App\Poster\PosterCategory;
 use App\Poster\PosterProduct;
+use App\Poster\SalesboxCategory;
 use App\Poster\Utils;
+use Illuminate\Support\Arr;
 use poster\src\PosterApi;
 
 /**
  * @see  \App\Poster\Facades\PosterStore
  */
-class PosterStore {
+class PosterStore
+{
     /** @var PosterCategory[] $categories */
-    public $categories = [];
+    private $categories = [];
 
     /**  @var PosterProduct[] $products */
-    public $products;
+    private $products;
 
     /**
      * @var RootStore
      */
-    public $rootStore;
+    private $rootStore;
 
-    public function __construct(RootStore $rootStore) {
+    public function __construct(RootStore $rootStore)
+    {
         $this->rootStore = $rootStore;
     }
 
     /**
      * @return RootStore
      */
-    public function getRootStore(): RootStore {
+    public function getRootStore(): RootStore
+    {
         return $this->rootStore;
     }
 
     /**
      * @return PosterProduct[]
      */
-    function loadProducts() {
+    function loadProducts()
+    {
         $productsResponse = PosterApi::menu()->getProducts();
         Utils::assertResponse($productsResponse, 'getProducts');
 
-        $this->products = array_map(function($item) {
+        $this->products = array_map(function ($item) {
             return new PosterProduct($item, $this);
         }, $productsResponse->response);
 
@@ -50,11 +57,12 @@ class PosterStore {
     /**
      * @return PosterCategory[]
      */
-    function loadCategories() {
+    function loadCategories()
+    {
         $res = PosterApi::menu()->getCategories();
         Utils::assertResponse($res, 'getCategories');
 
-        $this->categories = array_map(function($item) {
+        $this->categories = array_map(function ($item) {
             return new PosterCategory($item, $this);
         }, $res->response);
 
@@ -64,41 +72,63 @@ class PosterStore {
     /**
      * @return PosterCategory[]
      */
-    function getCategories() {
+    function getCategories()
+    {
         return $this->categories;
     }
 
     /**
      * @return PosterProduct[]
      */
-    function getProducts() {
+    function getProducts()
+    {
         return $this->products;
     }
 
     /**
      * @param $poster_id
-     * @return PosterCategory|null
+     * @return PosterCategory|PosterCategory[]|null
      */
-    public function findCategory($poster_id) {
-        foreach($this->categories as $category) {
-            if($category->getCategoryId() === $poster_id) {
-                return $category;
-            }
+    public function findCategory($poster_id)
+    {
+        $ids = Arr::wrap($poster_id);
+        $found = array_filter($this->categories, function(PosterCategory $category) use($ids) {
+            return in_array($category->getCategoryId(), $ids);
+        });
+        if(is_array($poster_id)) {
+            return $found;
         }
-        return null;
+        return array_values($found)[0] ?? null;
     }
 
     /**
-     * @param $posterId
-     * @return PosterProduct|null
+     * @param array|string|number $poster_id
+     * @return PosterProduct|PosterProduct[]|null
      */
-    public function findProduct($posterId)
+    public function findProduct($poster_id)
     {
-        foreach ($this->products as $product) {
-            if ($product->getProductId() === $posterId) {
-                return $product;
-            }
+        $ids = Arr::wrap($poster_id);
+        $found = array_filter($this->products, function(PosterProduct $product) use($ids) {
+            return in_array($product->getProductId(), $ids);
+        });
+        if(is_array($poster_id)) {
+            return $found;
         }
-        return null;
+        return array_values($found)[0] ?? null;
     }
+
+    /**
+     * @param PosterCategory[] $poster_categories
+     * @return SalesboxCategory[]
+     */
+    public function asSalesboxCategories(array $poster_categories): array {
+        return array_map(function(PosterCategory $poster_category) {
+            if(SalesboxStore::categoryExists($poster_category->getCategoryId())) {
+                $salesbox_category = SalesboxStore::findCategory($poster_category->getCategoryId());
+                return $salesbox_category->updateFromPosterCategory($poster_category);
+            }
+            return $poster_category->asSalesboxCategory();
+        }, $poster_categories);
+    }
+
 }

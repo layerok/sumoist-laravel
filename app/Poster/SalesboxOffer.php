@@ -103,6 +103,10 @@ class SalesboxOffer
         return $this->attributes['previewUrl'];
     }
 
+    public function hasPreviewUrl(): bool {
+        return !!$this->getPreviewUrl();
+    }
+
     public function setPreviewUrl($previewUrl)
     {
         $this->attributes['previewUrl'] = $previewUrl;
@@ -140,5 +144,70 @@ class SalesboxOffer
     {
         $this->attributes['price'] = $price;
         return $this;
+    }
+
+    public function updateFromPosterProduct(PosterProduct $product): SalesboxOffer {
+        if(
+            $product->hasPhotoOrigin() &&
+            $product->hasPhoto() &&
+            !$this->hasPreviewUrl()
+        ) {
+            $photos = [];
+            $photos[] =      [
+                'url' => Utils::poster_upload_url($product->getPhotoOrigin()),
+                'previewURL' => Utils::poster_upload_url($product->getPhoto()),
+                'order' => 0,
+                'type' => 'image',
+                'resourceType' => 'image'
+            ];
+            $this->setPhotos($photos);
+        }
+
+        // $this->setDescriptions([]);
+        $this->setExternalId($product->getProductId());
+
+        $category = $this->store->findCategory($product->getMenuCategoryId());
+
+        if ($category) {
+            $this->setCategories([$category->getId()]);
+        } else {
+            $this->setCategories([]);
+        }
+
+        $this->setAvailable(!$product->isHidden());
+        $this->setPrice($product->getFirstPrice());
+        $this->setStockType('endless');
+        $this->setUnits('pc');
+
+        if($product->hasPhoto() && !$this->hasPreviewUrl()) {
+            $this->setPreviewUrl(Utils::poster_upload_url($product->getPhoto()));
+        }
+
+        if($product->hasPhotoOrigin() && !$this->hasPreviewUrl()) {
+            $this->setOriginalUrl(Utils::poster_upload_url($product->getPhotoOrigin()));
+        }
+
+        $this->setNames([
+            [
+                'name' => $product->getProductName(),
+                'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
+            ]
+        ]);
+
+        return clone $this;
+    }
+
+    public function asJson(): array {
+        return [
+            'externalId' => $this->getExternalId(),
+            'units' => $this->getUnits(),
+            'stockType' => $this->getStockType(),
+            'descriptions' => $this->getDescriptions(),
+            'photos' => $this->getPhotos(),
+            'categories' => $this->getCategories(),
+            'names' => $this->getNames(),
+            'available' => $this->getAvailable(),
+            'price' => $this->getPrice(),
+        ];
     }
 }

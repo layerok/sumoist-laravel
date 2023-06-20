@@ -213,7 +213,7 @@ class SalesboxCategory {
         ];
     }
 
-    public function fromPosterCategory(PosterCategory $posterCategory) {
+    public function updateFromPosterCategory(PosterCategory $posterCategory) {
         $this->setExternalId($posterCategory->getCategoryId());
         $this->setInternalId($posterCategory->getCategoryId());
 
@@ -255,5 +255,7 @@ class SalesboxCategory {
 
         $this->setPhotos([]);
         $this->setAvailable($posterCategory->isVisible());
+
+        return clone $this;
     }
 }

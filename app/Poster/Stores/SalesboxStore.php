@@ -6,26 +6,40 @@ use App\Poster\SalesboxCategory;
 use App\Poster\SalesboxOffer;
 use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\Facades\SalesboxApiV4;
+use Illuminate\Support\Arr;
 
 /**
  * @see  \App\Poster\Facades\SalesboxStore
  */
 
 class SalesboxStore {
+
     /** @var SalesboxCategory[] $categories */
-    public $categories = [];
-    public $offers = [];
-    public $accessToken;
-    public $rootStore;
+    private $categories = [];
+
+    /** @var SalesboxOffer[] $offers */
+    private $offers = [];
+
+    /** @var string|null $accessToken */
+    private $accessToken;
+
+    /** @var RootStore $rootStore */
+    private $rootStore;
 
     public function __construct(RootStore $rootStore) {
         $this->rootStore = $rootStore;
     }
 
+    /**
+     * @return RootStore
+     */
     public function getRootStore(): RootStore {
         return $this->rootStore;
     }
 
+    /**
+     * @return void
+     */
     function authenticate() {
         $this->accessToken = SalesboxApi::getAccessToken()['data']['token'];
         SalesboxApi::authenticate($this->accessToken);
@@ -49,14 +63,20 @@ class SalesboxStore {
         return $this->offers;
     }
 
-    public function findOffer($externalId): ?SalesboxOffer
+    /**
+     * @param $external_id
+     * @return SalesboxOffer|SalesboxOffer[]|null
+     */
+    public function findOffer($external_id)
     {
-        foreach($this->offers as $offer) {
-            if($offer->getExternalId() === $externalId) {
-                return $offer;
-            }
+        $ids = Arr::wrap($external_id);
+        $found = array_filter($this->offers, function(SalesboxOffer $offer) use($ids) {
+            return in_array($offer->getExternalId(), $ids);
+        });
+        if(is_array($external_id)) {
+            return $found;
         }
-        return null;
+        return array_values($found)[0] ?? null;
     }
 
     public function offerExists($externalId): bool
@@ -85,13 +105,19 @@ class SalesboxStore {
         return !!$this->findCategory($externalId);
     }
 
-    public function findCategory($externalId): ?SalesboxCategory {
-        foreach($this->categories as $category) {
-            if($category->getExternalId() === $externalId) {
-                return $category;
-            }
+    /**
+     * @param $external_id
+     * @return SalesboxCategory|SalesboxCategory[]|null
+     */
+    public function findCategory($external_id) {
+        $ids = Arr::wrap($external_id);
+        $found = array_filter($this->categories, function(SalesboxCategory $category) use($ids) {
+            return in_array($category->getExternalId(), $ids);
+        });
+        if(is_array($external_id)) {
+            return $found;
         }
-        return null;
+        return array_values($found)[0] ?? null;
     }
 
     public function deleteCategory($id) {

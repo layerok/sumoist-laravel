@@ -84,52 +84,50 @@ class PosterCategory {
 
         $salesboxStore = $this->store->getRootStore()->getSalesboxStore();
 
-        if($salesboxStore->categoryExists($this->getCategoryId())) {
-            // update category
-            $category = $salesboxStore->findCategory($this->getCategoryId());
-
-            if($this->hasPhotoOrigin() && !$category->getPreviewUrl()) {
-                $category->setOriginalUrl(
-                    Utils::poster_upload_url($this->getPhotoOrigin())
-                );
-            }
-
-            if($this->hasPhoto() && !$category->getPreviewUrl()) {
-                $category->setPreviewUrl(
-                    Utils::poster_upload_url($this->getPhoto())
-                );
-            }
-
-            // check parent category
-            if($this->hasParentCategory()) {
-                $category->setParentId($this->getParentCategory());
-
-                $parent_salesbox_category = $salesboxStore->findCategory($this->getParentCategory());
-
-                if($parent_salesbox_category) {
-                    $category->setParentId($parent_salesbox_category->getInternalId());
-                }
-            }
-
-            $category->setDescriptions([]);
-            $category->setNames([
-                [
-                    'name' => $this->getCategoryName(),
-                    'lang' => 'uk'
-                ]
-            ]);
-
-
-            $category->setPhotos([]);
-            $category->setAvailable($this->isVisible());
-            return $category;
-        }
-
-
         // create category
         $category = new SalesboxCategory([], $salesboxStore);
-        $category->fromPosterCategory($this);
+        $category->updateFromPosterCategory($this);
+
+
+//// update category
+//        $category = $salesboxStore->findCategory($this->getCategoryId());
+//
+//        if($this->hasPhotoOrigin() && !$category->getPreviewUrl()) {
+//            $category->setOriginalUrl(
+//                Utils::poster_upload_url($this->getPhotoOrigin())
+//            );
+//        }
+//
+//        if($this->hasPhoto() && !$category->getPreviewUrl()) {
+//            $category->setPreviewUrl(
+//                Utils::poster_upload_url($this->getPhoto())
+//            );
+//        }
+//
+//        // check parent category
+//        if($this->hasParentCategory()) {
+//            $category->setParentId($this->getParentCategory());
+//
+//            $parent_salesbox_category = $salesboxStore->findCategory($this->getParentCategory());
+//
+//            if($parent_salesbox_category) {
+//                $category->setParentId($parent_salesbox_category->getInternalId());
+//            }
+//        }
+//
+//        $category->setDescriptions([]);
+//        $category->setNames([
+//            [
+//                'name' => $this->getCategoryName(),
+//                'lang' => 'uk'
+//            ]
+//        ]);
+//
+//
+//        $category->setPhotos([]);
+//        $category->setAvailable($this->isVisible());
         return $category;
+
     }
 
 }
