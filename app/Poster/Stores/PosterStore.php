@@ -102,6 +102,14 @@ class PosterStore
     }
 
     /**
+     * @param string|int $id
+     * @return bool
+     */
+    public function categoryExists($id): bool {
+        return !!$this->findCategory($id);
+    }
+
+    /**
      * @param array|string|number $poster_id
      * @return PosterProduct|PosterProduct[]|null
      */

@@ -18,12 +18,16 @@ class CategoryActionHandler extends AbstractActionHandler
             PosterStore::loadCategories();
             SalesboxStore::loadCategories();
 
-            $update_ids = [];
-            $create_ids = [];
-            $salesbox_category = SalesboxStore::findCategory($this->getObjectId());
             $poster_category = PosterStore::findCategory($this->getObjectId());
 
-            if($salesbox_category) {
+            if(!PosterStore::categoryExists($this->getObjectId())){
+                throw new \RuntimeException(sprintf('category#%s not found in poster', $this->getObjectId()));
+            }
+
+            $update_ids = [];
+            $create_ids = [];
+
+            if(SalesboxStore::categoryExists($this->getObjectId())) {
                 $update_ids[] = $this->getObjectId();
             } else {
                 $create_ids[] = $this->getObjectId();

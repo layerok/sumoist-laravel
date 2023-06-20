@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static PosterCategory[] loadCategories()
  * @method static PosterProduct[] loadProducts()
  * @method static PosterCategory[]|PosterCategory|null findCategory(array|string|int $posterId)
+ * @method static bool categoryExists(string|int $posterId)
  * @method static PosterProduct|PosterProduct[]|null findProduct(array|string|int $posterId)
  * @method static PosterCategory[] getCategories()
  * @method static PosterProduct[] getProducts()
