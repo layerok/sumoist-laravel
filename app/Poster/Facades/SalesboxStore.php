@@ -17,8 +17,10 @@ use Illuminate\Support\Facades\Facade;
  * @method static SalesboxCategory|SalesboxCategory[]|null findCategory(string|int|array $externalId)
  * @method static bool categoryExists(string|int $externalId)
  * @method static array deleteCategory(SalesboxCategory $salesboxCategory)
- * @method static array updateManyCategories(array $categories)
- * @method static array createManyCategories(array $categories)
+ * @method static array updateManyCategories(SalesboxCategory[] $categories)
+ * @method static array createManyCategories(SalesboxCategory[] $categories)
+ * @method static array createManyOffers(SalesboxOffer[] $offers)
+ * @method static array updateManyOffers(SalesboxOffer[] $offers)
 
  * @method static void authenticate()
  * @method static RootStore getRootStore()

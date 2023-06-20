@@ -69,65 +69,36 @@ class ProductActionHandler extends AbstractActionHandler
 
                 $found_poster_products = PosterStore::findProduct($product_create_ids);
 
-                $poster_products_withotu_modificatons = array_filter($found_poster_products, function(PosterProduct $posterProduct) {
-                    return !$posterProduct->hasModifications();
-                });
-
-                $poster_products_as_salesbox_offers = array_map(function (PosterProduct $poster_product) {
-                    if(SalesboxStore::offerExists($poster_product->getProductId())) {
-                        $offer = SalesboxStore::findOffer($poster_product->getProductId());
-                        return $offer->updateFromPosterProduct($poster_product);
+                $poster_products_without_modificatons = array_filter(
+                    $found_poster_products,
+                    function (PosterProduct $posterProduct) {
+                        return !$posterProduct->hasModifications();
                     }
-                    return $poster_product->asSalesboxOffer();
-                }, $poster_products_withotu_modificatons);
+                );
 
+                $poster_products_as_salesbox_offers = PosterStore::asSalesboxOffers(
+                    $poster_products_without_modificatons
+                );
 
-                $offersAsJson = array_map(function(SalesboxOffer $offer) {
-                    return $offer->asJson();
-                }, $poster_products_as_salesbox_offers);
-
-
-                SalesboxApi::createManyOffers([
-                    'offers' => array_values($offersAsJson)// reindex array, it's important, otherwise salesbox api will fail
-                ]);
-
+                SalesboxStore::createManyOffers($poster_products_as_salesbox_offers);
             }
 
             if (count($product_update_ids) > 0) {
 
-                $filtered_products = array_filter(PosterStore::getProducts(),
-                    function (PosterProduct $posterProduct) use ($product_update_ids) {
-                        return in_array($posterProduct->getProductId(), $product_update_ids) &&
-                            !$posterProduct->hasModifications();
-                    });
+                $found_poster_products = PosterStore::findProduct($product_update_ids);
 
-                $offers = array_map(function (PosterProduct $poster_product) {
-                    $salesbox_offer = $poster_product->asSalesboxOffer();
-
-                    $salesbox_category = SalesboxStore::findCategory($poster_product->getMenuCategoryId());
-
-                    if ($salesbox_category) {
-                        $salesbox_offer->setCategories([$salesbox_category->getId()]);
+                $poster_products_without_modificatons = array_filter(
+                    $found_poster_products,
+                    function (PosterProduct $posterProduct) {
+                        return !$posterProduct->hasModifications();
                     }
+                );
 
+                $poster_products_as_salesbox_offers = PosterStore::asSalesboxOffers(
+                    $poster_products_without_modificatons
+                );
 
-                    return [
-                        'externalId' => $salesbox_offer->getExternalId(),
-                        'units' => $salesbox_offer->getUnits(),
-                        'stockType' => $salesbox_offer->getStockType(),
-                        'descriptions' => $salesbox_offer->getDescriptions(),
-                        'photos' => $salesbox_offer->getPhotos(),
-                        'categories' => $salesbox_offer->getCategories(),
-                        'names' => $salesbox_offer->getNames(),
-                        'available' => $salesbox_offer->getAvailable(),
-                        'price' => $salesbox_offer->getPrice(),
-                    ];
-                }, $filtered_products);
-
-
-                SalesboxApi::createManyOffers([
-                    'offers' => array_values($offers)
-                ]);
+                SalesboxStore::updateManyOffers($poster_products_as_salesbox_offers);
             }
 
         }
@@ -150,7 +121,6 @@ class ProductActionHandler extends AbstractActionHandler
 
         return true;
     }
-
 
 
 }

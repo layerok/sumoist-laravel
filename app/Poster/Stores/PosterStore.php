@@ -6,6 +6,7 @@ use App\Poster\Facades\SalesboxStore;
 use App\Poster\Models\PosterCategory;
 use App\Poster\Models\PosterProduct;
 use App\Poster\Models\SalesboxCategory;
+use App\Poster\Models\SalesboxOffer;
 use App\Poster\Utils;
 use Illuminate\Support\Arr;
 use poster\src\PosterApi;
@@ -137,6 +138,20 @@ class PosterStore
             }
             return $poster_category->asSalesboxCategory();
         }, $poster_categories);
+    }
+
+    /**
+     * @param PosterProduct[] $poster_products
+     * @return SalesboxOffer[]
+     */
+    public function asSalesboxOffers(array $poster_products) {
+        return array_map(function (PosterProduct $poster_product) {
+            if(SalesboxStore::offerExists($poster_product->getProductId())) {
+                $offer = SalesboxStore::findOffer($poster_product->getProductId());
+                return $offer->updateFromPosterProduct($poster_product);
+            }
+            return $poster_product->asSalesboxOffer();
+        }, $poster_products);
     }
 
 }

@@ -162,4 +162,32 @@ class SalesboxStore {
         ]);
     }
 
+    /**
+     * @param SalesboxOffer[] $offers
+     * @return array
+     */
+    public function createManyOffers($offers) {
+        $offersAsJson = array_map(function (SalesboxOffer $offer) {
+            return $offer->asJson();
+        }, $offers);
+
+        return SalesboxApi::createManyOffers([
+            'offers' => array_values($offersAsJson)// reindex array, it's important, otherwise salesbox api will fail
+        ]);
+    }
+
+    /**
+     * @param SalesboxOffer[] $offers
+     * @return array
+     */
+    public function updateManyOffers($offers) {
+        $offersAsJson = array_map(function (SalesboxOffer $offer) {
+            return $offer->asJson();
+        }, $offers);
+
+        return SalesboxApi::updateManyOffers([
+            'offers' => array_values($offersAsJson)// reindex array, it's important, otherwise salesbox api will fail
+        ]);
+    }
+
 }
