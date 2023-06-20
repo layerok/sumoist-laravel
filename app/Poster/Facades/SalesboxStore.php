@@ -2,8 +2,8 @@
 
 namespace App\Poster\Facades;
 
-use App\Poster\SalesboxCategory;
-use App\Poster\SalesboxOffer;
+use App\Poster\Models\SalesboxCategory;
+use App\Poster\Models\SalesboxOffer;
 use Illuminate\Support\Facades\Facade;
 
 /**

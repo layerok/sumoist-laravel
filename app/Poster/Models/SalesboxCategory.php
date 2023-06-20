@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Poster;
+namespace App\Poster\Models;
 
 use App\Poster\Stores\SalesboxStore;
+use App\Poster\Utils;
 
 class SalesboxCategory {
     public $attributes;

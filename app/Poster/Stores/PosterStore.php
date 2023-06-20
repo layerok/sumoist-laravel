@@ -3,9 +3,9 @@
 namespace App\Poster\Stores;
 
 use App\Poster\Facades\SalesboxStore;
-use App\Poster\PosterCategory;
-use App\Poster\PosterProduct;
-use App\Poster\SalesboxCategory;
+use App\Poster\Models\PosterCategory;
+use App\Poster\Models\PosterProduct;
+use App\Poster\Models\SalesboxCategory;
 use App\Poster\Utils;
 use Illuminate\Support\Arr;
 use poster\src\PosterApi;

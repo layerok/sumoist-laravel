@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Poster;
+namespace App\Poster\Models;
 
-use App\Poster\Facades\SalesboxStore;
 use App\Poster\meta\PosterCategory_meta;
 use App\Poster\Stores\PosterStore;
 

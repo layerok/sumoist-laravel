@@ -4,9 +4,9 @@ namespace App\Poster\ActionHandlers;
 
 use App\Poster\Facades\PosterStore;
 use App\Poster\Facades\SalesboxStore;
-use App\Poster\PosterCategory;
-use App\Poster\PosterProduct;
-use App\Poster\SalesboxOffer;
+use App\Poster\Models\PosterCategory;
+use App\Poster\Models\PosterProduct;
+use App\Poster\Models\SalesboxOffer;
 use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\meta\CreatedSalesboxCategory_meta;
 

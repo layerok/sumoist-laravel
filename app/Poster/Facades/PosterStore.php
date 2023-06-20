@@ -2,9 +2,9 @@
 
 namespace App\Poster\Facades;
 
-use App\Poster\PosterCategory;
-use App\Poster\PosterProduct;
-use App\Poster\SalesboxCategory;
+use App\Poster\Models\PosterCategory;
+use App\Poster\Models\PosterProduct;
+use App\Poster\Models\SalesboxCategory;
 use Illuminate\Support\Facades\Facade;
 
 /**

@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Poster;
+namespace App\Poster\Models;
 
 use App\Poster\Facades\SalesboxStore;
 use App\Poster\meta\PosterProduct_meta;
 use App\Poster\Stores\PosterStore;
+use App\Poster\Utils;
 
 class PosterProduct {
     /** @property PosterProduct_meta $attributes */

@@ -2,8 +2,8 @@
 
 namespace App\Poster\Stores;
 
-use App\Poster\SalesboxCategory;
-use App\Poster\SalesboxOffer;
+use App\Poster\Models\SalesboxCategory;
+use App\Poster\Models\SalesboxOffer;
 use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\Facades\SalesboxApiV4;
 use Illuminate\Support\Arr;
