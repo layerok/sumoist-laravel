@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static SalesboxCategory[] getCategories()
  * @method static SalesboxCategory|SalesboxCategory[]|null findCategory(string|int|array $externalId)
  * @method static bool categoryExists(string|int $externalId)
- * @method static array|null deleteCategory(string|int $externalId)
+ * @method static array deleteCategory(SalesboxCategory $salesboxCategory)
  * @method static array updateManyCategories(array $categories)
  * @method static array createManyCategories(array $categories)
 

@@ -259,4 +259,8 @@ class SalesboxCategory {
 
         return clone $this;
     }
+
+    public function delete() {
+        return $this->store->deleteCategory($this);
+    }
 }

@@ -120,11 +120,15 @@ class SalesboxStore {
         return array_values($found)[0] ?? null;
     }
 
-    public function deleteCategory($id) {
+    /**
+     * @param SalesboxCategory $salesboxCategory
+     * @return array
+     */
+    public function deleteCategory(SalesboxCategory $salesboxCategory) {
         // recursively=true is important,
         // without this param salesbox will throw an error if the category being deleted has child categories
         return SalesboxApi::deleteCategory([
-            'id' => $id,
+            'id' => $salesboxCategory->getId(),
             'recursively' => true
         ], []);
     }
@@ -157,4 +161,5 @@ class SalesboxStore {
             'categories' => array_values($categories) //reindex array
         ]);
     }
+
 }

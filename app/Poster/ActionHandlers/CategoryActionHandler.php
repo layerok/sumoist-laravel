@@ -70,7 +70,8 @@ class CategoryActionHandler extends AbstractActionHandler
                 return false;
             }
 
-            SalesboxStore::deleteCategory($this->getObjectId());
+            // it also deletes child categories, if they exist
+            $salesbox_category->delete();
         }
 
         return true;

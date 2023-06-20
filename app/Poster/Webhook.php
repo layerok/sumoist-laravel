@@ -52,7 +52,7 @@ class Webhook {
                 // 4 request - ~5 minutes
                 // 5 request - ~10 minutes
                 // n request - so on
-                return response('not ok',200);
+                return response('Error: ' . $exception->getMessage(),200);
             }
         }
 
