@@ -100,11 +100,11 @@ class PosterProduct {
         ]);
 
         if($this->hasPhoto()) {
-            $offer->setPreviewUrl(Utils::poster_upload_url($this->getPhoto()));
+            $offer->setPreviewURL(Utils::poster_upload_url($this->getPhoto()));
         }
 
         if($this->hasPhotoOrigin()) {
-            $offer->setOriginalUrl(Utils::poster_upload_url($this->getPhotoOrigin()));
+            $offer->setOriginalURL(Utils::poster_upload_url($this->getPhotoOrigin()));
         }
 
         if($this->getPhoto() && $this->getPhotoOrigin()) {

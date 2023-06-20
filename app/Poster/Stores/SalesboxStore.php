@@ -2,6 +2,8 @@
 
 namespace App\Poster\Stores;
 
+use App\Poster\Models\PosterCategory;
+use App\Poster\Models\PosterProduct;
 use App\Poster\Models\SalesboxCategory;
 use App\Poster\Models\SalesboxOffer;
 use App\Salesbox\Facades\SalesboxApi;
@@ -188,6 +190,21 @@ class SalesboxStore {
         return SalesboxApi::updateManyOffers([
             'offers' => array_values($offersAsJson)// reindex array, it's important, otherwise salesbox api will fail
         ]);
+    }
+
+    /**
+     * @param PosterProduct[] $poster_categories
+     * @return SalesboxOffer[]
+     */
+    public function updateFromPosterProducts($poster_products) {
+        $found_poster_products = array_filter($poster_products, function($poster_product) {
+            return SalesboxStore::offerExists($poster_product->getProductId());
+        });
+
+        return array_map(function(PosterProduct $poster_product) {
+            $offer = $this->findOffer($poster_product->getProductId());
+            return $offer->updateFromPosterProduct($poster_product);
+        }, $found_poster_products);
     }
 
 }

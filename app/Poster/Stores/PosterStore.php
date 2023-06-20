@@ -103,11 +103,11 @@ class PosterStore
     }
 
     /**
-     * @param string|int $id
+     * @param string|int $poster_id
      * @return bool
      */
-    public function categoryExists($id): bool {
-        return !!$this->findCategory($id);
+    public function categoryExists($poster_id): bool {
+        return !!$this->findCategory($poster_id);
     }
 
     /**
@@ -124,6 +124,14 @@ class PosterStore
             return $found;
         }
         return array_values($found)[0] ?? null;
+    }
+
+    /**
+     * @param string|int $poster_id
+     * @return bool
+     */
+    public function productExists($poster_id): bool {
+        return !!$this->findProduct($poster_id);
     }
 
     /**
@@ -146,10 +154,6 @@ class PosterStore
      */
     public function asSalesboxOffers(array $poster_products) {
         return array_map(function (PosterProduct $poster_product) {
-            if(SalesboxStore::offerExists($poster_product->getProductId())) {
-                $offer = SalesboxStore::findOffer($poster_product->getProductId());
-                return $offer->updateFromPosterProduct($poster_product);
-            }
             return $poster_product->asSalesboxOffer();
         }, $poster_products);
     }

@@ -30,6 +30,15 @@ class SalesboxOffer
         return $this;
     }
 
+    public function getId() {
+        return $this->attributes['id'] ?? null;
+    }
+
+    public function setId($id) {
+        $this->attributes['id'] = $id;
+        return $this;
+    }
+
     public function getNames()
     {
         return $this->attributes['names'];
@@ -88,29 +97,29 @@ class SalesboxOffer
         return $this;
     }
 
-    public function getOriginalUrl()
+    public function getOriginalURL()
     {
-        return $this->attributes['originalUrl'];
+        return $this->attributes['originalURL'];
     }
 
-    public function setOriginalUrl($originalUrl)
+    public function setOriginalURL($originalURL)
     {
-        $this->attributes['originalUrl'] = $originalUrl;
+        $this->attributes['originalURL'] = $originalURL;
         return $this;
     }
 
-    public function getPreviewUrl()
+    public function getPreviewURL()
     {
-        return $this->attributes['previewUrl'];
+        return $this->attributes['previewURL'];
     }
 
-    public function hasPreviewUrl(): bool {
-        return !!$this->getPreviewUrl();
+    public function hasPreviewURL(): bool {
+        return !!$this->getPreviewURL();
     }
 
-    public function setPreviewUrl($previewUrl)
+    public function setPreviewURL($previewURL)
     {
-        $this->attributes['previewUrl'] = $previewUrl;
+        $this->attributes['previewURL'] = $previewURL;
         return $this;
     }
 
@@ -148,58 +157,56 @@ class SalesboxOffer
     }
 
     public function updateFromPosterProduct(PosterProduct $product): SalesboxOffer {
-        if(
-            $product->hasPhotoOrigin() &&
-            $product->hasPhoto() &&
-            !$this->hasPreviewUrl()
-        ) {
-            $photos = [];
-            $photos[] =      [
-                'url' => Utils::poster_upload_url($product->getPhotoOrigin()),
-                'previewURL' => Utils::poster_upload_url($product->getPhoto()),
-                'order' => 0,
-                'type' => 'image',
-                'resourceType' => 'image'
-            ];
-            $this->setPhotos($photos);
-        }
-
-        // $this->setDescriptions([]);
         $this->setExternalId($product->getProductId());
-
-        $category = $this->store->findCategory($product->getMenuCategoryId());
-
-        if ($category) {
-            $this->setCategories([$category->getId()]);
-        } else {
-            $this->setCategories([]);
-        }
-
         $this->setAvailable(!$product->isHidden());
         $this->setPrice($product->getFirstPrice());
         $this->setStockType('endless');
         $this->setUnits('pc');
-
-        if($product->hasPhoto() && !$this->hasPreviewUrl()) {
-            $this->setPreviewUrl(Utils::poster_upload_url($product->getPhoto()));
-        }
-
-        if($product->hasPhotoOrigin() && !$this->hasPreviewUrl()) {
-            $this->setOriginalUrl(Utils::poster_upload_url($product->getPhotoOrigin()));
-        }
-
+        $this->setCategories([]);
+        $this->setPhotos([]);
         $this->setNames([
             [
                 'name' => $product->getProductName(),
                 'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
             ]
         ]);
+        // $this->setDescriptions([]);
 
+        if($product->hasPhoto() && !$this->hasPreviewURL()) {
+            $this->setPreviewURL(Utils::poster_upload_url($product->getPhoto()));
+        }
+
+        if($product->hasPhotoOrigin() && !$this->hasPreviewURL()) {
+            $this->setOriginalURL(Utils::poster_upload_url($product->getPhotoOrigin()));
+        }
+
+        if(
+            $product->hasPhotoOrigin() &&
+            $product->hasPhoto() &&
+            !$this->hasPreviewURL()
+        ) {
+            $this->setPhotos([
+                [
+                    'url' => Utils::poster_upload_url($product->getPhotoOrigin()),
+                    'previewURL' => Utils::poster_upload_url($product->getPhoto()),
+                    'order' => 0,
+                    'type' => 'image',
+                    'resourceType' => 'image'
+                ]
+            ]);
+        }
+
+        $category = $this->store->findCategory($product->getMenuCategoryId());
+
+        if ($category) {
+            $this->setCategories([$category->getId()]);
+        }
         return clone $this;
     }
 
     public function asJson(): array {
         return [
+            'id' => $this->getId(),
             'externalId' => $this->getExternalId(),
             'units' => $this->getUnits(),
             'stockType' => $this->getStockType(),

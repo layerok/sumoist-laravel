@@ -9,6 +9,7 @@ use App\Poster\Models\PosterProduct;
 use App\Poster\Models\SalesboxOffer;
 use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\meta\CreatedSalesboxCategory_meta;
+use RuntimeException;
 
 class ProductActionHandler extends AbstractActionHandler
 {
@@ -24,8 +25,15 @@ class ProductActionHandler extends AbstractActionHandler
             PosterStore::loadCategories();
             PosterStore::loadProducts();
 
+            if(!PosterStore::productExists($this->getObjectId())) {
+                throw new RuntimeException(sprintf('product#%s is not found in poster', $this->getObjectId()));
+            }
+
             $poster_product = PosterStore::findProduct($this->getObjectId());
-            $poster_category = PosterStore::findCategory($poster_product->getMenuCategoryId());
+
+            if(!PosterStore::categoryExists($poster_product->getMenuCategoryId())) {
+                throw new RuntimeException('category#%s is not found in poster', $poster_product->getMenuCategoryId());
+            }
 
             $product_create_ids = [];
             $product_update_ids = [];
@@ -40,6 +48,9 @@ class ProductActionHandler extends AbstractActionHandler
             if (!SalesboxStore::categoryExists($poster_product->getMenuCategoryId())) {
                 $category_create_ids[] = $poster_product->getMenuCategoryId();
             }
+
+            $poster_category = PosterStore::findCategory($poster_product->getMenuCategoryId());
+
 
             if ($poster_category->hasParentCategory()) {
                 $parent_poster_categories = $poster_category->getParents();
@@ -94,7 +105,7 @@ class ProductActionHandler extends AbstractActionHandler
                     }
                 );
 
-                $poster_products_as_salesbox_offers = PosterStore::asSalesboxOffers(
+                $poster_products_as_salesbox_offers = SalesboxStore::updateFromPosterProducts(
                     $poster_products_without_modificatons
                 );
 

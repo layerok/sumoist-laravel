@@ -12,9 +12,10 @@ use Illuminate\Support\Facades\Facade;
  * Class PosterStore
  * @method static PosterCategory[] loadCategories()
  * @method static PosterProduct[] loadProducts()
- * @method static PosterCategory[]|PosterCategory|null findCategory(array|string|int $posterId)
- * @method static bool categoryExists(string|int $posterId)
- * @method static PosterProduct|PosterProduct[]|null findProduct(array|string|int $posterId)
+ * @method static PosterCategory[]|PosterCategory|null findCategory(array|string|int $poster_id)
+ * @method static bool categoryExists(string|int $poster_id)
+ * @method static PosterProduct|PosterProduct[]|null findProduct(array|string|int $poster_id)
+ * @method static bool productExists(string|int $poster_id)
  * @method static PosterCategory[] getCategories()
  * @method static PosterProduct[] getProducts()
  * @method static RootStore getRootStore()

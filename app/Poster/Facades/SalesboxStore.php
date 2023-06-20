@@ -2,6 +2,7 @@
 
 namespace App\Poster\Facades;
 
+use App\Poster\Models\PosterProduct;
 use App\Poster\Models\SalesboxCategory;
 use App\Poster\Models\SalesboxOffer;
 use Illuminate\Support\Facades\Facade;
@@ -21,6 +22,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static array createManyCategories(SalesboxCategory[] $categories)
  * @method static array createManyOffers(SalesboxOffer[] $offers)
  * @method static array updateManyOffers(SalesboxOffer[] $offers)
+ *
+ * @method static SalesboxOffer[] updateFromPosterProducts(PosterProduct[] $poster_product)
 
  * @method static void authenticate()
  * @method static RootStore getRootStore()
