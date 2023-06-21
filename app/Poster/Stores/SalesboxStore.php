@@ -153,7 +153,7 @@ class SalesboxStore
     {
         $categories = collect($categories)
             ->map(function (SalesboxCategory $salesbox_category) {
-                $json = $salesbox_category->asJson();
+                $json = $salesbox_category->asArray();
 
                 $only = [
                     'id',
@@ -185,7 +185,7 @@ class SalesboxStore
     public function createManyCategories($categories)
     {
         $categories = array_map(function (SalesboxCategory $salesbox_category) {
-            return $salesbox_category->asJson();
+            return $salesbox_category->asArray();
         }, $categories);
 
         return SalesboxApi::createManyCategories([
@@ -200,7 +200,7 @@ class SalesboxStore
     public function createManyOffers($offers)
     {
         $offersAsJson = array_map(function (SalesboxOffer $offer) {
-            return $offer->asJson();
+            return $offer->asArray();
         }, $offers);
 
         return SalesboxApi::createManyOffers([
@@ -215,7 +215,7 @@ class SalesboxStore
     public function updateManyOffers($offers)
     {
         $offersAsJson = array_map(function (SalesboxOffer $offer) {
-            return $offer->asJson();
+            return $offer->asArray();
         }, $offers);
 
         return SalesboxApi::updateManyOffers([

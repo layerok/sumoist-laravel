@@ -183,7 +183,7 @@ class SalesboxCategory extends SalesboxModel {
         return !!$this->getOriginalURL();
     }
 
-    public function asJson() {
+    public function asArray() {
         return [
             'names' => $this->getNames(),
             'available' => $this->getAvailable(),

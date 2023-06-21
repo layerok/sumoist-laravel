@@ -203,7 +203,7 @@ class SalesboxOffer extends SalesboxModel
         return clone $this;
     }
 
-    public function asJson(): array {
+    public function asArray(): array {
         return [
             'id' => $this->getId(),
             'externalId' => $this->getExternalId(),
