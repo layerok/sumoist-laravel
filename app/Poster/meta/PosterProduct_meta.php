@@ -3,35 +3,35 @@
 namespace App\Poster\meta;
 
 /**
- * @property $out
- * @property $barcode
- * @property $category_name
- * @property $unit
- * @property $cost
- * @property $cost_netto
- * @property $fiscal
- * @property $hidden
- * @property $menu_category_id
- * @property $workshop
- * @property $nodiscount
- * @property $photo
- * @property $photo_origin
- * @property $price
- * @property $spots
- * @property $profit
- * @property $product_code
- * @property $product_id
- * @property $product_name
- * @property $sort_order
- * @property $tax_id
- * @property $product_tax_id
- * @property $type
- * @property $weight_flag
- * @property $color
- * @property $ingredient_id
- * @property $different_spots_prices
- * @property $master_id
- * @property $modifications
+ * @property string $barcode
+ * @property string $category_name
+ * @property string $unit
+ * @property string $cost
+ * @property string $cost_netto
+ * @property string $fiscal
+ * @property string $hidden
+ * @property string $menu_category_id
+ * @property string $workshop
+ * @property string $nodiscount
+ * @property string|null $photo
+ * @property string|null $photo_origin
+ * @property object|null $price
+ * @property PosterProductSpot_meta[]|null $spots
+ * @property object|null $profit
+ * @property string $product_code
+ * @property string $product_id
+ * @property string $product_name
+ * @property string $sort_order
+ * @property string $tax_id
+ * @property string $product_tax_id
+ * @property string $type
+ * @property string $weight_flag
+ * @property string $color
+ * @property string $ingredient_id
+ * @property string $different_spots_prices
+ * @property string $master_id
+ * @property PosterProductModification_meta[]|null $modifications
+ *  * @property number $out
  *
  */
 

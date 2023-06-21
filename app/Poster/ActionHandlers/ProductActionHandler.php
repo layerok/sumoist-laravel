@@ -6,6 +6,7 @@ use App\Poster\Facades\PosterStore;
 use App\Poster\Facades\SalesboxStore;
 use App\Poster\Models\PosterCategory;
 use App\Poster\Models\PosterProduct;
+use App\Poster\Models\PosterProductModification;
 use App\Poster\Models\SalesboxOffer;
 use RuntimeException;
 
@@ -85,8 +86,30 @@ class ProductActionHandler extends AbstractActionHandler
                 $poster_products_as_salesbox_offers = PosterStore::asSalesboxOffers(
                     $poster_products_without_modificatons
                 );
+                if(count($poster_products_as_salesbox_offers) > 0) {
+                    SalesboxStore::createManyOffers($poster_products_as_salesbox_offers);
+                }
 
-                SalesboxStore::createManyOffers($poster_products_as_salesbox_offers);
+                $poster_products_with_modificatons = array_filter(
+                    $found_poster_products,
+                    function (PosterProduct $posterProduct) {
+                        return $posterProduct->hasModifications();
+                    }
+                );
+
+                $modificatons_as_salesbox_offers = collect($poster_products_with_modificatons)
+                    ->map(function(PosterProduct $posterProduct) {
+                        return collect($posterProduct->getModifications())
+                            ->map(function(PosterProductModification $modification) {
+                                return $modification->asSalesboxOffer();
+                            });
+                    })
+                    ->flatten()
+                    ->toArray();
+
+                if(count($modificatons_as_salesbox_offers) > 0) {
+                    SalesboxStore::createManyOffers($modificatons_as_salesbox_offers);
+                }
             }
 
             if (count($product_update_ids) > 0) {

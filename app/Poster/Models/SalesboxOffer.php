@@ -85,6 +85,16 @@ class SalesboxOffer extends SalesboxModel
         return $this;
     }
 
+    public function getModifierId() {
+        return $this->attributes['modifierId'];
+    }
+
+    public function setModifierId($modifierId)
+    {
+        $this->attributes['modifierId'] = $modifierId;
+        return $this;
+    }
+
     public function getCategories()
     {
         return $this->attributes['categories'];
@@ -163,6 +173,7 @@ class SalesboxOffer extends SalesboxModel
         $this->setUnits('pc');
         $this->setCategories([]);
         $this->setPhotos([]);
+        $this->setModifierId(null);
         $this->setDescriptions([]);
         $this->setNames([
             [

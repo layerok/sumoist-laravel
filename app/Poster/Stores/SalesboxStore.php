@@ -206,6 +206,7 @@ class SalesboxStore
         $offersAsArray = array_map(function (SalesboxOffer $offer) {
             return [
                 'externalId' => $offer->getExternalId(),
+                'modifierId' => $offer->getModifierId(),
                 'units' => $offer->getUnits(),
                 'stockType' => $offer->getStockType(),
                 'descriptions' => $offer->getDescriptions(),
