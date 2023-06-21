@@ -79,19 +79,6 @@ class CategoryActionHandler extends AbstractActionHandler
             }
         }
 
-        if ($this->isRemoved()) {
-            SalesboxStore::authenticate();
-            SalesboxStore::loadCategories();
-
-            $salesbox_category = SalesboxStore::findCategory($this->getObjectId());
-
-            if (!$salesbox_category) {
-                return false;
-            }
-
-            // it also deletes child categories, if they exist
-            $salesbox_category->delete();
-        }
 
         return true;
     }

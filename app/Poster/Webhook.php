@@ -28,11 +28,20 @@ class Webhook {
 
         $parsed = json_decode($request->getContent(), true);
 
+
         // some meta programming below
         $namespace = 'App\\Poster\\ActionHandlers\\';
-        $className = studly_case($parsed['object'] . '_action_handler'); // e.g. DishActionHandler
+        $specificClassName= studly_case("{$parsed['object']}_{$parsed['action']}_action_handler");
+        $generalClassName = studly_case("{$parsed['object']}_action_handler");
 
-        $class = $namespace . $className;
+        $specificClass = $namespace . $specificClassName; // e.g. DishRemovedActionHandler
+        $commonClass = $namespace . $generalClassName; // e.g. DishActionHandler
+
+        if(class_exists($specificClass)) {
+            $class = $specificClass;
+        } else {
+            $class = $commonClass;
+        }
 
         if(class_exists($class)) {
             $instance = new $class($parsed);

@@ -128,15 +128,6 @@ class ProductActionHandler extends AbstractActionHandler
 
         }
 
-        if ($this->isRemoved()) {
-            SalesboxStore::authenticate();
-            SalesboxStore::loadOffers();
-
-            $offers_to_delete = SalesboxStore::findOffer([$this->getObjectId()]);
-
-            // delete products
-            SalesboxStore::deleteManyOffers($offers_to_delete);
-        }
 
         return true;
     }
