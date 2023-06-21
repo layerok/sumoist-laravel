@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * Class SalesboxApi
- * @method static string authenticate(string $token = '')
  *
  * @method static array getAccessToken(array $params = [])
+ * @method static void setAccessToken(string|null $token)
  * @method static array getCategories(array $params = [], array $guzzleOptions = [])
  * @method static array createManyCategories(array $params, array $guzzleOptions = [])
  * @method static array updateManyCategories(array $params, array $guzzleOptions = [])

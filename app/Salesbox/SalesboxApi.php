@@ -53,7 +53,7 @@ class SalesboxApi {
         return $this->handler;
     }
 
-    protected function setAccessToken($token): void {
+    public function setAccessToken($token): void {
         $this->accessToken = $token;
     }
 
@@ -65,20 +65,6 @@ class SalesboxApi {
             'query' => $params
         ]);
         return json_decode($res->getBody(), true);
-    }
-
-    public function authenticate($providedToken = ''): string {
-        if($providedToken) {
-            $this->setAccessToken($providedToken);
-            return $providedToken;
-        }
-
-        $authRes = $this->getAccessToken();
-
-        $token = $authRes->data->token;
-
-        $this->setAccessToken($token);
-        return $token;
     }
 
     public function getCategories($params = [], array $guzzleOptions = []) {

@@ -2,7 +2,6 @@
 
 namespace App\Salesbox;
 
-use App\Salesbox\meta\SalesboxApiResponse_meta;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Utils;
@@ -47,26 +46,12 @@ class SalesboxApiV4 {
         $this->guzzleClient = new Client($baseConfig);
     }
 
-    protected function setAccessToken($token): void {
+    public function setAccessToken($token): void {
         $this->accessToken = $token;
     }
 
     public function getAccessToken(array $params = []) {
         return SalesboxApi::getAccessToken($params);
-    }
-
-    public function authenticate($providedToken = ''): string {
-        if($providedToken) {
-            $this->setAccessToken($providedToken);
-            return $providedToken;
-        }
-
-        $authRes = $this->getAccessToken();
-
-        $token = $authRes['data']['token'];
-
-        $this->setAccessToken($token);
-        return $token;
     }
 
     public function getOffers(array $params = [], array $guzzleOptions = []) {

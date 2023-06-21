@@ -47,8 +47,8 @@ class SalesboxStore
     function authenticate()
     {
         $this->accessToken = SalesboxApi::getAccessToken()['data']['token'];
-        SalesboxApi::authenticate($this->accessToken);
-        SalesboxApiV4::authenticate($this->accessToken);
+        SalesboxApi::setAccessToken($this->accessToken);
+        SalesboxApiV4::setAccessToken($this->accessToken);
     }
 
     /**

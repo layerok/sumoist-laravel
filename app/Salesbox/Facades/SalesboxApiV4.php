@@ -6,8 +6,7 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * Class SalesboxApiV4
- * @method static string authenticate(string $token = '')
- *
+ * @method static void setAccessToken(string|null $token)
  * @method static array getAccessToken(array $params = [])
  * @method static array getOffers(array $params = [], array $guzzleOptions = [])
  *
