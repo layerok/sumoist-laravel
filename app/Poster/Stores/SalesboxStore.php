@@ -199,12 +199,12 @@ class SalesboxStore
      */
     public function createManyOffers($offers)
     {
-        $offersAsJson = array_map(function (SalesboxOffer $offer) {
+        $offersAsArray = array_map(function (SalesboxOffer $offer) {
             return $offer->asArray();
         }, $offers);
 
         return SalesboxApi::createManyOffers([
-            'offers' => array_values($offersAsJson)// reindex array, it's important, otherwise salesbox api will fail
+            'offers' => array_values($offersAsArray)// reindex array, it's important, otherwise salesbox api will fail
         ]);
     }
 

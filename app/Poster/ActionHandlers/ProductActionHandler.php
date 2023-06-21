@@ -6,14 +6,11 @@ use App\Poster\Facades\PosterStore;
 use App\Poster\Facades\SalesboxStore;
 use App\Poster\Models\PosterCategory;
 use App\Poster\Models\PosterProduct;
-use App\Salesbox\meta\CreatedSalesboxCategory_meta;
+use App\Poster\Models\SalesboxOffer;
 use RuntimeException;
 
 class ProductActionHandler extends AbstractActionHandler
 {
-    /** @var CreatedSalesboxCategory_meta $created_categories */
-    public $created_categories;
-
     public function handle(): bool
     {
         if ($this->isAdded() || $this->isRestored() || $this->isChanged()) {
@@ -106,6 +103,25 @@ class ProductActionHandler extends AbstractActionHandler
                 $poster_products_as_salesbox_offers = SalesboxStore::updateFromPosterProducts(
                     $poster_products_without_modificatons
                 );
+
+                array_map(function(SalesboxOffer $offer) {
+                    // don't update photo if it was already there
+                    if($offer->getOriginalAttributes('previewURL')) {
+                        $offer->resetAttributeToOriginalOne('previewURL');
+                        $offer->resetAttributeToOriginalOne('originalURL');
+                        $offer->setPhotos([]);
+                    }
+
+                    // don't update names
+                    $offer->setNames([
+                        [
+                            'name' => $offer->getOriginalAttributes('name'),
+                            'lang' => 'uk'
+                        ]
+                    ]);
+                    // don't update descriptions
+                     $offer->setDescriptions([]);
+                }, $poster_products_as_salesbox_offers);
 
                 SalesboxStore::updateManyOffers($poster_products_as_salesbox_offers);
             }

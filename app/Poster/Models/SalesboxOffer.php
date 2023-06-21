@@ -163,26 +163,25 @@ class SalesboxOffer extends SalesboxModel
         $this->setUnits('pc');
         $this->setCategories([]);
         $this->setPhotos([]);
+        $this->setDescriptions([]);
         $this->setNames([
             [
                 'name' => $product->getProductName(),
                 'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
             ]
         ]);
-        // $this->setDescriptions([]);
 
-        if($product->hasPhoto() && !$this->hasPreviewURL()) {
+        if($product->hasPhoto()) {
             $this->setPreviewURL(Utils::poster_upload_url($product->getPhoto()));
         }
 
-        if($product->hasPhotoOrigin() && !$this->hasPreviewURL()) {
+        if($product->hasPhotoOrigin()) {
             $this->setOriginalURL(Utils::poster_upload_url($product->getPhotoOrigin()));
         }
 
         if(
             $product->hasPhotoOrigin() &&
-            $product->hasPhoto() &&
-            !$this->hasPreviewURL()
+            $product->hasPhoto()
         ) {
             $this->setPhotos([
                 [
