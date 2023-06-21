@@ -212,7 +212,7 @@ class SalesboxCategory extends SalesboxModel {
         if($posterCategory->hasParentCategory()) {
             $this->setParentId($posterCategory->getParentCategory());
 
-            $parent_salesbox_category = $this->store->findCategory($posterCategory->getParentCategory());
+            $parent_salesbox_category = $this->store->findCategoryByExternalId($posterCategory->getParentCategory());
 
             if($parent_salesbox_category) {
                 $this->setParentId($parent_salesbox_category->getInternalId());

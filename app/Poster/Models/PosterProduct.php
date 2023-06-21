@@ -108,6 +108,32 @@ class PosterProduct extends PosterModel
         return $this->modifications;
     }
 
+    /**
+     * @param string|int $modificator_id
+     * @return bool
+     */
+    public function hasModification($modificator_id): bool {
+        foreach ($this->getModifications() as $modification) {
+            if($modification->getModificatorId() == $modificator_id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param string|int $modificator_id
+     * @return PosterProductModification|null
+     */
+    public function findModification($modificator_id): ?PosterProductModification {
+        foreach ($this->getModifications() as $modification) {
+            if($modification->getModificatorId() == $modificator_id) {
+                return $modification;
+            }
+        }
+        return null;
+    }
+
     public function getPrice(): ?\stdClass
     {
         return $this->attributes->price;
@@ -129,10 +155,10 @@ class PosterProduct extends PosterModel
         return !!$this->getPhotoOrigin();
     }
 
-    public function asSalesboxOffer(): SalesboxOffer
+    public function asSalesboxOffer(): SalesboxOfferV4
     {
         $salesboxStore = $this->store->getRootStore()->getSalesboxStore();
-        $offer = new SalesboxOffer([], $salesboxStore);
+        $offer = new SalesboxOfferV4([], $salesboxStore);
         $offer->setStockType('endless');
         $offer->setUnits('pc');
         $offer->setDescriptions([]);
@@ -168,7 +194,7 @@ class PosterProduct extends PosterModel
             ]);
         }
 
-        $category = SalesboxStore::findCategory($this->getMenuCategoryId());
+        $category = $salesboxStore->findCategoryByExternalId($this->getMenuCategoryId());
 
         if ($category) {
             $offer->setCategories([$category->getId()]);

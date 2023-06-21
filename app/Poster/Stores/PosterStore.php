@@ -2,11 +2,11 @@
 
 namespace App\Poster\Stores;
 
-use App\Poster\Facades\SalesboxStore;
 use App\Poster\Models\PosterCategory;
 use App\Poster\Models\PosterProduct;
+use App\Poster\Models\PosterProductModification;
 use App\Poster\Models\SalesboxCategory;
-use App\Poster\Models\SalesboxOffer;
+use App\Poster\Models\SalesboxOfferV4;
 use App\Poster\Utils;
 use Illuminate\Support\Arr;
 use poster\src\PosterApi;
@@ -93,10 +93,10 @@ class PosterStore
     public function findCategory($poster_id)
     {
         $ids = Arr::wrap($poster_id);
-        $found = array_filter($this->categories, function(PosterCategory $category) use($ids) {
+        $found = array_filter($this->categories, function (PosterCategory $category) use ($ids) {
             return in_array($category->getCategoryId(), $ids);
         });
-        if(is_array($poster_id)) {
+        if (is_array($poster_id)) {
             return $found;
         }
         return array_values($found)[0] ?? null;
@@ -106,7 +106,8 @@ class PosterStore
      * @param string|int $poster_id
      * @return bool
      */
-    public function categoryExists($poster_id): bool {
+    public function categoryExists($poster_id): bool
+    {
         return !!$this->findCategory($poster_id);
     }
 
@@ -117,20 +118,47 @@ class PosterStore
     public function findProduct($poster_id)
     {
         $ids = Arr::wrap($poster_id);
-        $found = array_filter($this->products, function(PosterProduct $product) use($ids) {
+        $found = array_filter($this->products, function (PosterProduct $product) use ($ids) {
             return in_array($product->getProductId(), $ids);
         });
-        if(is_array($poster_id)) {
+        if (is_array($poster_id)) {
             return $found;
         }
         return array_values($found)[0] ?? null;
     }
 
     /**
+     * @param array $poster_ids
+     * @return PosterProduct[]
+     */
+    public function findProductsWithModifications(array $poster_ids): array
+    {
+        $found_products = $this->findProduct($poster_ids);
+
+        return array_filter($found_products, function (PosterProduct $posterProduct) {
+            return $posterProduct->hasModifications();
+        });
+    }
+
+    /**
+     * @param array $poster_ids
+     * @return PosterProduct[]
+     */
+    public function findProductsWithoutModifications(array $poster_ids): array
+    {
+        $found_products = $this->findProduct($poster_ids);
+
+        return array_filter($found_products, function (PosterProduct $posterProduct) {
+            return !$posterProduct->hasModifications();
+        });
+    }
+
+    /**
      * @param string|int $poster_id
      * @return bool
      */
-    public function productExists($poster_id): bool {
+    public function productExists($poster_id): bool
+    {
         return !!$this->findProduct($poster_id);
     }
 
@@ -138,20 +166,51 @@ class PosterStore
      * @param PosterCategory[] $poster_categories
      * @return SalesboxCategory[]
      */
-    public function asSalesboxCategories(array $poster_categories): array {
-        return array_map(function(PosterCategory $poster_category) {
+    public function asSalesboxCategories(array $poster_categories): array
+    {
+        return array_map(function (PosterCategory $poster_category) {
             return $poster_category->asSalesboxCategory();
         }, $poster_categories);
     }
 
     /**
      * @param PosterProduct[] $poster_products
-     * @return SalesboxOffer[]
+     * @return SalesboxOfferV4[]
      */
-    public function asSalesboxOffers(array $poster_products) {
+    public function asSalesboxOffers(array $poster_products)
+    {
         return array_map(function (PosterProduct $poster_product) {
             return $poster_product->asSalesboxOffer();
         }, $poster_products);
+    }
+
+    /**
+     * @param string|int $product_id
+     * @param string|int $modificator_id
+     * @return bool
+     */
+    public function productModificationExists($product_id, $modificator_id): bool {
+        foreach($this->findProductsWithModifications([$product_id]) as $posterProduct) {
+            if($posterProduct->hasModification($modificator_id)) {
+                return true;
+            }
+        };
+        return false;
+    }
+
+    /**
+     * @param string|int $product_id
+     * @param string|int $modificator_id
+     * @return PosterProductModification|null
+     */
+    public function findProductModification($product_id, $modificator_id): ?PosterProductModification {
+        foreach($this->findProductsWithModifications([$product_id]) as $posterProduct) {
+            $modification = $posterProduct->findModification($modificator_id);
+            if($modification) {
+                return $modification;
+            }
+        };
+        return null;
     }
 
 }

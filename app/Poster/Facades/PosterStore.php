@@ -4,8 +4,9 @@ namespace App\Poster\Facades;
 
 use App\Poster\Models\PosterCategory;
 use App\Poster\Models\PosterProduct;
+use App\Poster\Models\PosterProductModification;
 use App\Poster\Models\SalesboxCategory;
-use App\Poster\Models\SalesboxOffer;
+use App\Poster\Models\SalesboxOfferV4;
 use Illuminate\Support\Facades\Facade;
 
 /**
@@ -15,12 +16,16 @@ use Illuminate\Support\Facades\Facade;
  * @method static PosterCategory[]|PosterCategory|null findCategory(array|string|int $poster_id)
  * @method static bool categoryExists(string|int $poster_id)
  * @method static PosterProduct|PosterProduct[]|null findProduct(array|string|int $poster_id)
+ * @method static PosterProductModification|null findProductModification(string|int $poster_id, string|int $modificator_id)
+ * @method static PosterProduct[] findProductsWithModifications(array $poster_ids)
+ * @method static PosterProduct[] findProductsWithoutModifications(array $poster_ids)
  * @method static bool productExists(string|int $poster_id)
+ * @method static bool productModificationExists(string|int $poster_id, string|int $modification_id)
  * @method static PosterCategory[] getCategories()
  * @method static PosterProduct[] getProducts()
  * @method static RootStore getRootStore()
  * @method static SalesboxCategory[] asSalesboxCategories(PosterCategory[] $poster_categories)
- * @method static SalesboxOffer[] asSalesboxOffers(PosterProduct[] $poster_products)
+ * @method static SalesboxOfferV4[] asSalesboxOffers(PosterProduct[] $poster_products)
  *
  * @see  \App\Poster\Stores\PosterStore;
  */

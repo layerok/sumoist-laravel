@@ -11,7 +11,7 @@ class ProductRemovedActionHandler extends AbstractActionHandler
         SalesboxStore::authenticate();
         SalesboxStore::loadOffers();
 
-        $offers_to_delete = SalesboxStore::findOffer([$this->getObjectId()]);
+        $offers_to_delete = SalesboxStore::findOfferByExternalId([$this->getObjectId()]);
 
         // delete products
         SalesboxStore::deleteManyOffers($offers_to_delete);

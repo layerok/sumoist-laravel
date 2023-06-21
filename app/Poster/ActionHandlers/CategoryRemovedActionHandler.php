@@ -16,7 +16,7 @@ class CategoryRemovedActionHandler extends AbstractActionHandler
         SalesboxStore::authenticate();
         SalesboxStore::loadCategories();
 
-        $salesbox_category = SalesboxStore::findCategory($this->getObjectId());
+        $salesbox_category = SalesboxStore::findCategoryByExternalId($this->getObjectId());
 
         if (!$salesbox_category) {
             return false;

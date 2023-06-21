@@ -29,7 +29,7 @@ class CategoryActionHandler extends AbstractActionHandler
             $update_ids = [];
             $create_ids = [];
 
-            if(SalesboxStore::categoryExists($this->getObjectId())) {
+            if(SalesboxStore::categoryExistsWithExternalId($this->getObjectId())) {
                 $update_ids[] = $this->getObjectId();
             } else {
                 $create_ids[] = $this->getObjectId();
@@ -39,7 +39,7 @@ class CategoryActionHandler extends AbstractActionHandler
                 $poster_parent_categories = $poster_category->getParents();
 
                 foreach($poster_parent_categories as $parent_category) {
-                    if(!SalesboxStore::categoryExists($parent_category->getCategoryId())) {
+                    if(!SalesboxStore::categoryExistsWithExternalId($parent_category->getCategoryId())) {
                         $create_ids[] = $parent_category->getCategoryId();
                     }
                 }

@@ -7,7 +7,7 @@ use App\Poster\Facades\SalesboxStore;
 use App\Poster\Models\PosterCategory;
 use App\Poster\Models\PosterProduct;
 use App\Poster\Models\PosterProductModification;
-use App\Poster\Models\SalesboxOffer;
+use App\Poster\Models\SalesboxOfferV4;
 use RuntimeException;
 
 class ProductActionHandler extends AbstractActionHandler
@@ -21,13 +21,13 @@ class ProductActionHandler extends AbstractActionHandler
             PosterStore::loadCategories();
             PosterStore::loadProducts();
 
-            if(!PosterStore::productExists($this->getObjectId())) {
+            if (!PosterStore::productExists($this->getObjectId())) {
                 throw new RuntimeException(sprintf('product#%s is not found in poster', $this->getObjectId()));
             }
 
             $poster_product = PosterStore::findProduct($this->getObjectId());
 
-            if(!PosterStore::categoryExists($poster_product->getMenuCategoryId())) {
+            if (!PosterStore::categoryExists($poster_product->getMenuCategoryId())) {
                 throw new RuntimeException('category#%s is not found in poster', $poster_product->getMenuCategoryId());
             }
 
@@ -35,124 +35,206 @@ class ProductActionHandler extends AbstractActionHandler
             $product_update_ids = [];
             $category_create_ids = [];
 
-            if (!SalesboxStore::offerExists($this->getObjectId())) {
+            if (!SalesboxStore::offerExistsWithExternalId($this->getObjectId())) {
                 $product_create_ids[] = $this->getObjectId();
             } else {
                 $product_update_ids[] = $this->getObjectId();
             }
 
-            if (!SalesboxStore::categoryExists($poster_product->getMenuCategoryId())) {
+            if (!SalesboxStore::categoryExistsWithExternalId($poster_product->getMenuCategoryId())) {
                 $category_create_ids[] = $poster_product->getMenuCategoryId();
             }
 
             $poster_category = PosterStore::findCategory($poster_product->getMenuCategoryId());
 
-
             if ($poster_category->hasParentCategory()) {
                 $parent_poster_categories = $poster_category->getParents();
 
                 foreach ($parent_poster_categories as $parent_poster_category) {
-                    if (!SalesboxStore::categoryExists($parent_poster_category->getCategoryId())) {
+                    if (!SalesboxStore::categoryExistsWithExternalId($parent_poster_category->getCategoryId())) {
                         $category_create_ids[] = $parent_poster_category->getCategoryId();
                     }
                 }
             }
 
             if (count($category_create_ids) > 0) {
-                $found_poster_categories = PosterStore::findCategory($category_create_ids);
-
-                $poster_categories_as_salesbox_ones = array_map(
-                    function (PosterCategory $poster_category) {
-                        return $poster_category->asSalesboxCategory();
-                    },
-                    $found_poster_categories
-                );
-
-                SalesboxStore::createManyCategories($poster_categories_as_salesbox_ones);
+                $this->createCategories($category_create_ids);
                 SalesboxStore::loadCategories();
             }
 
             if (count($product_create_ids) > 0) {
+                $this->createOffers($product_create_ids);
 
-                $found_poster_products = PosterStore::findProduct($product_create_ids);
-
-                $poster_products_without_modificatons = array_filter(
-                    $found_poster_products,
-                    function (PosterProduct $posterProduct) {
-                        return !$posterProduct->hasModifications();
-                    }
-                );
-
-                $poster_products_as_salesbox_offers = PosterStore::asSalesboxOffers(
-                    $poster_products_without_modificatons
-                );
-                if(count($poster_products_as_salesbox_offers) > 0) {
-                    SalesboxStore::createManyOffers($poster_products_as_salesbox_offers);
-                }
-
-                $poster_products_with_modificatons = array_filter(
-                    $found_poster_products,
-                    function (PosterProduct $posterProduct) {
-                        return $posterProduct->hasModifications();
-                    }
-                );
-
-                $modificatons_as_salesbox_offers = collect($poster_products_with_modificatons)
-                    ->map(function(PosterProduct $posterProduct) {
-                        return collect($posterProduct->getModifications())
-                            ->map(function(PosterProductModification $modification) {
-                                return $modification->asSalesboxOffer();
-                            });
-                    })
-                    ->flatten()
-                    ->toArray();
-
-                if(count($modificatons_as_salesbox_offers) > 0) {
-                    SalesboxStore::createManyOffers($modificatons_as_salesbox_offers);
-                }
             }
 
             if (count($product_update_ids) > 0) {
-
-                $found_poster_products = PosterStore::findProduct($product_update_ids);
-
-                $poster_products_without_modificatons = array_filter(
-                    $found_poster_products,
-                    function (PosterProduct $posterProduct) {
-                        return !$posterProduct->hasModifications();
-                    }
-                );
-
-                $poster_products_as_salesbox_offers = SalesboxStore::updateFromPosterProducts(
-                    $poster_products_without_modificatons
-                );
-
-                array_map(function(SalesboxOffer $offer) {
-                    // don't update photo if it was already there
-                    if($offer->getOriginalAttributes('previewURL')) {
-                        $offer->resetAttributeToOriginalOne('previewURL');
-                        $offer->resetAttributeToOriginalOne('originalURL');
-                        $offer->setPhotos([]);
-                    }
-
-                    // don't update names
-                    $offer->setNames([
-                        [
-                            'name' => $offer->getOriginalAttributes('name'),
-                            'lang' => 'uk'
-                        ]
-                    ]);
-                    // don't update descriptions
-                     $offer->setDescriptions([]);
-                }, $poster_products_as_salesbox_offers);
-
-                SalesboxStore::updateManyOffers($poster_products_as_salesbox_offers);
+                $this->updateOffers($product_update_ids);
             }
 
         }
 
 
         return true;
+    }
+
+    public function createCategories($ids = [])
+    {
+        $found_poster_categories = PosterStore::findCategory($ids);
+
+        $poster_categories_as_salesbox_ones = array_map(
+            function (PosterCategory $poster_category) {
+                return $poster_category->asSalesboxCategory();
+            },
+            $found_poster_categories
+        );
+
+        SalesboxStore::createManyCategories($poster_categories_as_salesbox_ones);
+    }
+
+    public function createOffers($ids = [])
+    {
+        $this->createOffersWithoutModifiers($ids);
+        $this->createOffersWithModifiers($ids);
+    }
+
+    public function createOffersWithoutModifiers(array $ids) {
+        // handle products without modifications
+        $poster_products_as_salesbox_offers = PosterStore::asSalesboxOffers(
+            PosterStore::findProductsWithoutModifications($ids)
+        );
+
+        if (count($poster_products_as_salesbox_offers) > 0) {
+            SalesboxStore::createManyOffers($poster_products_as_salesbox_offers);
+        }
+    }
+
+    public function createOffersWithModifiers(array $ids) {
+        // handle products with modifications
+        $modificatons_as_salesbox_offers = collect(
+            PosterStore::findProductsWithModifications($ids)
+        )
+            ->map(function (PosterProduct $posterProduct) {
+                return collect($posterProduct->getModifications())
+                    ->map(function (PosterProductModification $modification) {
+                        return $modification->asSalesboxOffer();
+                    });
+            })
+            ->flatten()
+            ->toArray();
+
+        if (count($modificatons_as_salesbox_offers) > 0) {
+            SalesboxStore::createManyOffers($modificatons_as_salesbox_offers);
+        }
+    }
+
+    public function updateOffers($ids = [])
+    {
+        $this->updateOffersWithoutModifiers($ids);
+        $this->updateOffersWithModifiers($ids);
+    }
+
+    public function updateOffersWithModifiers(array $ids) {
+        // handle products with modifications
+        /**
+         * @var PosterProductModification[] $products_modifications
+         */
+        $products_modifications = array_merge(...array_map(function (PosterProduct $posterProduct) {
+            return $posterProduct->getModifications();
+        }, PosterStore::findProductsWithModifications($ids)));
+
+        $salesbox_offers = SalesboxStore::findOfferByExternalId($ids);
+
+        /**
+         * @var SalesboxOfferV4[] $delete_salesbox_offers
+         */
+        $delete_salesbox_offers = [];
+        /**
+         * @var SalesboxOfferV4[] $delete_salesbox_offers
+         */
+        $create_salesbox_offers = [];
+        /**
+         * @var SalesboxOfferV4[] $delete_salesbox_offers
+         */
+        $update_salesbox_offers = [];
+
+        foreach ($salesbox_offers as $offer) {
+            if ($offer->hasModifierId()) {
+                $modification_exists = PosterStore::productModificationExists($offer->getExternalId(), $offer->getModifierId());
+                if (!$modification_exists) {
+                    $delete_salesbox_offers[] = $offer;
+                }
+            }
+        }
+
+        foreach ($products_modifications as $modification) {
+            $offer = SalesboxStore::findOfferByExternalId(
+                $modification->getProduct()->getProductId(),
+                $modification->getModificatorId()
+            );
+            if (!$offer) {
+                $create_salesbox_offers[] = $modification->asSalesboxOffer();
+            } else {
+                $update_salesbox_offers[] = $offer->updateFromPosterProductModification($modification);
+            }
+        }
+
+        if(count($create_salesbox_offers)) {
+            SalesboxStore::createManyOffers($create_salesbox_offers);
+        }
+
+        if (count($delete_salesbox_offers) > 0) {
+            SalesboxStore::deleteManyOffers($delete_salesbox_offers);
+        }
+
+        if (count($update_salesbox_offers) > 0) {
+            array_map(function (SalesboxOfferV4 $offer) {
+                // don't update photo if it was already there
+                if ($offer->getOriginalAttributes('previewURL')) {
+                    $offer->resetAttributeToOriginalOne('previewURL');
+                    $offer->resetAttributeToOriginalOne('originalURL');
+                }
+
+                // don't update names
+                $offer->setNames([
+                    [
+                        'name' => $offer->getOriginalAttributes('name'),
+                        'lang' => 'uk'
+                    ]
+                ]);
+                // don't update descriptions
+                $offer->resetAttributeToOriginalOne('descriptions');
+            }, $update_salesbox_offers);
+            SalesboxStore::updateManyOffers($update_salesbox_offers, true);
+        }
+    }
+
+    public function updateOffersWithoutModifiers(array $ids) {
+        // handle products without modifications
+        $poster_products_as_salesbox_offers = SalesboxStore::updateFromPosterProducts(
+            PosterStore::findProductsWithoutModifications($ids)
+        );
+
+        if (count($poster_products_as_salesbox_offers) > 0) {
+            array_map(function (SalesboxOfferV4 $offer) {
+                // don't update photo if it was already there
+                if ($offer->getOriginalAttributes('previewURL')) {
+                    $offer->resetAttributeToOriginalOne('previewURL');
+                    $offer->resetAttributeToOriginalOne('originalURL');
+                }
+
+                // don't update names
+                $offer->setNames([
+                    [
+                        'name' => $offer->getOriginalAttributes('name'),
+                        'lang' => 'uk'
+                    ]
+                ]);
+                // don't update descriptions
+                $offer->setDescriptions([]);
+            }, $poster_products_as_salesbox_offers);
+
+            SalesboxStore::updateManyOffers($poster_products_as_salesbox_offers, true);
+        }
     }
 
 

@@ -5,7 +5,7 @@ namespace App\Poster\Models;
 use App\Poster\Stores\SalesboxStore;
 use App\Poster\Utils;
 
-class SalesboxOffer extends SalesboxModel
+class SalesboxOfferV4 extends SalesboxModel
 {
     private $store;
 
@@ -86,13 +86,17 @@ class SalesboxOffer extends SalesboxModel
     }
 
     public function getModifierId() {
-        return $this->attributes['modifierId'];
+        return $this->attributes['modifierId'] ?? null;
     }
 
     public function setModifierId($modifierId)
     {
         $this->attributes['modifierId'] = $modifierId;
         return $this;
+    }
+
+    public function hasModifierId() {
+        return !is_null($this->getModifierId());
     }
 
     public function getCategories()
@@ -165,7 +169,7 @@ class SalesboxOffer extends SalesboxModel
         return $this;
     }
 
-    public function updateFromPosterProduct(PosterProduct $product): SalesboxOffer {
+    public function updateFromPosterProduct(PosterProduct $product): SalesboxOfferV4 {
         $this->setExternalId($product->getProductId());
         $this->setAvailable(!$product->isHidden());
         $this->setPrice($product->getFirstPrice());
@@ -205,7 +209,57 @@ class SalesboxOffer extends SalesboxModel
             ]);
         }
 
-        $category = $this->store->findCategory($product->getMenuCategoryId());
+        $category = $this->store->findCategoryByExternalId($product->getMenuCategoryId());
+
+        if ($category) {
+            $this->setCategories([$category->getId()]);
+        }
+        return clone $this;
+    }
+
+    public function updateFromPosterProductModification(PosterProductModification $modification): SalesboxOfferV4 {
+        $product = $modification->getProduct();
+
+        $this->setExternalId($product->getProductId());
+        $this->setModifierId($modification->getModificatorId());
+        $this->setAvailable($modification->isVisible());
+        $this->setPrice($modification->getFirstPrice());
+        $this->setStockType('endless');
+        $this->setUnits('pc');
+        $this->setCategories([]);
+        $this->setPhotos([]);
+        $this->setDescriptions([]);
+        $this->setNames([
+            [
+                'name' => $product->getProductName() . ' (' . $modification->getModificatorName() . ')',
+                'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
+            ]
+        ]);
+
+        if($product->hasPhoto()) {
+            $this->setPreviewURL(Utils::poster_upload_url($product->getPhoto()));
+        }
+
+        if($product->hasPhotoOrigin()) {
+            $this->setOriginalURL(Utils::poster_upload_url($product->getPhotoOrigin()));
+        }
+
+        if(
+            $product->hasPhotoOrigin() &&
+            $product->hasPhoto()
+        ) {
+            $this->setPhotos([
+                [
+                    'url' => Utils::poster_upload_url($product->getPhotoOrigin()),
+                    'previewURL' => Utils::poster_upload_url($product->getPhoto()),
+                    'order' => 0,
+                    'type' => 'image',
+                    'resourceType' => 'image'
+                ]
+            ]);
+        }
+
+        $category = $this->store->findCategoryByExternalId($product->getMenuCategoryId());
 
         if ($category) {
             $this->setCategories([$category->getId()]);

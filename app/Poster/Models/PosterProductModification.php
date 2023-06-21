@@ -93,9 +93,17 @@ class PosterProductModification extends PosterModel {
         return intval($this->getFirstSpot()->getPrice() / 100);
     }
 
+    public function isVisible(): bool {
+        return $this->getFirstSpot()->isVisible();
+    }
+
+    public function isHidden(): bool {
+        return $this->getFirstSpot()->isHidden();
+    }
+
     public function asSalesboxOffer() {
         $salesboxStore = $this->product->store->getRootStore()->getSalesboxStore();
-        $offer = new SalesboxOffer([], $salesboxStore);
+        $offer = new SalesboxOfferV4([], $salesboxStore);
         $offer->setStockType('endless');
         $offer->setUnits('pc');
         $offer->setDescriptions([]);
@@ -132,7 +140,7 @@ class PosterProductModification extends PosterModel {
             ]);
         }
 
-        $category = SalesboxStore::findCategory($this->product->getMenuCategoryId());
+        $category = $salesboxStore->findCategoryByExternalId($this->product->getMenuCategoryId());
 
         if ($category) {
             $offer->setCategories([$category->getId()]);
