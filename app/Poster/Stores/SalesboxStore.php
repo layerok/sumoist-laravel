@@ -152,23 +152,18 @@ class SalesboxStore
     public function updateManyCategories($categories)
     {
         $categories = collect($categories)
-            ->map(function (SalesboxCategory $salesbox_category) {
-                $json = $salesbox_category->asArray();
-
-                $only = [
-                    'id',
-                    'parentId',
-                    'internalId',
-                    'externalId',
-                    'previewURL',
-                    'originalURL',
-                    'categories',
-                    'photos',
-                    'names',
-                    'available'
+            ->map(function (SalesboxCategory $category) {
+                return [
+                    'names' => $category->getNames(),
+                    'available' => $category->getAvailable(),
+                    'internalId' => $category->getInternalId(),
+                    'originalURL' => $category->getOriginalURL(),
+                    'previewURL' => $category->getPreviewURL(),
+                    'externalId' => $category->getExternalId(),
+                    'id'=> $category->getId(),
+                    'parentId' => $category->getParentId(),
+                    'photos' => $category->getPhotos(),
                 ];
-
-                return collect($json)->only($only);
             })
             ->values()
             ->toArray();
@@ -184,8 +179,17 @@ class SalesboxStore
      */
     public function createManyCategories($categories)
     {
-        $categories = array_map(function (SalesboxCategory $salesbox_category) {
-            return $salesbox_category->asArray();
+        $categories = array_map(function (SalesboxCategory $category) {
+            return [
+                'names' => $category->getNames(),
+                'available' => $category->getAvailable(),
+                'internalId' => $category->getInternalId(),
+                'originalURL' => $category->getOriginalURL(),
+                'previewURL' => $category->getPreviewURL(),
+                'externalId' => $category->getExternalId(),
+                'parentId' => $category->getParentId(),
+                'photos' => $category->getPhotos(),
+            ];
         }, $categories);
 
         return SalesboxApi::createManyCategories([
@@ -200,7 +204,17 @@ class SalesboxStore
     public function createManyOffers($offers)
     {
         $offersAsArray = array_map(function (SalesboxOffer $offer) {
-            return $offer->asArray();
+            return [
+                'externalId' => $offer->getExternalId(),
+                'units' => $offer->getUnits(),
+                'stockType' => $offer->getStockType(),
+                'descriptions' => $offer->getDescriptions(),
+                'photos' => $offer->getPhotos(),
+                'categories' => $offer->getCategories(),
+                'names' => $offer->getNames(),
+                'available' => $offer->getAvailable(),
+                'price' => $offer->getPrice(),
+            ];
         }, $offers);
 
         return SalesboxApi::createManyOffers([
@@ -215,7 +229,18 @@ class SalesboxStore
     public function updateManyOffers($offers)
     {
         $offersAsJson = array_map(function (SalesboxOffer $offer) {
-            return $offer->asArray();
+            return [
+                'id' => $offer->getId(),
+                'externalId' => $offer->getExternalId(),
+                'units' => $offer->getUnits(),
+                'stockType' => $offer->getStockType(),
+                'descriptions' => $offer->getDescriptions(),
+                'photos' => $offer->getPhotos(),
+                'categories' => $offer->getCategories(),
+                'names' => $offer->getNames(),
+                'available' => $offer->getAvailable(),
+                'price' => $offer->getPrice(),
+            ];
         }, $offers);
 
         return SalesboxApi::updateManyOffers([

@@ -184,17 +184,7 @@ class SalesboxCategory extends SalesboxModel {
     }
 
     public function asArray() {
-        return [
-            'names' => $this->getNames(),
-            'available' => $this->getAvailable(),
-            'internalId' => $this->getInternalId(),
-            'originalURL' => $this->getOriginalURL(),
-            'previewURL' => $this->getPreviewURL(),
-            'externalId' => $this->getExternalId(),
-            'id'=> $this->getId(),
-            'parentId' => $this->getParentId(),
-            'photos' => $this->getPhotos(),
-        ];
+        return $this->attributes;
     }
 
     public function updateFromPosterCategory(PosterCategory $posterCategory) {

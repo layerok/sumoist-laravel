@@ -203,17 +203,6 @@ class SalesboxOffer extends SalesboxModel
     }
 
     public function asArray(): array {
-        return [
-            'id' => $this->getId(),
-            'externalId' => $this->getExternalId(),
-            'units' => $this->getUnits(),
-            'stockType' => $this->getStockType(),
-            'descriptions' => $this->getDescriptions(),
-            'photos' => $this->getPhotos(),
-            'categories' => $this->getCategories(),
-            'names' => $this->getNames(),
-            'available' => $this->getAvailable(),
-            'price' => $this->getPrice(),
-        ];
+        return $this->attributes;
     }
 }
