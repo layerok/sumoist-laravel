@@ -8,12 +8,8 @@ use App\Poster\Stores\PosterStore;
 use App\Poster\Utils;
 
 class PosterProduct {
-    /** @property PosterProduct_meta $attributes */
+    /** @var PosterProduct_meta $attributes */
     public $attributes;
-    /**
-     * @param PosterProduct_meta $attributes
-     */
-
     public $store;
     public function __construct($attributes, PosterStore $store) {
         $this->attributes = $attributes;
@@ -62,6 +58,15 @@ class PosterProduct {
         return isset($this->attributes->modifications);
     }
 
+    public function getModifications(): array {
+        if($this->hasModifications()) {
+            return array_map(function($attributes) {
+                return new PosterProductModification($attributes, $this);
+            }, $this->attributes->modifications);
+        }
+        return [];
+    }
+
     public function getPrice(): \stdClass {
         return $this->attributes->price;
     }
@@ -78,7 +83,6 @@ class PosterProduct {
     public function hasPhotoOrigin(): bool {
         return !!$this->getPhotoOrigin();
     }
-
 
     public function asSalesboxOffer(): SalesboxOffer
     {

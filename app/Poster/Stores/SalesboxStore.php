@@ -224,6 +224,21 @@ class SalesboxStore
     }
 
     /**
+     * @param SalesboxOffer[] $offers
+     * @return array
+     */
+    public function deleteManyOffers($offers)
+    {
+        $ids = array_map(function (SalesboxOffer $offer) {
+            return $offer->getId();
+        }, $offers);
+
+        return SalesboxApi::deleteManyOffers([
+            'ids' => array_values($ids)
+        ]);
+    }
+
+    /**
      * @param PosterProduct[] $poster_categories
      * @return SalesboxOffer[]|array
      */

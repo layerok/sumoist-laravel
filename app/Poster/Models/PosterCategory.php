@@ -6,10 +6,10 @@ use App\Poster\meta\PosterCategory_meta;
 use App\Poster\Stores\PosterStore;
 
 class PosterCategory {
-    /** @property PosterCategory_meta $attributes */
+    /** @var PosterCategory_meta $attributes */
     public $attributes;
     /**
-     * @param PosterCategory_meta $attributes
+     * @var PosterCategory_meta $attributes
      */
     public $store;
 

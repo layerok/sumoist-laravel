@@ -6,8 +6,6 @@ use App\Poster\Facades\PosterStore;
 use App\Poster\Facades\SalesboxStore;
 use App\Poster\Models\PosterCategory;
 use App\Poster\Models\PosterProduct;
-use App\Poster\Models\SalesboxOffer;
-use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\meta\CreatedSalesboxCategory_meta;
 use RuntimeException;
 
@@ -118,17 +116,11 @@ class ProductActionHandler extends AbstractActionHandler
             SalesboxStore::authenticate();
             SalesboxStore::loadOffers();
 
-            $ids_to_delete = array_filter(SalesboxStore::getOffers(), function (SalesboxOffer $offer) {
-                return $offer->getExternalId() === $this->getObjectId();
-            });
+            $offers_to_delete = SalesboxStore::findOffer([$this->getObjectId()]);
 
             // delete products
-            SalesboxApi::deleteManyOffers([
-                'ids' => array_values($ids_to_delete)
-            ]);
-
+            SalesboxStore::deleteManyOffers($offers_to_delete);
         }
-
 
         return true;
     }
