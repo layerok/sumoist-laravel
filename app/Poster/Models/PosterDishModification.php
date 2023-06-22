@@ -14,11 +14,11 @@ use App\Poster\Utils;
 
 class PosterDishModification extends PosterModel {
     /**
-     * @var PosterDishGroupModification $product
+     * @var PosterDishModificationGroup $product
      */
     protected $group;
 
-    public function __construct($attributes, PosterDishGroupModification $group) {
+    public function __construct($attributes, PosterDishModificationGroup $group) {
         parent::__construct($attributes);
 
         $this->group = $group;
@@ -44,7 +44,7 @@ class PosterDishModification extends PosterModel {
         return $this->attributes->brutto;
     }
 
-    public function getPrice() {
+    public function getPrice(): int {
         return $this->attributes->price;
     }
 
@@ -73,66 +73,7 @@ class PosterDishModification extends PosterModel {
             ->getRootStore()
             ->getSalesboxStore();
         $offer = new SalesboxOfferV4([], $salesboxStore);
-        $offer->setStockType('endless');
-        $offer->setUnits('pc');
-        $offer->setDescriptions([]);
-        $offer->setPhotos([]);
-        $offer->setModifierId($this->getDishModificationId());
-        $offer->setCategories([]);
-        $offer->setExternalId($product->getProductId());
-        $offer->setAvailable($product->getFirstSpot()->isVisible());
-        $offer->setPrice($this->getPrice());
-        $offer->setNames([
-            [
-                'name' => $product->getProductName() . ' ' . $this->getName(),
-                'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
-            ]
-        ]);
-
-        // set photo of product by default
-        if ($product->hasPhoto()) {
-            $offer->setPreviewURL(Utils::poster_upload_url($product->getPhoto()));
-        }
-
-        if ($product->hasPhotoOrigin()) {
-            $offer->setOriginalURL(Utils::poster_upload_url($product->getPhotoOrigin()));
-        }
-
-        // but photo of modification is more important
-        if ($this->getPhotoLarge()) {
-            $offer->setPreviewURL(Utils::poster_upload_url($this->getPhotoLarge()));
-            $offer->setOriginalURL(Utils::poster_upload_url($this->getPhotoLarge()));
-        }
-
-        if ($product->getPhoto() && $product->getPhotoOrigin()) {
-            $offer->setPhotos([
-                [
-                    'url' => Utils::poster_upload_url($product->getPhotoOrigin()),
-                    'previewURL' => Utils::poster_upload_url($product->getPhoto()),
-                    'order' => 0,
-                    'type' => 'image',
-                    'resourceType' => 'image'
-                ]
-            ]);
-        }
-
-        if ($this->getPhotoLarge()) {
-            $offer->setPhotos([
-                [
-                    'url' => Utils::poster_upload_url($this->getPhotoLarge()),
-                    'previewURL' => Utils::poster_upload_url($this->getPhotoLarge()),
-                    'order' => 0,
-                    'type' => 'image',
-                    'resourceType' => 'image'
-                ]
-            ]);
-        }
-
-        $category = $salesboxStore->findCategoryByExternalId($product->getMenuCategoryId());
-
-        if ($category) {
-            $offer->setCategories([$category->getId()]);
-        }
+        $offer->updateFromDishModification($this);
 
         return $offer;
     }

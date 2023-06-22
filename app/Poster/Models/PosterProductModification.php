@@ -104,47 +104,7 @@ class PosterProductModification extends PosterModel {
     public function asSalesboxOffer() {
         $salesboxStore = $this->product->store->getRootStore()->getSalesboxStore();
         $offer = new SalesboxOfferV4([], $salesboxStore);
-        $offer->setStockType('endless');
-        $offer->setUnits('pc');
-        $offer->setDescriptions([]);
-        $offer->setPhotos([]);
-        $offer->setModifierId($this->getModificatorId());
-        $offer->setCategories([]);
-        $offer->setExternalId($this->product->getProductId());
-        $offer->setAvailable($this->getFirstSpot()->isVisible());
-        $offer->setPrice($this->getFirstPrice());
-        $offer->setNames([
-            [
-                'name' => $this->product->getProductName() . ' ' . $this->getModificatorName(),
-                'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
-            ]
-        ]);
-
-        if ($this->product->hasPhoto()) {
-            $offer->setPreviewURL(Utils::poster_upload_url($this->product->getPhoto()));
-        }
-
-        if ($this->product->hasPhotoOrigin()) {
-            $offer->setOriginalURL(Utils::poster_upload_url($this->product->getPhotoOrigin()));
-        }
-
-        if ($this->product->getPhoto() && $this->product->getPhotoOrigin()) {
-            $offer->setPhotos([
-                [
-                    'url' => Utils::poster_upload_url($this->product->getPhotoOrigin()),
-                    'previewURL' => Utils::poster_upload_url($this->product->getPhoto()),
-                    'order' => 0,
-                    'type' => 'image',
-                    'resourceType' => 'image'
-                ]
-            ]);
-        }
-
-        $category = $salesboxStore->findCategoryByExternalId($this->product->getMenuCategoryId());
-
-        if ($category) {
-            $offer->setCategories([$category->getId()]);
-        }
+        $offer->updateFromPosterProductModification($this);
 
         return $offer;
     }

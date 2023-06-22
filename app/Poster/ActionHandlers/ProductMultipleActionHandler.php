@@ -4,15 +4,13 @@ namespace App\Poster\ActionHandlers;
 
 use App\Poster\Facades\PosterStore;
 use App\Poster\Facades\SalesboxStore;
-use App\Poster\Models\PosterCategory;
-use App\Poster\Models\PosterDishGroupModification;
-use App\Poster\Models\PosterDishModification;
 use App\Poster\Models\PosterProduct;
 use App\Poster\Models\PosterProductModification;
 use App\Poster\Models\SalesboxOfferV4;
+use App\Salesbox\Facades\SalesboxApi;
 use RuntimeException;
 
-class DishActionHandler extends AbstractActionHandler
+class ProductMultipleActionHandler extends AbstractActionHandler
 {
     public function handle(): bool
     {
@@ -21,7 +19,9 @@ class DishActionHandler extends AbstractActionHandler
             SalesboxStore::loadCategories();
             SalesboxStore::loadOffers();
             PosterStore::loadCategories();
-            PosterStore::loadProducts();
+            if(!PosterStore::isProductsLoaded()) {
+                PosterStore::loadProducts();
+            }
 
             if (!PosterStore::productExists($this->getObjectId())) {
                 throw new RuntimeException(sprintf('product#%s is not found in poster', $this->getObjectId()));
@@ -61,12 +61,12 @@ class DishActionHandler extends AbstractActionHandler
 
             if (count($category_create_ids) > 0) {
                 $this->createCategories($category_create_ids);
+                // reload categories after creating them
                 SalesboxStore::loadCategories();
             }
 
             if (count($product_create_ids) > 0) {
                 $this->createOffers($product_create_ids);
-
             }
 
             if (count($product_update_ids) > 0) {
@@ -79,71 +79,33 @@ class DishActionHandler extends AbstractActionHandler
         return true;
     }
 
-    public function createCategories($ids = [])
-    {
+    public function createCategories(array $ids) {
         $found_poster_categories = PosterStore::findCategory($ids);
-
-        $poster_categories_as_salesbox_ones = array_map(
-            function (PosterCategory $poster_category) {
-                return $poster_category->asSalesboxCategory();
-            },
-            $found_poster_categories
-        );
+        $poster_categories_as_salesbox_ones = PosterStore::asSalesboxCategories($found_poster_categories);
 
         SalesboxStore::createManyCategories($poster_categories_as_salesbox_ones);
     }
 
-    public function createOffers($ids = [])
-    {
-        $this->createOffersWithoutGroupModifiers($ids);
-        $this->createOffersWithGroupModifiers($ids);
-    }
-
-    public function createOffersWithoutGroupModifiers(array $ids) {
-        // handle products without modifications
-        $poster_products_as_salesbox_offers = PosterStore::asSalesboxOffers(
-            PosterStore::findProductsWithoutGroupModifications($ids)
-        );
-
-        if (count($poster_products_as_salesbox_offers) > 0) {
-            SalesboxStore::createManyOffers($poster_products_as_salesbox_offers);
-        }
-    }
-
-    public function createOffersWithGroupModifiers(array $ids) {
+    public function createOffers(array $ids) {
         // handle products with modifications
-        $group_modificatons_as_salesbox_offers = collect(
-            PosterStore::findProductsWithGroupModifications($ids)
+        $modificatons_as_salesbox_offers = collect(
+            PosterStore::findProductsWithModifications($ids)
         )
             ->map(function (PosterProduct $posterProduct) {
-                return collect($posterProduct->getGroupModifications())
-                    ->filter(function(PosterDishGroupModification $modification) {
-                        // skip 'multiple' type modifications
-                        // because I don't know how to store them in salesbox
-                        return $modification->isSingleType();
-                    })
-                    ->map(function (PosterDishGroupModification $modification) {
-                        return collect($modification->getModifications())
-                            ->map(function(PosterDishModification $modification) {
-                                return $modification->asSalesboxOffer();
-                            });
+                return collect($posterProduct->getModifications())
+                    ->map(function (PosterProductModification $modification) {
+                        return $modification->asSalesboxOffer();
                     });
             })
             ->flatten()
             ->toArray();
 
-        if (count($group_modificatons_as_salesbox_offers) > 0) {
-            SalesboxStore::createManyOffers($group_modificatons_as_salesbox_offers);
+        if (count($modificatons_as_salesbox_offers) > 0) {
+            SalesboxStore::createManyOffers($modificatons_as_salesbox_offers);
         }
     }
 
-    public function updateOffers($ids = [])
-    {
-        $this->updateOffersWithoutModifiers($ids);
-        $this->updateOffersWithModifiers($ids);
-    }
-
-    public function updateOffersWithModifiers(array $ids) {
+    public function updateOffers(array $ids) {
         // handle products with modifications
         /**
          * @var PosterProductModification[] $products_modifications
@@ -197,55 +159,25 @@ class DishActionHandler extends AbstractActionHandler
         }
 
         if (count($update_salesbox_offers) > 0) {
-            array_map(function (SalesboxOfferV4 $offer) {
-                // don't update photo if it was already there
-                if ($offer->getOriginalAttributes('previewURL')) {
-                    $offer->resetAttributeToOriginalOne('previewURL');
-                    $offer->resetAttributeToOriginalOne('originalURL');
-                }
-
-                // don't update names
-                $offer->setNames([
-                    [
-                        'name' => $offer->getOriginalAttributes('name'),
-                        'lang' => 'uk'
-                    ]
-                ]);
-                // don't update descriptions
-                $offer->resetAttributeToOriginalOne('descriptions');
+            $offersAsArray = array_map(function (SalesboxOfferV4 $offer) {
+                return [
+                    'id' => $offer->getId(),
+                    'modifierId' => $offer->getModifierId(),
+                    'descriptions' => $offer->getOriginalAttributes('descriptions'), // don't update descriptions, use original ones
+                    'categories' => $offer->getCategories(),
+                    'available' => $offer->getAvailable(),
+                    'price' => $offer->getPrice(),
+                    //'names' => $offer->getNames(),
+                    //'photos' => $offer->getPhotos(),
+                    // 'units' => $offer->getUnits(),
+                    // 'stockType' => $offer->getStockType(),
+                ];
             }, $update_salesbox_offers);
-            SalesboxStore::updateManyOffers($update_salesbox_offers, true);
+
+            SalesboxApi::updateManyOffers([
+                'offers' => array_values($offersAsArray) // reindex array, it's important, otherwise salesbox api will fail
+            ]);
         }
     }
-
-    public function updateOffersWithoutModifiers(array $ids) {
-        // handle products without modifications
-        $poster_products_as_salesbox_offers = SalesboxStore::updateFromPosterProducts(
-            PosterStore::findProductsWithoutModifications($ids)
-        );
-
-        if (count($poster_products_as_salesbox_offers) > 0) {
-            array_map(function (SalesboxOfferV4 $offer) {
-                // don't update photo if it was already there
-                if ($offer->getOriginalAttributes('previewURL')) {
-                    $offer->resetAttributeToOriginalOne('previewURL');
-                    $offer->resetAttributeToOriginalOne('originalURL');
-                }
-
-                // don't update names
-                $offer->setNames([
-                    [
-                        'name' => $offer->getOriginalAttributes('name'),
-                        'lang' => 'uk'
-                    ]
-                ]);
-                // don't update descriptions
-                $offer->setDescriptions([]);
-            }, $poster_products_as_salesbox_offers);
-
-            SalesboxStore::updateManyOffers($poster_products_as_salesbox_offers, true);
-        }
-    }
-
 
 }

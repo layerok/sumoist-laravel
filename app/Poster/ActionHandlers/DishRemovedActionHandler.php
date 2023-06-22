@@ -13,8 +13,10 @@ class DishRemovedActionHandler extends AbstractActionHandler
 
         $offers_to_delete = SalesboxStore::findOfferByExternalId([$this->getObjectId()]);
 
-        // delete products
-        SalesboxStore::deleteManyOffers($offers_to_delete);
+        if(count($offers_to_delete) > 0) {
+            // delete products
+            SalesboxStore::deleteManyOffers($offers_to_delete);
+        }
 
         return true;
     }

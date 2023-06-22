@@ -80,7 +80,7 @@ class SalesboxStore
     {
         $ids = Arr::wrap($external_id);
         $found = array_filter($this->offers, function (SalesboxOfferV4 $offer) use ($ids, $modifier_id) {
-            return in_array($offer->getExternalId(), $ids) && (!$modifier_id || ($offer->getModifierId() === $modifier_id));
+            return in_array($offer->getExternalId(), $ids) && (!$modifier_id || ($offer->getModifierId() == $modifier_id));
         });
         if (is_array($external_id)) {
             return $found;
@@ -229,10 +229,10 @@ class SalesboxStore
      * @param SalesboxOfferV4[] $offers
      * @return array
      */
-    public function updateManyOffers($offers, $ignorePhotos = false)
+    public function updateManyOffers($offers)
     {
-        $offersAsArray = array_map(function (SalesboxOfferV4 $offer) use($ignorePhotos) {
-            $arr = [
+        $offersAsArray = array_map(function (SalesboxOfferV4 $offer) {
+            return [
                 'id' => $offer->getId(),
                 'externalId' => $offer->getExternalId(),
                 'modifierId' => $offer->getModifierId(),
@@ -240,15 +240,11 @@ class SalesboxStore
                 'stockType' => $offer->getStockType(),
                 'descriptions' => $offer->getDescriptions(),
                 'categories' => $offer->getCategories(),
-                'names' => $offer->getNames(),
                 'available' => $offer->getAvailable(),
                 'price' => $offer->getPrice(),
+                'names' => $offer->getNames(),
+                'photos' => $offer->getPhotos(),
             ];
-            if(!$ignorePhotos) {
-                $arr['photos'] = $offer->getPhotos();
-            }
-
-            return $arr;
         }, $offers);
 
         return SalesboxApi::updateManyOffers([

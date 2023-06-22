@@ -4,7 +4,6 @@ namespace App\Poster\Models;
 
 use App\Poster\meta\PosterProduct_meta;
 use App\Poster\Stores\PosterStore;
-use App\Poster\Utils;
 
 /**
  * @class PosterProduct
@@ -29,9 +28,9 @@ class PosterProduct extends PosterModel
     public $modifications = [];
 
     /**
-     * @var PosterDishGroupModification[] $modifications
+     * @var PosterDishModificationGroup[] $modifications
      */
-    public $groupModifications = [];
+    public $modificationGroups = [];
 
     /**
      * @param PosterProduct_meta $attributes
@@ -52,8 +51,8 @@ class PosterProduct extends PosterModel
         }
 
         if (isset($attributes->group_modifications)) {
-            $this->groupModifications = array_map(function ($attributes) {
-                return new PosterDishGroupModification($attributes, $this);
+            $this->modificationGroups = array_map(function ($attributes) {
+                return new PosterDishModificationGroup($attributes, $this);
             }, $this->attributes->group_modifications);
         }
 
@@ -111,15 +110,16 @@ class PosterProduct extends PosterModel
     }
 
     /**
-     * @return PosterDishGroupModification[]
+     * @return PosterDishModificationGroup[]
      */
-    public function getGroupModifications(): array {
-        return $this->groupModifications;
+    public function getModificationGroups(): array
+    {
+        return $this->modificationGroups;
     }
 
-    public function hasGroupModifications(): bool
+    public function hasModificationGroups(): bool
     {
-        return count($this->groupModifications) > 0;
+        return count($this->modificationGroups) > 0;
     }
 
     public function hasModifications(): bool
@@ -139,23 +139,43 @@ class PosterProduct extends PosterModel
      * @param string|int $modificator_id
      * @return bool
      */
-    public function hasModification($modificator_id): bool {
-        foreach ($this->getModifications() as $modification) {
-            if($modification->getModificatorId() == $modificator_id) {
-                return true;
-            }
-        }
-        return false;
+    public function hasModification($modificator_id): bool
+    {
+        return !!$this->findModification($modificator_id);
     }
 
     /**
      * @param string|int $modificator_id
      * @return PosterProductModification|null
      */
-    public function findModification($modificator_id): ?PosterProductModification {
+    public function findModification($modificator_id): ?PosterProductModification
+    {
         foreach ($this->getModifications() as $modification) {
-            if($modification->getModificatorId() == $modificator_id) {
+            if ($modification->getModificatorId() == $modificator_id) {
                 return $modification;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param string|int $modification_group_id
+     * @return bool
+     */
+    public function hasModificationGroup($modification_group_id): bool
+    {
+        return !!$this->findModificationGroup($modification_group_id);
+    }
+
+    /**
+     * @param string|int $modification_group_id
+     * @return PosterDishModificationGroup|null
+     */
+    public function findModificationGroup($modification_group_id): ?PosterProductModification
+    {
+        foreach ($this->getModificationGroups() as $group) {
+            if ($group->getGroupId() == $modification_group_id) {
+                return $group;
             }
         }
         return null;
@@ -182,7 +202,8 @@ class PosterProduct extends PosterModel
         return !!$this->getPhotoOrigin();
     }
 
-    public function isDish(): bool {
+    public function isDishType(): bool
+    {
         return $this->attributes->type === "2";
     }
 
@@ -190,51 +211,13 @@ class PosterProduct extends PosterModel
     {
         $salesboxStore = $this->store->getRootStore()->getSalesboxStore();
         $offer = new SalesboxOfferV4([], $salesboxStore);
-        $offer->setStockType('endless');
-        $offer->setUnits('pc');
-        $offer->setDescriptions([]);
-        $offer->setPhotos([]);
-        $offer->setCategories([]);
-        $offer->setExternalId($this->getProductId());
-        $offer->setAvailable(!$this->isHidden());
-        $offer->setPrice($this->getFirstPrice());
-        $offer->setNames([
-            [
-                'name' => $this->getProductName(),
-                'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
-            ]
-        ]);
-
-        if ($this->hasPhoto()) {
-            $offer->setPreviewURL(Utils::poster_upload_url($this->getPhoto()));
-        }
-
-        if ($this->hasPhotoOrigin()) {
-            $offer->setOriginalURL(Utils::poster_upload_url($this->getPhotoOrigin()));
-        }
-
-        if ($this->getPhoto() && $this->getPhotoOrigin()) {
-            $offer->setPhotos([
-                [
-                    'url' => Utils::poster_upload_url($this->getPhotoOrigin()),
-                    'previewURL' => Utils::poster_upload_url($this->getPhoto()),
-                    'order' => 0,
-                    'type' => 'image',
-                    'resourceType' => 'image'
-                ]
-            ]);
-        }
-
-        $category = $salesboxStore->findCategoryByExternalId($this->getMenuCategoryId());
-
-        if ($category) {
-            $offer->setCategories([$category->getId()]);
-        }
+        $offer->updateFromPosterProduct($this);
 
         return $offer;
     }
 
-    public function getStore(): PosterStore {
+    public function getStore(): PosterStore
+    {
         return $this->store;
     }
 

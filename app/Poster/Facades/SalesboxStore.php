@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array updateManyCategories(SalesboxCategory[] $categories)
  * @method static array createManyCategories(SalesboxCategory[] $categories)
  * @method static array createManyOffers(SalesboxOfferV4[] $offers)
- * @method static array updateManyOffers(SalesboxOfferV4[] $offers, $ignorePhotos = false)
+ * @method static array updateManyOffers(SalesboxOfferV4[] $offers)
  * @method static array deleteManyOffers(SalesboxOfferV4[] $offers)
  *
  * @method static SalesboxOfferV4[] updateFromPosterProducts(PosterProduct[] $poster_product)

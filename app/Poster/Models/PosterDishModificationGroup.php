@@ -10,7 +10,7 @@ use App\Poster\meta\PosterDishGroupModification_meta;
  * @property PosterDishGroupModification_meta $originalAttributes
  */
 
-class PosterDishGroupModification extends PosterModel {
+class PosterDishModificationGroup extends PosterModel {
     /**
      * @var PosterProduct $product
      */
@@ -72,6 +72,27 @@ class PosterDishGroupModification extends PosterModel {
 
     public function getProduct(): PosterProduct {
         return $this->product;
+    }
+
+    /**
+     * @param $dish_modification_id
+     * @return PosterDishModification|null
+     */
+    public function findModification($dish_modification_id) {
+        foreach($this->modifications as $modification) {
+            if($modification->getDishModificationId() == $dish_modification_id) {
+                return $modification;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param string|int $dish_modification_id
+     * @return bool
+     */
+    public function hasModification($dish_modification_id): bool {
+        return !!$this->findModification($dish_modification_id);
     }
 
 

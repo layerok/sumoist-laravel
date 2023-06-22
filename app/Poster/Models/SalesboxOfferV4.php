@@ -231,7 +231,7 @@ class SalesboxOfferV4 extends SalesboxModel
         $this->setDescriptions([]);
         $this->setNames([
             [
-                'name' => $product->getProductName() . ' (' . $modification->getModificatorName() . ')',
+                'name' => $product->getProductName() . ' ' . $modification->getModificatorName(),
                 'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
             ]
         ]);
@@ -252,6 +252,73 @@ class SalesboxOfferV4 extends SalesboxModel
                 [
                     'url' => Utils::poster_upload_url($product->getPhotoOrigin()),
                     'previewURL' => Utils::poster_upload_url($product->getPhoto()),
+                    'order' => 0,
+                    'type' => 'image',
+                    'resourceType' => 'image'
+                ]
+            ]);
+        }
+
+        $category = $this->store->findCategoryByExternalId($product->getMenuCategoryId());
+
+        if ($category) {
+            $this->setCategories([$category->getId()]);
+        }
+        return clone $this;
+    }
+
+    public function updateFromDishModification(PosterDishModification $modification): SalesboxOfferV4 {
+        $group = $modification->getGroup();
+        $product = $group->getProduct();
+
+        $this->setExternalId($product->getProductId());
+        $this->setModifierId($modification->getDishModificationId());
+        $this->setAvailable(!$product->isHidden());
+        $this->setPrice($modification->getPrice());
+        $this->setStockType('endless');
+        $this->setUnits('pc');
+        $this->setCategories([]);
+        $this->setPhotos([]);
+        $this->setDescriptions([]);
+        $this->setNames([
+            [
+                'name' => $product->getProductName() . ', ' . $group->getName() . ': ' . $modification->getName(),
+                'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
+            ]
+        ]);
+
+        // set photo of product by default
+        if ($product->hasPhoto()) {
+            $this->setPreviewURL(Utils::poster_upload_url($product->getPhoto()));
+        }
+
+        if ($product->hasPhotoOrigin()) {
+            $this->setOriginalURL(Utils::poster_upload_url($product->getPhotoOrigin()));
+        }
+
+        // but photo of modification is more important
+        if ($modification->getPhotoLarge()) {
+            $this->setPreviewURL(Utils::poster_upload_url($modification->getPhotoLarge()));
+            $this->setOriginalURL(Utils::poster_upload_url($modification->getPhotoLarge()));
+        }
+
+        if ($product->getPhoto() && $product->getPhotoOrigin()) {
+            $this->setPhotos([
+                [
+                    'url' => Utils::poster_upload_url($product->getPhotoOrigin()),
+                    'previewURL' => Utils::poster_upload_url($product->getPhoto()),
+                    'order' => 0,
+                    'type' => 'image',
+                    'resourceType' => 'image'
+                ]
+            ]);
+        }
+
+        if ($modification->getPhotoLarge()) {
+            $this->setPhotos([
+                [
+                    'url' => Utils::poster_upload_url($modification->getPhotoLarge()),
+                    'previewURL' => Utils::poster_upload_url($modification->getPhotoLarge()),
                     'order' => 0,
                     'type' => 'image',
                     'resourceType' => 'image'

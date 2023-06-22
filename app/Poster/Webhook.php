@@ -1,12 +1,16 @@
 <?php
+
 namespace App\Poster;
 
+use App\Poster\Facades\PosterStore;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use poster\src\PosterApi;
 
-class Webhook {
-    public function handle(Request $request) {
+class Webhook
+{
+    public function handle(Request $request)
+    {
         $config = config('poster');
         PosterApi::init([
             'application_id' => $config['application_id'],
@@ -20,7 +24,7 @@ class Webhook {
         // todo: don't forget to delete 'skip' param
         $isVerified = isset($decoded['skip']) || PosterApi::auth()->verifyWebHook($content);
 
-        if(!$isVerified) {
+        if (!$isVerified) {
             $error = "Request signatures didn't match!";
             Log::error($error . $request->getContent());
             return response($error, 200);
@@ -28,45 +32,78 @@ class Webhook {
 
         $parsed = json_decode($request->getContent(), true);
 
+        $objects = $this->getObjects($parsed);
 
-        // some meta programming below
-        $namespace = 'App\\Poster\\ActionHandlers\\';
-        $specificClassName= studly_case("{$parsed['object']}_{$parsed['action']}_action_handler");
-        $generalClassName = studly_case("{$parsed['object']}_action_handler");
+        $actionClasses = array_map(function($object) use ($parsed) {
+            return $this->getHandlerClass("{$object}_{$parsed['action']}"); // e.g. DishRemovedActionHandler
+        }, $objects);
 
-        $specificClass = $namespace . $specificClassName; // e.g. DishRemovedActionHandler
-        $commonClass = $namespace . $generalClassName; // e.g. DishActionHandler
+        $commonClasses = array_map(function($object) use ($parsed) {
+            return $this->getHandlerClass($object); // e.g. DishActionHandler
+        }, $objects);
 
-        if(class_exists($specificClass)) {
-            $class = $specificClass;
-        } else {
-            $class = $commonClass;
-        }
 
-        if(class_exists($class)) {
-            $instance = new $class($parsed);
-            try {
-                $instance->handle();
-                return response('ok', 200);
-            } catch (\Exception $exception) {
-                Log::error($exception->getMessage() . PHP_EOL . $exception->getTraceAsString());
-                // I return successful response here,
-                // because if poster doesn't get 200,
-                // then it will exponentially backoff all next and retried requests
+        $classes = array_merge($actionClasses, $commonClasses);
 
-                // How poster retries requests?
-                // 1 request - 'instantly'
-                // 2 request - ~30 seconds
-                // 3 request - ~1 minutes
-                // 4 request - ~5 minutes
-                // 5 request - ~10 minutes
-                // n request - so on
-                return response('Error: ' . $exception->getMessage(),200);
+        foreach ($classes as $class) {
+            if (class_exists($class)) {
+                $instance = new $class($parsed);
+                try {
+                    $instance->handle();
+                    return response('ok', 200);
+                } catch (\Exception $exception) {
+                    Log::error($exception->getMessage() . PHP_EOL . $exception->getTraceAsString());
+                    // I return successful response here,
+                    // because if poster doesn't get 200,
+                    // then it will exponentially backoff all next and retried requests
+
+                    // How poster retries requests?
+                    // 1 request - 'instantly'
+                    // 2 request - ~30 seconds
+                    // 3 request - ~1 minutes
+                    // 4 request - ~5 minutes
+                    // 5 request - ~10 minutes
+                    // n request - so on
+                    return response('Error: ' . $exception->getMessage(), 200);
+                }
             }
         }
+
 
         return response('nothing was handled', 200);
     }
 
+    public function getObjects($parsed) {
+        if ($parsed['object'] === 'product' || $parsed['object'] === 'dish') {
+            if (!PosterStore::isProductsLoaded()) {
+                PosterStore::loadProducts();
+            }
+        }
+        if ($parsed['object'] === 'product') {
+            $poster_product = PosterStore::findProduct($parsed['object_id']);
+            if ($poster_product->hasModifications()) {
+                return ['product_multiple', $parsed['object']];
 
+            } else {
+                return ['product_single', $parsed['object']];
+            }
+
+        }
+
+        if ($parsed['object'] === 'dish') {
+            $poster_product = PosterStore::findProduct($parsed['object_id']);
+            if ($poster_product->hasModificationGroups()) {
+                return ['dish_multiple', $parsed['object']];
+            } else {
+                return ['dish_single', $parsed['object']];
+            }
+        }
+        return [$parsed['object']];
+    }
+
+    public function getHandlerClass($snake_case_name)
+    {
+        $namespace = 'App\\Poster\\ActionHandlers\\';
+        return $namespace . studly_case("{$snake_case_name}_action_handler"); // e.g. DishActionHandler
+    }
 }

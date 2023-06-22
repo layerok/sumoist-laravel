@@ -4,7 +4,6 @@ namespace App\Poster\Stores;
 
 use App\Poster\Models\PosterCategory;
 use App\Poster\Models\PosterProduct;
-use App\Poster\Models\PosterProductModification;
 use App\Poster\Models\SalesboxCategory;
 use App\Poster\Models\SalesboxOfferV4;
 use App\Poster\Utils;
@@ -26,6 +25,9 @@ class PosterStore
      * @var RootStore
      */
     private $rootStore;
+
+    private $productsLoaded = false;
+    private $categoriesLoaded = false;
 
     public function __construct(RootStore $rootStore)
     {
@@ -51,6 +53,7 @@ class PosterStore
         $this->products = array_map(function ($item) {
             return new PosterProduct($item, $this);
         }, $productsResponse->response);
+        $this->productsLoaded = true;
 
         return $this->products;
     }
@@ -66,6 +69,7 @@ class PosterStore
         $this->categories = array_map(function ($item) {
             return new PosterCategory($item, $this);
         }, $res->response);
+        $this->categoriesLoaded = true;
 
         return $this->categories;
     }
@@ -173,12 +177,12 @@ class PosterStore
      * @param array $poster_ids
      * @return PosterProduct[]
      */
-    public function findProductsWithoutGroupModifications(array $poster_ids): array
+    public function findProductsWithoutModificationGroups(array $poster_ids): array
     {
         $found_products = $this->findProduct($poster_ids);
 
         return array_filter($found_products, function (PosterProduct $posterProduct) {
-            return !$posterProduct->hasGroupModifications();
+            return !$posterProduct->hasModificationGroups();
         });
     }
 
@@ -186,12 +190,12 @@ class PosterStore
      * @param array $poster_ids
      * @return PosterProduct[]
      */
-    public function findProductsWithGroupModifications(array $poster_ids): array
+    public function findProductsWithModificationGroups(array $poster_ids): array
     {
         $found_products = $this->findProduct($poster_ids);
 
         return array_filter($found_products, function (PosterProduct $posterProduct) {
-            return $posterProduct->hasGroupModifications();
+            return $posterProduct->hasModificationGroups();
         });
     }
 
@@ -242,17 +246,34 @@ class PosterStore
 
     /**
      * @param string|int $product_id
-     * @param string|int $modificator_id
-     * @return PosterProductModification|null
+     * @param string|int $dish_modification_id
+     * @return bool
      */
-    public function findProductModification($product_id, $modificator_id): ?PosterProductModification {
-        foreach($this->findProductsWithModifications([$product_id]) as $posterProduct) {
-            $modification = $posterProduct->findModification($modificator_id);
-            if($modification) {
-                return $modification;
+    public function dishModificationExists($product_id, $dish_modification_id): bool {
+        foreach($this->findProductsWithModificationGroups([$product_id]) as $posterProduct) {
+            foreach($posterProduct->getModificationGroups() as $group) {
+                if($group->hasModification($dish_modification_id)) {
+                    return true;
+                }
             }
         };
-        return null;
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isProductsLoaded(): bool
+    {
+        return $this->productsLoaded;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCategoriesLoaded(): bool
+    {
+        return $this->categoriesLoaded;
     }
 
 }
