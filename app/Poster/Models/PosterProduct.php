@@ -2,7 +2,6 @@
 
 namespace App\Poster\Models;
 
-use App\Poster\Facades\SalesboxStore;
 use App\Poster\meta\PosterProduct_meta;
 use App\Poster\Stores\PosterStore;
 use App\Poster\Utils;
@@ -29,6 +28,15 @@ class PosterProduct extends PosterModel
      */
     public $modifications = [];
 
+    /**
+     * @var PosterDishGroupModification[] $modifications
+     */
+    public $groupModifications = [];
+
+    /**
+     * @param PosterProduct_meta $attributes
+     * @param PosterStore $store
+     */
     public function __construct($attributes, PosterStore $store)
     {
         parent::__construct($attributes);
@@ -42,6 +50,13 @@ class PosterProduct extends PosterModel
                 return new PosterProductModification($attributes, $this);
             }, $this->attributes->modifications);
         }
+
+        if (isset($attributes->group_modifications)) {
+            $this->groupModifications = array_map(function ($attributes) {
+                return new PosterDishGroupModification($attributes, $this);
+            }, $this->attributes->group_modifications);
+        }
+
         $this->store = $store;
     }
 
@@ -93,6 +108,18 @@ class PosterProduct extends PosterModel
         // todo: allow choosing a different spot
         $spot = $this->getFirstSpot();
         return $spot->isHidden();
+    }
+
+    /**
+     * @return PosterDishGroupModification[]
+     */
+    public function getGroupModifications(): array {
+        return $this->groupModifications;
+    }
+
+    public function hasGroupModifications(): bool
+    {
+        return count($this->groupModifications) > 0;
     }
 
     public function hasModifications(): bool
@@ -155,6 +182,10 @@ class PosterProduct extends PosterModel
         return !!$this->getPhotoOrigin();
     }
 
+    public function isDish(): bool {
+        return $this->attributes->type === "2";
+    }
+
     public function asSalesboxOffer(): SalesboxOfferV4
     {
         $salesboxStore = $this->store->getRootStore()->getSalesboxStore();
@@ -201,6 +232,10 @@ class PosterProduct extends PosterModel
         }
 
         return $offer;
+    }
+
+    public function getStore(): PosterStore {
+        return $this->store;
     }
 
 }

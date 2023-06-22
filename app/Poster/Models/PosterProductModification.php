@@ -115,7 +115,7 @@ class PosterProductModification extends PosterModel {
         $offer->setPrice($this->getFirstPrice());
         $offer->setNames([
             [
-                'name' => $this->product->getProductName() . ' (' . $this->getModificatorName() . ')',
+                'name' => $this->product->getProductName() . ' ' . $this->getModificatorName(),
                 'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
             ]
         ]);

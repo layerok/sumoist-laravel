@@ -128,6 +128,22 @@ class PosterStore
     }
 
     /**
+     * @param array|string|number $poster_id
+     * @return PosterProduct|PosterProduct[]|null
+     */
+    public function findDish($poster_id)
+    {
+        $ids = Arr::wrap($poster_id);
+        $found = array_filter($this->products, function (PosterProduct $product) use ($ids) {
+            return in_array($product->getProductId(), $ids);
+        });
+        if (is_array($poster_id)) {
+            return $found;
+        }
+        return array_values($found)[0] ?? null;
+    }
+
+    /**
      * @param array $poster_ids
      * @return PosterProduct[]
      */
@@ -150,6 +166,32 @@ class PosterStore
 
         return array_filter($found_products, function (PosterProduct $posterProduct) {
             return !$posterProduct->hasModifications();
+        });
+    }
+
+    /**
+     * @param array $poster_ids
+     * @return PosterProduct[]
+     */
+    public function findProductsWithoutGroupModifications(array $poster_ids): array
+    {
+        $found_products = $this->findProduct($poster_ids);
+
+        return array_filter($found_products, function (PosterProduct $posterProduct) {
+            return !$posterProduct->hasGroupModifications();
+        });
+    }
+
+    /**
+     * @param array $poster_ids
+     * @return PosterProduct[]
+     */
+    public function findProductsWithGroupModifications(array $poster_ids): array
+    {
+        $found_products = $this->findProduct($poster_ids);
+
+        return array_filter($found_products, function (PosterProduct $posterProduct) {
+            return $posterProduct->hasGroupModifications();
         });
     }
 
