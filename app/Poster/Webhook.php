@@ -32,20 +32,12 @@ class Webhook
 
         $parsed = json_decode($request->getContent(), true);
 
-        $objects = $this->getObjects($parsed);
+        $possibleHandlerClasses = [
+            $this->getHandlerClass("{$parsed['object']}_{$parsed['action']}"), // e.g. DishRemovedActionHandler
+            $this->getHandlerClass($parsed['object']) // e.g. DishActionHandler
+        ];
 
-        $actionClasses = array_map(function($object) use ($parsed) {
-            return $this->getHandlerClass("{$object}_{$parsed['action']}"); // e.g. DishRemovedActionHandler
-        }, $objects);
-
-        $commonClasses = array_map(function($object) use ($parsed) {
-            return $this->getHandlerClass($object); // e.g. DishActionHandler
-        }, $objects);
-
-
-        $classes = array_merge($actionClasses, $commonClasses);
-
-        foreach ($classes as $class) {
+        foreach ($possibleHandlerClasses as $class) {
             if (class_exists($class)) {
                 $instance = new $class($parsed);
                 try {
@@ -71,34 +63,6 @@ class Webhook
 
 
         return response('nothing was handled', 200);
-    }
-
-    public function getObjects($parsed) {
-        if ($parsed['object'] === 'product' || $parsed['object'] === 'dish') {
-            if (!PosterStore::isProductsLoaded()) {
-                PosterStore::loadProducts();
-            }
-        }
-        if ($parsed['object'] === 'product') {
-            $poster_product = PosterStore::findProduct($parsed['object_id']);
-            if ($poster_product->hasModifications()) {
-                return ['product_multiple', $parsed['object']];
-
-            } else {
-                return ['product_single', $parsed['object']];
-            }
-
-        }
-
-        if ($parsed['object'] === 'dish') {
-            $poster_product = PosterStore::findProduct($parsed['object_id']);
-            if ($poster_product->hasModificationGroups()) {
-                return ['dish_multiple', $parsed['object']];
-            } else {
-                return ['dish_single', $parsed['object']];
-            }
-        }
-        return [$parsed['object']];
     }
 
     public function getHandlerClass($snake_case_name)
