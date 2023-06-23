@@ -94,7 +94,7 @@ class DishMultipleActionHandler extends AbstractActionHandler
             PosterStore::findProductsWithModificationGroups($ids)
         )
             ->map(function (PosterProduct $posterProduct) {
-                return collect($posterProduct->getModificationGroups())
+                return collect($posterProduct->getDishModificationGroups())
                     ->filter(function (PosterDishModificationGroup $modification) {
                         // skip 'multiple' type modifications
                         // because I don't know how to store them in salesbox
@@ -123,7 +123,7 @@ class DishMultipleActionHandler extends AbstractActionHandler
          */
         $dish_modifications = collect(PosterStore::findProductsWithModificationGroups($ids))
             ->map(function (PosterProduct $posterProduct) {
-                return collect($posterProduct->getModificationGroups())
+                return collect($posterProduct->getDishModificationGroups())
                     ->filter(function (PosterDishModificationGroup $group) {
                         // skip 'multiple' type modifications
                         // because I don't know how to store them in salesbox
@@ -154,10 +154,12 @@ class DishMultipleActionHandler extends AbstractActionHandler
 
         foreach ($salesbox_offers as $offer) {
             if ($offer->hasModifierId()) {
-                $dish_modification_exists = PosterStore::dishModificationExists($offer->getExternalId(), $offer->getModifierId());
-                if (!$dish_modification_exists) {
+                $poster_product = PosterStore::findProduct($offer->getExternalId());
+
+                if(!$poster_product->hasModification($offer->getModifierId())) {
                     $delete_salesbox_offers[] = $offer;
                 }
+
             }
         }
 

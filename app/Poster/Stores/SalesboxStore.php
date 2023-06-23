@@ -151,6 +151,25 @@ class SalesboxStore
      * @param SalesboxCategory[] $categories
      * @return array
      */
+    public function deleteManyCategories($categories)
+    {
+        $ids = collect($categories)
+            ->map(function (SalesboxCategory $category) {
+                return $category->getId();
+            })
+            ->values()
+            ->toArray();
+
+        return SalesboxApi::deleteManyCategories([
+            'ids' => $ids,
+            'recursively' => true
+        ], []);
+    }
+
+    /**
+     * @param SalesboxCategory[] $categories
+     * @return array
+     */
     public function updateManyCategories($categories)
     {
         $categories = collect($categories)

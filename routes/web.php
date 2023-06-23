@@ -13,6 +13,8 @@ require 'admin.php';
 
 require 'posterpos.php';
 
+require 'salesbox.php';
+
 Route::match(['get', 'post'],'/', 'Site\IndexController@index');
 
 
@@ -32,6 +34,8 @@ Route::group(['prefix' => 'order'], function(){
 });
 
 Route::match(['get','post'],'/{page}', 'Site\PageController@index');
+
+
 
 
 

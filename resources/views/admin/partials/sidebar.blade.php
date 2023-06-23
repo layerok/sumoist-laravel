@@ -101,6 +101,23 @@
                         <span class="app-menu__label">Аттрибуты</span>
                     </a>
                 </li>
+
+            </ul>
+        </li>
+        <li class="treeview {{ Request::is('admin/salesbox*') ? 'is-expanded' : '' }}">
+            <a class="app-menu__item" href="#" data-toggle="treeview">
+                <i class="app-menu__icon fa fa-external-link-square"></i>
+                <span class="app-menu__label">Интеграции</span>
+                <i class="treeview-indicator fa fa-angle-right"></i>
+            </a>
+            <ul class="treeview-menu ">
+                <li>
+                    <a class="treeview-item {{ Request::is('admin/salesbox*') ? 'active' : '' }}" href="{{ route('admin.salesbox.index') }}">
+                        <i class="app-menu__icon fa fa-mobile"></i>
+                        <span class="app-menu__label">Salesbox</span>
+                    </a>
+                </li>
+
             </ul>
         </li>
 

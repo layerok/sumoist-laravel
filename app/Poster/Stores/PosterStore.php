@@ -42,6 +42,16 @@ class PosterStore
         return $this->rootStore;
     }
 
+    public function init() {
+        $config = config('poster');
+        PosterApi::init([
+            'application_id' => $config['application_id'],
+            'application_secret' => $config['application_secret'],
+            'account_name' => $config['account_name'],
+            'access_token' => $config['access_token'],
+        ]);
+    }
+
     /**
      * @return PosterProduct[]
      */
@@ -156,7 +166,7 @@ class PosterStore
         $found_products = $this->findProduct($poster_ids);
 
         return array_filter($found_products, function (PosterProduct $posterProduct) {
-            return $posterProduct->hasModifications();
+            return $posterProduct->hasProductModifications();
         });
     }
 
@@ -169,7 +179,7 @@ class PosterStore
         $found_products = $this->findProduct($poster_ids);
 
         return array_filter($found_products, function (PosterProduct $posterProduct) {
-            return !$posterProduct->hasModifications();
+            return !$posterProduct->hasProductModifications();
         });
     }
 
@@ -182,7 +192,7 @@ class PosterStore
         $found_products = $this->findProduct($poster_ids);
 
         return array_filter($found_products, function (PosterProduct $posterProduct) {
-            return !$posterProduct->hasModificationGroups();
+            return !$posterProduct->hasDishModificationGroups();
         });
     }
 
@@ -195,7 +205,7 @@ class PosterStore
         $found_products = $this->findProduct($poster_ids);
 
         return array_filter($found_products, function (PosterProduct $posterProduct) {
-            return $posterProduct->hasModificationGroups();
+            return $posterProduct->hasDishModificationGroups();
         });
     }
 
@@ -228,36 +238,6 @@ class PosterStore
         return array_map(function (PosterProduct $poster_product) {
             return $poster_product->asSalesboxOffer();
         }, $poster_products);
-    }
-
-    /**
-     * @param string|int $product_id
-     * @param string|int $modificator_id
-     * @return bool
-     */
-    public function productModificationExists($product_id, $modificator_id): bool {
-        foreach($this->findProductsWithModifications([$product_id]) as $posterProduct) {
-            if($posterProduct->hasModification($modificator_id)) {
-                return true;
-            }
-        };
-        return false;
-    }
-
-    /**
-     * @param string|int $product_id
-     * @param string|int $dish_modification_id
-     * @return bool
-     */
-    public function dishModificationExists($product_id, $dish_modification_id): bool {
-        foreach($this->findProductsWithModificationGroups([$product_id]) as $posterProduct) {
-            foreach($posterProduct->getModificationGroups() as $group) {
-                if($group->hasModification($dish_modification_id)) {
-                    return true;
-                }
-            }
-        };
-        return false;
     }
 
     /**

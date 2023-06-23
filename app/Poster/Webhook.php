@@ -11,13 +11,7 @@ class Webhook
 {
     public function handle(Request $request)
     {
-        $config = config('poster');
-        PosterApi::init([
-            'application_id' => $config['application_id'],
-            'application_secret' => $config['application_secret'],
-            'account_name' => $config['account_name'],
-            'access_token' => $config['access_token'],
-        ]);
+        PosterStore::init();
         $content = $request->getContent();
         $decoded = json_decode($content, true);
 

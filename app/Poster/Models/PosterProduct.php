@@ -25,12 +25,12 @@ class PosterProduct extends PosterModel
     /**
      * @var PosterProductModification[] $modifications
      */
-    public $modifications = [];
+    public $product_modifications = [];
 
     /**
      * @var PosterDishModificationGroup[] $modifications
      */
-    public $modificationGroups = [];
+    public $dish_modification_groups = [];
 
     /**
      * @param PosterProduct_meta $attributes
@@ -45,13 +45,13 @@ class PosterProduct extends PosterModel
             }, $attributes->spots);
         }
         if (isset($attributes->modifications)) {
-            $this->modifications = array_map(function ($attributes) {
+            $this->product_modifications = array_map(function ($attributes) {
                 return new PosterProductModification($attributes, $this);
             }, $this->attributes->modifications);
         }
 
         if (isset($attributes->group_modifications)) {
-            $this->modificationGroups = array_map(function ($attributes) {
+            $this->dish_modification_groups = array_map(function ($attributes) {
                 return new PosterDishModificationGroup($attributes, $this);
             }, $this->attributes->group_modifications);
         }
@@ -112,45 +112,45 @@ class PosterProduct extends PosterModel
     /**
      * @return PosterDishModificationGroup[]
      */
-    public function getModificationGroups(): array
+    public function getDishModificationGroups(): array
     {
-        return $this->modificationGroups;
+        return $this->dish_modification_groups;
     }
 
-    public function hasModificationGroups(): bool
+    public function hasDishModificationGroups(): bool
     {
-        return count($this->modificationGroups) > 0;
+        return count($this->dish_modification_groups) > 0;
     }
 
-    public function hasModifications(): bool
+    public function hasProductModifications(): bool
     {
-        return count($this->modifications) > 0;
+        return count($this->product_modifications) > 0;
     }
 
     /**
      * @return PosterProductModification[]
      */
-    public function getModifications(): array
+    public function getProductModifications(): array
     {
-        return $this->modifications;
+        return $this->product_modifications;
     }
 
     /**
      * @param string|int $modificator_id
      * @return bool
      */
-    public function hasModification($modificator_id): bool
+    public function hasProductModification($modificator_id): bool
     {
-        return !!$this->findModification($modificator_id);
+        return !!$this->findProductModification($modificator_id);
     }
 
     /**
      * @param string|int $modificator_id
      * @return PosterProductModification|null
      */
-    public function findModification($modificator_id): ?PosterProductModification
+    public function findProductModification($modificator_id): ?PosterProductModification
     {
-        foreach ($this->getModifications() as $modification) {
+        foreach ($this->getProductModifications() as $modification) {
             if ($modification->getModificatorId() == $modificator_id) {
                 return $modification;
             }
@@ -159,21 +159,45 @@ class PosterProduct extends PosterModel
     }
 
     /**
-     * @param string|int $modification_group_id
+     * @param string|int $dish_modification_id
      * @return bool
      */
-    public function hasModificationGroup($modification_group_id): bool
+    public function hasDishModification($dish_modification_id): bool
     {
-        return !!$this->findModificationGroup($modification_group_id);
+        return !!$this->findDishModification($dish_modification_id);
+    }
+
+    /**
+     * @param string|int $dish_modification_id
+     * @return PosterDishModification|null
+     */
+    public function findDishModification($dish_modification_id): ?PosterDishModification
+    {
+        foreach ($this->dish_modification_groups as $group) {
+            $dish_modification = $group->findModification($dish_modification_id);
+            if ($dish_modification) {
+                return $dish_modification;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param string|int $dish_modification_group_id
+     * @return bool
+     */
+    public function hasDishModificationGroup($dish_modification_group_id): bool
+    {
+        return !!$this->findDishModificationGroup($dish_modification_group_id);
     }
 
     /**
      * @param string|int $modification_group_id
      * @return PosterDishModificationGroup|null
      */
-    public function findModificationGroup($modification_group_id): ?PosterProductModification
+    public function findDishModificationGroup($modification_group_id): ?PosterProductModification
     {
-        foreach ($this->getModificationGroups() as $group) {
+        foreach ($this->getDishModificationGroups() as $group) {
             if ($group->getGroupId() == $modification_group_id) {
                 return $group;
             }
@@ -219,6 +243,17 @@ class PosterProduct extends PosterModel
     public function getStore(): PosterStore
     {
         return $this->store;
+    }
+
+    /**
+     * @param string|int $modification_id
+     * @return bool
+     */
+    public function hasModification($modification_id): bool {
+        if($this->isDishType()) {
+            return $this->hasDishModification($modification_id);
+        }
+        return $this->hasProductModification($modification_id);
     }
 
 }

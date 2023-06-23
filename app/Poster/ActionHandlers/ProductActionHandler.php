@@ -21,7 +21,7 @@ class ProductActionHandler extends AbstractActionHandler
 
             $poster_product = PosterStore::findProduct($this->getObjectId());
 
-            if ($poster_product->hasModifications()) {
+            if ($poster_product->hasProductModifications()) {
                 $instance = new ProductMultipleActionHandler($this->params);
                 $instance->handle();
             } else {

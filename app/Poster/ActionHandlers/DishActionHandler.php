@@ -20,7 +20,7 @@ class DishActionHandler extends AbstractActionHandler
 
             $poster_product = PosterStore::findProduct($this->getObjectId());
 
-            if ($poster_product->hasModificationGroups()) {
+            if ($poster_product->hasDishModificationGroups()) {
                 $instance = new DishMultipleActionHandler($this->params);
                 $instance->handle();
             } else {

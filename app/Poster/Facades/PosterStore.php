@@ -22,13 +22,12 @@ use Illuminate\Support\Facades\Facade;
  * @method static PosterProduct[] findProductsWithModificationGroups(array $poster_ids)
  * @method static PosterProduct[] findProductsWithoutModificationGroups(array $poster_ids)
  * @method static bool productExists(string|int $poster_id)
- * @method static bool productModificationExists(string|int $poster_id, string|int $modification_id)
- * @method static bool dishModificationExists(string|int $poster_id, string|int $dish_modification_id)
  * @method static PosterCategory[] getCategories()
  * @method static PosterProduct[] getProducts()
  * @method static RootStore getRootStore()
  * @method static SalesboxCategory[] asSalesboxCategories(PosterCategory[] $poster_categories)
  * @method static SalesboxOfferV4[] asSalesboxOffers(PosterProduct[] $poster_products)
+ * @method static void init();
  *
  * @method static bool isCategoriesLoaded()
  * @method static bool isProductsLoaded()

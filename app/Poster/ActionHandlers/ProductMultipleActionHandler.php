@@ -92,7 +92,7 @@ class ProductMultipleActionHandler extends AbstractActionHandler
             PosterStore::findProductsWithModifications($ids)
         )
             ->map(function (PosterProduct $posterProduct) {
-                return collect($posterProduct->getModifications())
+                return collect($posterProduct->getProductModifications())
                     ->map(function (PosterProductModification $modification) {
                         return $modification->asSalesboxOffer();
                     });
@@ -111,7 +111,7 @@ class ProductMultipleActionHandler extends AbstractActionHandler
          * @var PosterProductModification[] $products_modifications
          */
         $products_modifications = array_merge(...array_map(function (PosterProduct $posterProduct) {
-            return $posterProduct->getModifications();
+            return $posterProduct->getProductModifications();
         }, PosterStore::findProductsWithModifications($ids)));
 
         $salesbox_offers = SalesboxStore::findOfferByExternalId($ids);
@@ -131,8 +131,9 @@ class ProductMultipleActionHandler extends AbstractActionHandler
 
         foreach ($salesbox_offers as $offer) {
             if ($offer->hasModifierId()) {
-                $modification_exists = PosterStore::productModificationExists($offer->getExternalId(), $offer->getModifierId());
-                if (!$modification_exists) {
+                $poster_product = PosterStore::findProduct($offer->getExternalId());
+
+                if (!$poster_product->hasModification($offer->getModifierId())) {
                     $delete_salesbox_offers[] = $offer;
                 }
             }
