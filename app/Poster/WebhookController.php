@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use poster\src\PosterApi;
 
-class Webhook
+class WebhookController
 {
-    public function handle(Request $request)
+    public function __invoke(Request $request)
     {
         PosterStore::init();
         $content = $request->getContent();

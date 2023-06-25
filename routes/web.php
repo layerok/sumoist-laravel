@@ -11,7 +11,7 @@
 */
 require 'admin.php';
 
-require 'posterpos.php';
+require 'poster.php';
 
 require 'salesbox.php';
 

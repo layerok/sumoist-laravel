@@ -21,7 +21,7 @@ class VerifyCsrfToken extends Middleware
     protected $except = [
         '/thankyou',
         '/order/handle',
-        '/webhook/posterpos',
+        '/poster-webhook',
         '/salesbox-webhook'
     ];
 }
