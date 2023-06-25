@@ -5,6 +5,7 @@
 /vendor
 .env
 .env.production
+.env*
 .idea/
 .env.backup
 .phpunit.result.cache

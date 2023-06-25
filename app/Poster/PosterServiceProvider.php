@@ -19,6 +19,7 @@ class PosterServiceProvider extends ServiceProvider
             return new PosterStore();
         });
 
+        $this->loadRoutesFrom(__DIR__.'/routes.php');
     }
 
     /**
@@ -28,6 +29,6 @@ class PosterServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+
     }
 }

@@ -11,10 +11,6 @@
 */
 require 'admin.php';
 
-require 'poster.php';
-
-require 'salesbox.php';
-
 Route::match(['get', 'post'],'/', 'Site\IndexController@index');
 
 

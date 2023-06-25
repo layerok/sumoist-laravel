@@ -23,7 +23,7 @@ class SalesboxServiceProvider extends ServiceProvider
         $this->app->singleton('salesbox.store', function ()  {
             return new SalesboxStore();
         });
-
+        $this->loadRoutesFrom(__DIR__.'/routes.php');
     }
 
     /**
@@ -33,6 +33,6 @@ class SalesboxServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+
     }
 }
