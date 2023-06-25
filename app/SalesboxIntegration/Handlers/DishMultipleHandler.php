@@ -1,19 +1,21 @@
 <?php
 
-namespace App\Poster\ActionHandlers;
+namespace App\SalesboxIntegration\Handlers;
 
 use App\Poster\Facades\PosterStore;
-use App\Poster\Facades\SalesboxStore;
 use App\Poster\Models\PosterCategory;
-use App\Poster\Models\PosterDishModificationGroup;
 use App\Poster\Models\PosterDishModification;
+use App\Poster\Models\PosterDishModificationGroup;
 use App\Poster\Models\PosterProduct;
-use App\Poster\Models\PosterProductModification;
-use App\Poster\Models\SalesboxOfferV4;
 use App\Salesbox\Facades\SalesboxApi;
+use App\Salesbox\Facades\SalesboxStore;
+use App\Salesbox\Models\SalesboxOfferV4;
+use App\SalesboxIntegration\Transformers\PosterCategoryAsSalesboxCategory;
+use App\SalesboxIntegration\Transformers\PosterDishModificationAsSalesboxOffer;
 use RuntimeException;
+use function collect;
 
-class DishMultipleActionHandler extends AbstractActionHandler
+class DishMultipleHandler extends AbstractHandler
 {
     public function handle(): bool
     {
@@ -84,8 +86,12 @@ class DishMultipleActionHandler extends AbstractActionHandler
 
     public function createCategories($ids = [])
     {
-        $salesbox_categories = PosterStore::asSalesboxCategories(PosterStore::findCategory($ids));
-        SalesboxStore::createManyCategories($salesbox_categories);
+        $poster_categories_as_salesbox_ones = array_map(function(PosterCategory $posterCategory) {
+            $transformer = new PosterCategoryAsSalesboxCategory($posterCategory);
+            return $transformer->transform();
+        }, PosterStore::findCategory($ids));
+
+        SalesboxStore::createManyCategories($poster_categories_as_salesbox_ones);
     }
 
     public function createOffers($ids = [])
@@ -104,7 +110,8 @@ class DishMultipleActionHandler extends AbstractActionHandler
                     ->map(function (PosterDishModificationGroup $modification) {
                         return collect($modification->getModifications())
                             ->map(function (PosterDishModification $modification) {
-                                return $modification->asSalesboxOffer();
+                                $transformer = new PosterDishModificationAsSalesboxOffer($modification);
+                                return $transformer->transform();
                             });
                     });
             })
@@ -169,9 +176,11 @@ class DishMultipleActionHandler extends AbstractActionHandler
                 $modification->getDishModificationId()
             );
             if (!$offer) {
-                $create_salesbox_offers[] = $modification->asSalesboxOffer();
+                $transformer = new PosterDishModificationAsSalesboxOffer($modification);
+                $create_salesbox_offers[] = $transformer->transform();
             } else {
-                $update_salesbox_offers[] = $offer->updateFromDishModification($modification);
+                $transformer = new PosterDishModificationAsSalesboxOffer($modification);
+                $update_salesbox_offers[] = $transformer->updateFrom($offer);
             }
         }
 
@@ -187,15 +196,9 @@ class DishMultipleActionHandler extends AbstractActionHandler
             $offersAsArray = array_map(function (SalesboxOfferV4 $offer) {
                 return [
                     'id' => $offer->getId(),
-                    'modifierId' => $offer->getModifierId(),
-                    'descriptions' => $offer->getOriginalAttributes('descriptions'),// don't update descriptions
                     'categories' => $offer->getCategories(),
                     'available' => $offer->getAvailable(),
                     'price' => $offer->getPrice(),
-                    //'names' => $offer->getNames(),
-                    //'photos' => $offer->getPhotos(),
-                    // 'units' => $offer->getUnits(),
-                    // 'stockType' => $offer->getStockType(),
                 ];
             }, $update_salesbox_offers);
 
@@ -205,6 +208,5 @@ class DishMultipleActionHandler extends AbstractActionHandler
 
         }
     }
-
 
 }

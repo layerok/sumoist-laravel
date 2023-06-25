@@ -5,8 +5,6 @@ namespace App\Poster\Facades;
 use App\Poster\Models\PosterCategory;
 use App\Poster\Models\PosterProduct;
 use App\Poster\Models\PosterProductModification;
-use App\Poster\Models\SalesboxCategory;
-use App\Poster\Models\SalesboxOfferV4;
 use Illuminate\Support\Facades\Facade;
 
 /**
@@ -24,9 +22,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static bool productExists(string|int $poster_id)
  * @method static PosterCategory[] getCategories()
  * @method static PosterProduct[] getProducts()
- * @method static RootStore getRootStore()
- * @method static SalesboxCategory[] asSalesboxCategories(PosterCategory[] $poster_categories)
- * @method static SalesboxOfferV4[] asSalesboxOffers(PosterProduct[] $poster_products)
  * @method static void init();
  *
  * @method static bool isCategoriesLoaded()

@@ -182,6 +182,7 @@ return [
         Jenssegers\Date\DateServiceProvider::class,
         App\Salesbox\SalesboxServiceProvider::class,
         App\Poster\PosterServiceProvider::class,
+        App\SalesboxIntegration\SalesboxIntegrationServiceProvider::class,
 
     ],
 

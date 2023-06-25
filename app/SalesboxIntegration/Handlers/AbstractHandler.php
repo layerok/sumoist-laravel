@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Poster\ActionHandlers;
+namespace App\SalesboxIntegration\Handlers;
 
-abstract class AbstractActionHandler implements IAction {
+abstract class AbstractHandler implements IAction {
    public $params;
    public function __construct($params) {
        $this->params = $params;

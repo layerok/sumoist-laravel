@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Poster\ActionHandlers;
+namespace App\SalesboxIntegration\Handlers;
 
-use App\Poster\Facades\SalesboxStore;
+use App\Salesbox\Facades\SalesboxStore;
 
-class DishRemovedActionHandler extends AbstractActionHandler
+class DishRemovedHandler extends AbstractHandler
 {
     public function handle(): bool
     {

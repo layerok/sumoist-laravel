@@ -4,12 +4,17 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\BaseController;
 use App\Poster\Facades\PosterStore;
-use App\Poster\Facades\SalesboxStore;
 use App\Poster\Models\PosterDishModification;
 use App\Poster\Models\PosterDishModificationGroup;
-use App\Poster\Models\SalesboxCategory;
+use App\Salesbox\Facades\SalesboxApi;
+use App\Salesbox\Facades\SalesboxStore;
+use App\Salesbox\Models\SalesboxCategory;
+use App\Salesbox\Models\SalesboxOfferV4;
+use App\SalesboxIntegration\Transformers\PosterCategoryAsSalesboxCategory;
+use App\SalesboxIntegration\Transformers\PosterDishModificationAsSalesboxOffer;
+use App\SalesboxIntegration\Transformers\PosterProductAsSalesboxOffer;
+use App\SalesboxIntegration\Transformers\PosterProductModificationAsSalesboxOffer;
 use Illuminate\Http\Request;
-
 
 class SalesboxController extends BaseController
 {
@@ -40,9 +45,11 @@ class SalesboxController extends BaseController
             foreach ($poster_categories as $poster_category) {
                 $salesbox_category = SalesboxStore::findCategoryByExternalId($poster_category->getCategoryId());
                 if ($salesbox_category) {
-                    $update_categories[] = $salesbox_category->updateFromPosterCategory($poster_category);
+                    $transformer = new PosterCategoryAsSalesboxCategory($poster_category);
+                    $update_categories[] = $transformer->updateFrom($salesbox_category);
                 } else {
-                    $create_categories[] = $poster_category->asSalesboxCategory();
+                    $transformer = new PosterCategoryAsSalesboxCategory($poster_category);
+                    $create_categories[] = $transformer->transform();
                 }
             }
 
@@ -75,6 +82,7 @@ class SalesboxController extends BaseController
 
         return $this->responseRedirectBack('Категории успешно синхронизованы', 'success', false, false);
     }
+
 
     public function syncProducts()
     {
@@ -112,9 +120,11 @@ class SalesboxController extends BaseController
                     foreach ($modifications as $modification) {
                         $offer = SalesboxStore::findOfferByExternalId($poster_product->getProductId(), $modification->getModificatorId());
                         if ($offer) {
-                            $update_offers[] = $offer->updateFromPosterProductModification($modification);
+                            $transformer = new PosterProductModificationAsSalesboxOffer($modification);
+                            $update_offers[] = $transformer->updateFrom($offer);
                         } else {
-                            $create_offers[] = $modification->asSalesboxOffer();
+                            $transformer = new PosterProductModificationAsSalesboxOffer($modification);
+                            $create_offers[] = $transformer->transform();
                         }
                     }
                 } else if ($poster_product->hasDishModificationGroups()) {
@@ -134,17 +144,21 @@ class SalesboxController extends BaseController
                     foreach($modifications as $modification) {
                         $offer = SalesboxStore::findOfferByExternalId($poster_product->getProductId(), $modification->getDishModificationId());
                         if($offer) {
-                            $update_offers[] = $offer->updateFromDishModification($modification);
+                            $transformer = new PosterDishModificationAsSalesboxOffer($modification);
+                            $update_offers[] = $transformer->updateFrom($offer);
                         } else {
-                            $create_offers[] = $modification->asSalesboxOffer();
+                            $transformer = new PosterDishModificationAsSalesboxOffer($modification);
+                            $create_offers[] = $transformer->transform();
                         }
                     }
                 } else {
                     $offer = SalesboxStore::findOfferByExternalId($poster_product->getProductId());
                     if ($offer) {
-                        $update_offers[] = $offer->updateFromPosterProduct($poster_product);
+                        $transformer = new PosterProductAsSalesboxOffer($poster_product);
+                        $update_offers[] = $transformer->updateFrom($offer);
                     } else {
-                        $create_offers[] = $poster_product->asSalesboxOffer();
+                        $transformer = new PosterProductAsSalesboxOffer($poster_product);
+                        $create_offers[] = $transformer->transform();
                     }
                 }
 
@@ -155,7 +169,18 @@ class SalesboxController extends BaseController
             }
 
             if(count($update_offers) > 0) {
-                SalesboxStore::updateManyOffers($update_offers);
+                $offersAsArray = array_map(function (SalesboxOfferV4 $offer) {
+                    return [
+                        'id' => $offer->getId(),
+                        'categories' => $offer->getCategories(),
+                        'available' => $offer->getAvailable(),
+                        'price' => $offer->getPrice(),
+                    ];
+                }, $update_offers);
+
+                return SalesboxApi::updateManyOffers([
+                    'offers' => array_values($offersAsArray)// reindex array, it's important, otherwise salesbox api will fail
+                ]);
             }
 
             if(count($delete_offers) > 0) {

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Poster\ActionHandlers;
+namespace App\SalesboxIntegration\Handlers;
 
 use App\Poster\Facades\PosterStore;
 use RuntimeException;
 
-class DishActionHandler extends AbstractActionHandler
+class DishHandler extends AbstractHandler
 {
     public function handle(): bool
     {
@@ -21,10 +21,10 @@ class DishActionHandler extends AbstractActionHandler
             $poster_product = PosterStore::findProduct($this->getObjectId());
 
             if ($poster_product->hasDishModificationGroups()) {
-                $instance = new DishMultipleActionHandler($this->params);
+                $instance = new DishMultipleHandler($this->params);
                 $instance->handle();
             } else {
-                $instance = new DishSingleActionHandler($this->params);
+                $instance = new DishSingleHandler($this->params);
                 $instance->handle();
             }
 

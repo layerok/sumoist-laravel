@@ -2,9 +2,7 @@
 
 namespace App\Poster\Models;
 
-use App\Poster\Facades\SalesboxStore;
 use App\Poster\meta\PosterProductModification_meta;
-use App\Poster\Utils;
 
 /**
  * @class PosterProductModification
@@ -99,13 +97,5 @@ class PosterProductModification extends PosterModel {
 
     public function isHidden(): bool {
         return $this->getFirstSpot()->isHidden();
-    }
-
-    public function asSalesboxOffer() {
-        $salesboxStore = $this->product->store->getRootStore()->getSalesboxStore();
-        $offer = new SalesboxOfferV4([], $salesboxStore);
-        $offer->updateFromPosterProductModification($this);
-
-        return $offer;
     }
 }

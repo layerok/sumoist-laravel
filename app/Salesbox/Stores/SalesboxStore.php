@@ -1,17 +1,16 @@
 <?php
 
-namespace App\Poster\Stores;
+namespace App\Salesbox\Stores;
 
-use App\Poster\Models\PosterCategory;
-use App\Poster\Models\PosterProduct;
-use App\Poster\Models\SalesboxCategory;
-use App\Poster\Models\SalesboxOfferV4;
 use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\Facades\SalesboxApiV4;
+use App\Salesbox\Models\SalesboxCategory;
+use App\Salesbox\Models\SalesboxOfferV4;
 use Illuminate\Support\Arr;
+use function collect;
 
 /**
- * @see  \App\Poster\Facades\SalesboxStore
+ * @see  \App\Salesbox\Facades\SalesboxStore
  */
 class SalesboxStore
 {
@@ -25,21 +24,6 @@ class SalesboxStore
     /** @var string|null $accessToken */
     private $accessToken;
 
-    /** @var RootStore $rootStore */
-    private $rootStore;
-
-    public function __construct(RootStore $rootStore)
-    {
-        $this->rootStore = $rootStore;
-    }
-
-    /**
-     * @return RootStore
-     */
-    public function getRootStore(): RootStore
-    {
-        return $this->rootStore;
-    }
 
     /**
      * @return void
@@ -175,14 +159,14 @@ class SalesboxStore
         $categories = collect($categories)
             ->map(function (SalesboxCategory $category) {
                 return [
+                    'id'=> $category->getId(),
+                    'internalId' => $category->getInternalId(),
+                    'parentId' => $category->getParentId(),
+                    'externalId' => $category->getExternalId(),
                     'names' => $category->getNames(),
                     'available' => $category->getAvailable(),
-                    'internalId' => $category->getInternalId(),
                     'originalURL' => $category->getOriginalURL(),
                     'previewURL' => $category->getPreviewURL(),
-                    'externalId' => $category->getExternalId(),
-                    'id'=> $category->getId(),
-                    'parentId' => $category->getParentId(),
                     'photos' => $category->getPhotos(),
                 ];
             })
@@ -284,37 +268,5 @@ class SalesboxStore
         return SalesboxApi::deleteManyOffers([
             'ids' => array_values($ids)
         ]);
-    }
-
-    /**
-     * @param PosterProduct[] $poster_categories
-     * @return SalesboxOfferV4[]|array
-     */
-    public function updateFromPosterProducts($poster_products)
-    {
-        $found_poster_products = array_filter($poster_products, function (PosterProduct $poster_product) {
-            return $this->offerExistsWithExternalId($poster_product->getProductId());
-        });
-
-        return array_map(function (PosterProduct $poster_product) {
-            $offer = $this->findOfferByExternalId($poster_product->getProductId());
-            return $offer->updateFromPosterProduct($poster_product);
-        }, $found_poster_products);
-    }
-
-    /**
-     * @param PosterCategory[] $poster_categories
-     * @return SalesboxCategory[]|array
-     */
-    public function updateFromPosterCategories($poster_categories)
-    {
-        $found_poster_categories = array_filter($poster_categories, function (PosterCategory $poster_category) {
-            return $this->categoryExistsWithExternalId($poster_category->getCategoryId());
-        });
-        return array_map(function (PosterCategory $poster_category) {
-            $category = $this->findCategoryByExternalId($poster_category->getCategoryId());
-            return $category->updateFromPosterCategory($poster_category);
-        }, $found_poster_categories);
-
     }
 }

@@ -66,18 +66,6 @@ class PosterDishModification extends PosterModel {
         return $this->attributes->last_modified_time;
     }
 
-    public function asSalesboxOffer() {
-        $product = $this->group->getProduct();
-        $salesboxStore = $product
-            ->getStore()
-            ->getRootStore()
-            ->getSalesboxStore();
-        $offer = new SalesboxOfferV4([], $salesboxStore);
-        $offer->updateFromDishModification($this);
-
-        return $offer;
-    }
-
     public function getGroup() {
         return $this->group;
     }

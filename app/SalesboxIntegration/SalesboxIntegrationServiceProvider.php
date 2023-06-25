@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Poster;
+namespace App\SalesboxIntegration;
 
-use App\Poster\Stores\PosterStore;
 use Illuminate\Support\ServiceProvider;
 
-class PosterServiceProvider extends ServiceProvider
+class SalesboxIntegrationServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
@@ -14,10 +13,6 @@ class PosterServiceProvider extends ServiceProvider
      */
     public function register()
     {
-
-        $this->app->singleton('poster.store', function ()  {
-            return new PosterStore();
-        });
 
     }
 

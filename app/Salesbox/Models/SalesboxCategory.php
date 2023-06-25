@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Poster\Models;
+namespace App\Salesbox\Models;
 
-use App\Poster\Stores\SalesboxStore;
-use App\Poster\Utils;
+use App\Salesbox\Stores\SalesboxStore;
 
 class SalesboxCategory extends SalesboxModel {
     private $store;
@@ -187,52 +186,11 @@ class SalesboxCategory extends SalesboxModel {
         return $this->attributes;
     }
 
-    public function updateFromPosterCategory(PosterCategory $posterCategory) {
-        $this->setExternalId($posterCategory->getCategoryId());
-        $this->setInternalId($posterCategory->getCategoryId());
-
-        $this->setOriginalUrl(null);
-        $this->setPreviewUrl(null);
-
-        if($posterCategory->hasPhotoOrigin()) {
-            $this->setOriginalUrl(
-                Utils::poster_upload_url($posterCategory->getPhotoOrigin())
-            );
-        }
-
-        if($posterCategory->hasPhoto()) {
-            $this->setPreviewUrl(
-                Utils::poster_upload_url($posterCategory->getPhoto())
-            );
-        }
-
-        $this->setParentId(null);
-
-        // check parent category
-        if($posterCategory->hasParentCategory()) {
-            $this->setParentId($posterCategory->getParentCategory());
-
-            $parent_salesbox_category = $this->store->findCategoryByExternalId($posterCategory->getParentCategory());
-
-            if($parent_salesbox_category) {
-                $this->setParentId($parent_salesbox_category->getInternalId());
-            }
-        }
-
-        $this->setNames([
-            [
-                'name' => $posterCategory->getCategoryName(),
-                'lang' => 'uk'
-            ]
-        ]);
-
-        $this->setPhotos([]);
-        $this->setAvailable($posterCategory->isVisible());
-
-        return clone $this;
-    }
-
     public function delete() {
         return $this->store->deleteCategory($this);
+    }
+
+    public function getStore(): SalesboxStore {
+        return $this->store;
     }
 }

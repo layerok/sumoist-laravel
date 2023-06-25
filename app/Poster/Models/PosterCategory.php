@@ -78,16 +78,4 @@ class PosterCategory {
             return $this->store->findCategory($parent_id);
         }, $parent_ids);
     }
-
-    public function asSalesboxCategory(): SalesboxCategory {
-
-        $salesboxStore = $this->store->getRootStore()->getSalesboxStore();
-
-        // create category
-        $category = new SalesboxCategory([], $salesboxStore);
-        $category->updateFromPosterCategory($this);
-
-        return $category;
-    }
-
 }

@@ -1,11 +1,9 @@
 <?php
 
-namespace App\Poster\Facades;
+namespace App\Salesbox\Facades;
 
-use App\Poster\Models\PosterCategory;
-use App\Poster\Models\PosterProduct;
-use App\Poster\Models\SalesboxCategory;
-use App\Poster\Models\SalesboxOfferV4;
+use App\Salesbox\Models\SalesboxCategory;
+use App\Salesbox\Models\SalesboxOfferV4;
 use Illuminate\Support\Facades\Facade;
 
 /**
@@ -26,12 +24,9 @@ use Illuminate\Support\Facades\Facade;
  * @method static array updateManyOffers(SalesboxOfferV4[] $offers)
  * @method static array deleteManyOffers(SalesboxOfferV4[] $offers)
  *
- * @method static SalesboxOfferV4[] updateFromPosterProducts(PosterProduct[] $poster_product)
- * @method static SalesboxCategory[] updateFromPosterCategories(PosterCategory[] $poster_category)
  * @method static void authenticate()
- * @method static RootStore getRootStore()
  *
- * @see  \App\Poster\Stores\SalesboxStore;
+ * @see  \App\Salesbox\Stores\SalesboxStore;
  */
 
 class SalesboxStore extends Facade {

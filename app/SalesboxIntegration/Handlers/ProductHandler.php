@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Poster\ActionHandlers;
+namespace App\SalesboxIntegration\Handlers;
 
 use App\Poster\Facades\PosterStore;
 use RuntimeException;
 
-class ProductActionHandler extends AbstractActionHandler
+class ProductHandler extends AbstractHandler
 {
     public function handle(): bool
     {
@@ -22,10 +22,10 @@ class ProductActionHandler extends AbstractActionHandler
             $poster_product = PosterStore::findProduct($this->getObjectId());
 
             if ($poster_product->hasProductModifications()) {
-                $instance = new ProductMultipleActionHandler($this->params);
+                $instance = new ProductMultipleHandler($this->params);
                 $instance->handle();
             } else {
-                $instance = new ProductSingleActionHandler($this->params);
+                $instance = new ProductSingleHandler($this->params);
                 $instance->handle();
             }
 

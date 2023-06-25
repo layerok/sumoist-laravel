@@ -1,16 +1,20 @@
 <?php
 
-namespace App\Poster\ActionHandlers;
+namespace App\SalesboxIntegration\Handlers;
 
 use App\Poster\Facades\PosterStore;
-use App\Poster\Facades\SalesboxStore;
+use App\Poster\Models\PosterCategory;
 use App\Poster\Models\PosterProduct;
 use App\Poster\Models\PosterProductModification;
-use App\Poster\Models\SalesboxOfferV4;
 use App\Salesbox\Facades\SalesboxApi;
+use App\Salesbox\Facades\SalesboxStore;
+use App\Salesbox\Models\SalesboxOfferV4;
+use App\SalesboxIntegration\Transformers\PosterCategoryAsSalesboxCategory;
+use App\SalesboxIntegration\Transformers\PosterProductModificationAsSalesboxOffer;
 use RuntimeException;
+use function collect;
 
-class ProductMultipleActionHandler extends AbstractActionHandler
+class ProductMultipleHandler extends AbstractHandler
 {
     public function handle(): bool
     {
@@ -18,7 +22,9 @@ class ProductMultipleActionHandler extends AbstractActionHandler
             SalesboxStore::authenticate();
             SalesboxStore::loadCategories();
             SalesboxStore::loadOffers();
-            PosterStore::loadCategories();
+            if(!PosterStore::isCategoriesLoaded()) {
+                PosterStore::loadCategories();
+            }
             if(!PosterStore::isProductsLoaded()) {
                 PosterStore::loadProducts();
             }
@@ -81,7 +87,10 @@ class ProductMultipleActionHandler extends AbstractActionHandler
 
     public function createCategories(array $ids) {
         $found_poster_categories = PosterStore::findCategory($ids);
-        $poster_categories_as_salesbox_ones = PosterStore::asSalesboxCategories($found_poster_categories);
+        $poster_categories_as_salesbox_ones = array_map(function(PosterCategory $posterCategory) {
+            $transformer = new PosterCategoryAsSalesboxCategory($posterCategory);
+            return $transformer->transform();
+        }, $found_poster_categories);
 
         SalesboxStore::createManyCategories($poster_categories_as_salesbox_ones);
     }
@@ -94,7 +103,8 @@ class ProductMultipleActionHandler extends AbstractActionHandler
             ->map(function (PosterProduct $posterProduct) {
                 return collect($posterProduct->getProductModifications())
                     ->map(function (PosterProductModification $modification) {
-                        return $modification->asSalesboxOffer();
+                        $transformer = new PosterProductModificationAsSalesboxOffer($modification);
+                        return $transformer->transform();
                     });
             })
             ->flatten()
@@ -145,9 +155,11 @@ class ProductMultipleActionHandler extends AbstractActionHandler
                 $modification->getModificatorId()
             );
             if (!$offer) {
-                $create_salesbox_offers[] = $modification->asSalesboxOffer();
+                $transformer = new PosterProductModificationAsSalesboxOffer($modification);
+                $create_salesbox_offers[] = $transformer->transform();
             } else {
-                $update_salesbox_offers[] = $offer->updateFromPosterProductModification($modification);
+                $transformer = new PosterProductModificationAsSalesboxOffer($modification);
+                $update_salesbox_offers[] = $transformer->updateFrom($offer);
             }
         }
 
@@ -163,15 +175,9 @@ class ProductMultipleActionHandler extends AbstractActionHandler
             $offersAsArray = array_map(function (SalesboxOfferV4 $offer) {
                 return [
                     'id' => $offer->getId(),
-                    'modifierId' => $offer->getModifierId(),
-                    'descriptions' => $offer->getOriginalAttributes('descriptions'), // don't update descriptions, use original ones
                     'categories' => $offer->getCategories(),
                     'available' => $offer->getAvailable(),
                     'price' => $offer->getPrice(),
-                    //'names' => $offer->getNames(),
-                    //'photos' => $offer->getPhotos(),
-                    // 'units' => $offer->getUnits(),
-                    // 'stockType' => $offer->getStockType(),
                 ];
             }, $update_salesbox_offers);
 

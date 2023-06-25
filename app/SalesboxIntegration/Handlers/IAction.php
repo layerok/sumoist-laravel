@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Poster\ActionHandlers;
+namespace App\SalesboxIntegration\Handlers;
 
 interface IAction {
     public function handle(): bool;

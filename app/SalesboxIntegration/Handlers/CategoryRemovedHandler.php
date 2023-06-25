@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Poster\ActionHandlers;
+namespace App\SalesboxIntegration\Handlers;
 
-use App\Poster\Facades\SalesboxStore;
+use App\Salesbox\Facades\SalesboxStore;
 
-class CategoryRemovedActionHandler extends AbstractActionHandler
+class CategoryRemovedHandler extends AbstractHandler
 {
     public function __construct($params)
     {

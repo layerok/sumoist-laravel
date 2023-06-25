@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Poster\Models;
+namespace App\Salesbox\Models;
 
 abstract class SalesboxModel {
     protected $attributes = [];

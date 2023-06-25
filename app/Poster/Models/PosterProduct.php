@@ -231,15 +231,6 @@ class PosterProduct extends PosterModel
         return $this->attributes->type === "2";
     }
 
-    public function asSalesboxOffer(): SalesboxOfferV4
-    {
-        $salesboxStore = $this->store->getRootStore()->getSalesboxStore();
-        $offer = new SalesboxOfferV4([], $salesboxStore);
-        $offer->updateFromPosterProduct($this);
-
-        return $offer;
-    }
-
     public function getStore(): PosterStore
     {
         return $this->store;

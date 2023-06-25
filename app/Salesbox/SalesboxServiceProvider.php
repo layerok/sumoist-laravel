@@ -2,6 +2,7 @@
 
 namespace App\Salesbox;
 
+use App\Salesbox\Stores\SalesboxStore;
 use Illuminate\Support\ServiceProvider;
 
 class SalesboxServiceProvider extends ServiceProvider
@@ -19,6 +20,10 @@ class SalesboxServiceProvider extends ServiceProvider
         $this->app->singleton('salesboxapi.v4', function () {
             return new SalesboxApiV4(config('salesbox'));
         });
+        $this->app->singleton('salesbox.store', function ()  {
+            return new SalesboxStore();
+        });
+
     }
 
     /**

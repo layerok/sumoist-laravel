@@ -4,8 +4,6 @@ namespace App\Poster\Stores;
 
 use App\Poster\Models\PosterCategory;
 use App\Poster\Models\PosterProduct;
-use App\Poster\Models\SalesboxCategory;
-use App\Poster\Models\SalesboxOfferV4;
 use App\Poster\Utils;
 use Illuminate\Support\Arr;
 use poster\src\PosterApi;
@@ -21,26 +19,8 @@ class PosterStore
     /**  @var PosterProduct[] $products */
     private $products;
 
-    /**
-     * @var RootStore
-     */
-    private $rootStore;
-
     private $productsLoaded = false;
     private $categoriesLoaded = false;
-
-    public function __construct(RootStore $rootStore)
-    {
-        $this->rootStore = $rootStore;
-    }
-
-    /**
-     * @return RootStore
-     */
-    public function getRootStore(): RootStore
-    {
-        return $this->rootStore;
-    }
 
     public function init() {
         $config = config('poster');
@@ -218,27 +198,6 @@ class PosterStore
         return !!$this->findProduct($poster_id);
     }
 
-    /**
-     * @param PosterCategory[] $poster_categories
-     * @return SalesboxCategory[]
-     */
-    public function asSalesboxCategories(array $poster_categories): array
-    {
-        return array_map(function (PosterCategory $poster_category) {
-            return $poster_category->asSalesboxCategory();
-        }, $poster_categories);
-    }
-
-    /**
-     * @param PosterProduct[] $poster_products
-     * @return SalesboxOfferV4[]
-     */
-    public function asSalesboxOffers(array $poster_products)
-    {
-        return array_map(function (PosterProduct $poster_product) {
-            return $poster_product->asSalesboxOffer();
-        }, $poster_products);
-    }
 
     /**
      * @return bool
