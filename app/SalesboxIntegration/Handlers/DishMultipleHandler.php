@@ -55,7 +55,7 @@ class DishMultipleHandler extends AbstractHandler
             $poster_category = PosterStore::findCategory($poster_product->getMenuCategoryId());
 
             if ($poster_category->hasParentCategory()) {
-                $parent_poster_categories = $poster_category->getParents();
+                $parent_poster_categories = PosterStore::getCategoryParents($poster_category);
 
                 foreach ($parent_poster_categories as $parent_poster_category) {
                     if (!SalesboxStore::categoryExistsWithExternalId($parent_poster_category->getCategoryId())) {

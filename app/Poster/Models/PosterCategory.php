@@ -13,9 +13,8 @@ class PosterCategory {
      */
     public $store;
 
-    public function __construct($attributes, PosterStore $store) {
+    public function __construct($attributes) {
         $this->attributes = $attributes;
-        $this->store = $store;
     }
 
     public function getPhoto() {
@@ -57,25 +56,5 @@ class PosterCategory {
 
     public function isVisible(): bool {
         return !!$this->getVisible()[0]->visible;
-    }
-
-    /**
-     * @return PosterCategory[]
-     */
-    public function getParents(): array {
-        $list = array_map(function($poster_category) {
-            return [
-                'id' => $poster_category->getCategoryId(),
-                'parent_id' => $poster_category->getParentCategory()
-            ];
-        }, $this->store->getCategories());
-
-        $parent_ids = array_filter(find_parents($list, $this->getCategoryId()), function($id) {
-            return $id !== "0";
-        });
-
-        return array_map(function($parent_id) {
-            return $this->store->findCategory($parent_id);
-        }, $parent_ids);
     }
 }

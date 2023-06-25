@@ -38,7 +38,7 @@ class CategoryHandler extends AbstractHandler
             }
 
             if ($poster_category->hasParentCategory()) {
-                $poster_parent_categories = $poster_category->getParents();
+                $poster_parent_categories = PosterStore::getCategoryParents($poster_category);
 
                 foreach ($poster_parent_categories as $parent_category) {
                     if (!SalesboxStore::categoryExistsWithExternalId($parent_category->getCategoryId())) {

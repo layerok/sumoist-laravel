@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array createManyOffers(array $params = [], array $guzzleOptions = [])
  * @method static array updateManyOffers(array $params = [], array $guzzleOptions = [])
  * @method static array deleteManyOffers(array $params, array $guzzleOptions = [])
+ * @method static array getOrderById(string $id, array $guzzleOptions = [])
  *
  * @method static HandlerStack getGuzzleHandler()
  *

@@ -186,4 +186,15 @@ class SalesboxApi {
         $res = $this->guzzleClient->delete('offers', $mergedOptions);
         return json_decode($res->getBody(), true);
     }
+
+    public function getOrderById(string $id, array $guzzleOptions = []) {
+        $options = [
+            'query' => [
+                'lang' => 'uk',
+            ]
+        ];
+        $mergedOptions = array_merge($options, $guzzleOptions);
+        $res = $this->guzzleClient->get("orders/$id", $mergedOptions);
+        return json_decode($res->getBody(), true);
+    }
 }

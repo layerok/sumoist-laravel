@@ -2,14 +2,11 @@
 
 namespace App\Salesbox\Models;
 
-use App\Salesbox\Stores\SalesboxStore;
-
 class SalesboxCategory extends SalesboxModel {
-    private $store;
 
-    public function __construct($attributes, SalesboxStore $store) {
+
+    public function __construct($attributes) {
         parent::__construct($attributes);
-        $this->store = $store;
     }
 
     /**
@@ -182,15 +179,4 @@ class SalesboxCategory extends SalesboxModel {
         return !!$this->getOriginalURL();
     }
 
-    public function asArray() {
-        return $this->attributes;
-    }
-
-    public function delete() {
-        return $this->store->deleteCategory($this);
-    }
-
-    public function getStore(): SalesboxStore {
-        return $this->store;
-    }
 }

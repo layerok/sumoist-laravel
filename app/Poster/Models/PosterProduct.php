@@ -13,11 +13,6 @@ use App\Poster\Stores\PosterStore;
 class PosterProduct extends PosterModel
 {
     /**
-     * @var PosterStore $store
-     */
-    public $store;
-
-    /**
      * @var PosterProductSpot[] $spots
      */
     public $spots = [];
@@ -34,9 +29,8 @@ class PosterProduct extends PosterModel
 
     /**
      * @param PosterProduct_meta $attributes
-     * @param PosterStore $store
      */
-    public function __construct($attributes, PosterStore $store)
+    public function __construct($attributes)
     {
         parent::__construct($attributes);
         if (isset($attributes->spots)) {
@@ -56,7 +50,6 @@ class PosterProduct extends PosterModel
             }, $this->attributes->group_modifications);
         }
 
-        $this->store = $store;
     }
 
     public function getProductId()
@@ -229,11 +222,6 @@ class PosterProduct extends PosterModel
     public function isDishType(): bool
     {
         return $this->attributes->type === "2";
-    }
-
-    public function getStore(): PosterStore
-    {
-        return $this->store;
     }
 
     /**

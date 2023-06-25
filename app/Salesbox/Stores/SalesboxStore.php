@@ -41,7 +41,7 @@ class SalesboxStore
     public function loadOffers()
     {
         $this->offers = array_map(function ($item) {
-            return new SalesboxOfferV4($item, $this);
+            return new SalesboxOfferV4($item);
         }, SalesboxApiV4::getOffers([
             'pageSize' => 10000
         ])['data']);
@@ -83,7 +83,7 @@ class SalesboxStore
     public function loadCategories()
     {
         $this->categories = array_map(function ($item) {
-            return new SalesboxCategory($item, $this);
+            return new SalesboxCategory($item);
         }, SalesboxApi::getCategories()['data']);
         return $this->categories;
     }

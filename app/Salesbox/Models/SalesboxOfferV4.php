@@ -6,12 +6,9 @@ use App\Salesbox\Stores\SalesboxStore;
 
 class SalesboxOfferV4 extends SalesboxModel
 {
-    private $store;
-
-    public function __construct($attributes, SalesboxStore $store)
+    public function __construct($attributes)
     {
         parent::__construct($attributes);
-        $this->store = $store;
     }
 
     /**
@@ -168,11 +165,4 @@ class SalesboxOfferV4 extends SalesboxModel
         return $this;
     }
 
-    public function asArray(): array {
-        return $this->attributes;
-    }
-
-    public function getStore(): SalesboxStore {
-        return $this->store;
-    }
 }

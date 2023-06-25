@@ -23,7 +23,7 @@ class CategoryRemovedHandler extends AbstractHandler
         }
 
         // it also deletes child categories, if they exist
-        $salesbox_category->delete();
+        SalesboxStore::deleteCategory($salesbox_category);
 
         return true;
     }

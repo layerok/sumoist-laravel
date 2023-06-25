@@ -22,8 +22,6 @@ use \Maksa988\WayForPay\Domain\Client;
 use \WayForPay\SDK\Domain\Transaction;
 use Illuminate\Support\Facades\Log;
 
-
-
 class OrderController extends Controller
 {
 

@@ -41,7 +41,7 @@ class PosterStore
         Utils::assertResponse($productsResponse, 'getProducts');
 
         $this->products = array_map(function ($item) {
-            return new PosterProduct($item, $this);
+            return new PosterProduct($item);
         }, $productsResponse->response);
         $this->productsLoaded = true;
 
@@ -57,7 +57,7 @@ class PosterStore
         Utils::assertResponse($res, 'getCategories');
 
         $this->categories = array_map(function ($item) {
-            return new PosterCategory($item, $this);
+            return new PosterCategory($item);
         }, $res->response);
         $this->categoriesLoaded = true;
 
@@ -213,6 +213,26 @@ class PosterStore
     public function isCategoriesLoaded(): bool
     {
         return $this->categoriesLoaded;
+    }
+
+    /**
+     * @return PosterCategory[]
+     */
+    public function getCategoryParents(PosterCategory $category): array {
+        $list = array_map(function($poster_category) {
+            return [
+                'id' => $poster_category->getCategoryId(),
+                'parent_id' => $poster_category->getParentCategory()
+            ];
+        }, $this->getCategories());
+
+        $parent_ids = array_filter(find_parents($list, $category->getCategoryId()), function($id) {
+            return $id !== "0";
+        });
+
+        return array_map(function($parent_id) {
+            return $this->findCategory($parent_id);
+        }, $parent_ids);
     }
 
 }

@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static bool productExists(string|int $poster_id)
  * @method static PosterCategory[] getCategories()
  * @method static PosterProduct[] getProducts()
+ * @method static PosterCategory[] getCategoryParents(PosterCategory $category)
  * @method static void init();
  *
  * @method static bool isCategoriesLoaded()
