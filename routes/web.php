@@ -29,7 +29,6 @@ Route::group(['prefix' => 'order'], function(){
     Route::post( '/handle', 'Site\OrderController@handle');
 });
 
-Route::match(['get','post'],'/{page}', 'Site\PageController@index');
 
 
 
