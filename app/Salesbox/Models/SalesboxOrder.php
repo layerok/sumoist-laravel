@@ -61,7 +61,7 @@ class SalesboxOrder extends SalesboxModel {
         return $this->attributes['adminId'];
     }
 
-    public function getExecuteNow() {
+    public function isExecuteNow() {
         return $this->attributes['executeNow'];
     }
 
@@ -165,7 +165,7 @@ class SalesboxOrder extends SalesboxModel {
         return $this->attributes['__v'];
     }
 
-    public function getUser() {
+    public function getUser(): SalesboxUser {
         return $this->user;
     }
 
@@ -189,4 +189,27 @@ class SalesboxOrder extends SalesboxModel {
         return $this->attributes['orderStatusName'];
     }
 
+    public function isCourierDeliveryType(): bool {
+        return $this->getDeliveryType() === 'courier';
+    }
+
+    public function isPickupDeliveryType(): bool {
+        return $this->getDeliveryType() === 'pickup';
+    }
+
+    public function isCashPaymentType(): bool {
+        return $this->getPaymentType() === 'cash';
+    }
+
+    public function isCashlessPaymentType(): bool {
+        return $this->getPaymentType() === 'cashless';
+    }
+
+    public function isPendingPaymentStatus(): bool {
+        return $this->getPaymentStatus() === 'PENDING';
+    }
+
+    public function isCanceledPaymentStatus(): bool {
+        return $this->getPaymentStatus() === 'CANCELED';
+    }
 }

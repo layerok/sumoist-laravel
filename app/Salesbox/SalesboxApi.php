@@ -190,7 +190,7 @@ class SalesboxApi {
     public function getOrderById(string $id, array $guzzleOptions = []) {
         $options = [
             'query' => [
-                'lang' => 'uk',
+                'lang' => $this->lang,
             ]
         ];
         $mergedOptions = array_merge($options, $guzzleOptions);

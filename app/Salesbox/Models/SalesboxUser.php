@@ -133,4 +133,15 @@ class SalesboxUser extends SalesboxModel {
         return $this->attributes['updatedAt'];
     }
 
+    public function getFirstName(): string {
+        $names = explode(' ', $this->getName());
+        return array_shift($names);
+    }
+
+    public function getLastName(): string {
+        $names = explode(' ', $this->getName());
+        array_shift($names);
+        return join(' ', $names);
+    }
+
 }

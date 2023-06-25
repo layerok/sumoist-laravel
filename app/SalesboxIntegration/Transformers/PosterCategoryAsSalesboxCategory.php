@@ -16,11 +16,10 @@ class PosterCategoryAsSalesboxCategory {
     }
 
     public function transform() {
-        $salesboxStore = SalesboxStore::getFacadeRoot();
 
         // create category
-        $category = new SalesboxCategory([], $salesboxStore);
-        $this->updateFrom($category, $this->posterCategory);
+        $category = new SalesboxCategory([]);
+        $this->updateFrom($category);
 
         return $category;
     }
@@ -61,7 +60,7 @@ class PosterCategoryAsSalesboxCategory {
         $category->setNames([
             [
                 'name' => $this->posterCategory->getCategoryName(),
-                'lang' => 'uk'
+                'lang' => config('salesbox.lang')
             ]
         ]);
 

@@ -3,7 +3,6 @@
 namespace App\Poster\Models;
 
 use App\Poster\meta\PosterProduct_meta;
-use App\Poster\Stores\PosterStore;
 
 /**
  * @class PosterProduct

@@ -4,6 +4,7 @@ namespace App\Salesbox\Facades;
 
 use App\Salesbox\Models\SalesboxCategory;
 use App\Salesbox\Models\SalesboxOfferV4;
+use App\Salesbox\Models\SalesboxOrder;
 use Illuminate\Support\Facades\Facade;
 
 /**
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array createManyOffers(SalesboxOfferV4[] $offers)
  * @method static array updateManyOffers(SalesboxOfferV4[] $offers)
  * @method static array deleteManyOffers(SalesboxOfferV4[] $offers)
+ * @method static SalesboxOrder|null getOrderById(string $id)
  *
  * @method static void authenticate()
  *

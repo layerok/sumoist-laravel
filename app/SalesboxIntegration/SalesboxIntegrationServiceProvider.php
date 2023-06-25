@@ -23,6 +23,6 @@ class SalesboxIntegrationServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        $this->loadTranslationsFrom(__DIR__. '/resources/lang', 'salesbox-integration');
     }
 }

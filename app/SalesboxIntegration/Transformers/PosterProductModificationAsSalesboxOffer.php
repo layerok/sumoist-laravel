@@ -17,8 +17,7 @@ class PosterProductModificationAsSalesboxOffer {
 
     public function transform(): SalesboxOfferV4
     {
-        $salesboxStore = SalesboxStore::getFacadeRoot();
-        $offer = new SalesboxOfferV4([], $salesboxStore);
+        $offer = new SalesboxOfferV4([]);
         $this->updateFrom($offer);
 
         return $offer;
@@ -39,7 +38,7 @@ class PosterProductModificationAsSalesboxOffer {
         $offer->setNames([
             [
                 'name' => $product->getProductName() . ' ' . $this->productModification->getModificatorName(),
-                'lang' => 'uk' // todo: move this value to config, or fetch it from salesbox api
+                'lang' => config('salesbox.lang')
             ]
         ]);
 

@@ -6,6 +6,7 @@ use App\Salesbox\Facades\SalesboxApi;
 use App\Salesbox\Facades\SalesboxApiV4;
 use App\Salesbox\Models\SalesboxCategory;
 use App\Salesbox\Models\SalesboxOfferV4;
+use App\Salesbox\Models\SalesboxOrder;
 use Illuminate\Support\Arr;
 use function collect;
 
@@ -268,5 +269,14 @@ class SalesboxStore
         return SalesboxApi::deleteManyOffers([
             'ids' => array_values($ids)
         ]);
+    }
+
+    /**
+     * @param string $id
+     * @return SalesboxOrder|null
+     */
+    public function getOrderById(string $id): ?SalesboxOrder {
+        $res = SalesboxApi::getOrderById($id);
+        return new SalesboxOrder($res['data']);
     }
 }

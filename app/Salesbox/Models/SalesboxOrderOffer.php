@@ -121,7 +121,7 @@ class SalesboxOrderOffer extends SalesboxModel
     }
 
     public function getModifierId() {
-        return $this->attributes['modifierId'] ?? null;
+        return $this->attributes['modifierId'];
     }
 
     public function getCategories()
