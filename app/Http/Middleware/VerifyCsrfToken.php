@@ -22,6 +22,5 @@ class VerifyCsrfToken extends Middleware
         '/thankyou',
         '/order/handle',
         '/poster-webhook',
-        '/salesbox-webhook'
     ];
 }

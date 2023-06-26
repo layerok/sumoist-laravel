@@ -8,10 +8,6 @@ use App\Poster\Stores\PosterStore;
 class PosterCategory {
     /** @var PosterCategory_meta $attributes */
     public $attributes;
-    /**
-     * @var PosterCategory_meta $attributes
-     */
-    public $store;
 
     public function __construct($attributes) {
         $this->attributes = $attributes;

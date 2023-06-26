@@ -3,9 +3,6 @@
 namespace App\Providers;
 
 use App\Poster\Events\PosterWebhookReceived;
-use App\Salesbox\Events\SalesboxWebhookReceived;
-use App\SalesboxIntegration\Listeners\HandlePosterWebhook;
-use App\SalesboxIntegration\Listeners\HandleSalesboxWebhook;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -21,12 +18,7 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-        PosterWebhookReceived::class => [
-            HandlePosterWebhook::class
-        ],
-        SalesboxWebhookReceived::class => [
-            HandleSalesboxWebhook::class
-        ]
+        PosterWebhookReceived::class => [],
     ];
 
     /**

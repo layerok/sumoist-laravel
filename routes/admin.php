@@ -164,12 +164,6 @@ Route::group(['prefix'  =>  'admin'], function () {
             Route::post('/{id}/orders',       'Admin\UserController@orders')  ->name('admin.users.orders');
         });
 
-        Route::group(['prefix' => 'salesbox'], function () {
-            Route::get('/',             'Admin\SalesboxController@index')   ->name('admin.salesbox.index');
-            Route::post('/sync-categories',      'Admin\SalesboxController@syncCategories')  ->name('admin.salesbox.sync-categories');
-            Route::post('/sync-products',      'Admin\SalesboxController@syncProducts')  ->name('admin.salesbox.sync-products');
-        });
-
         Route::group(['prefix' => 'ajax'], function () {
             Route::post('change-state', 'Admin\AjaxController@changeState')->name('admin.ajax.change-state');
         });
