@@ -226,7 +226,7 @@ class PosterStore
             ];
         }, $this->getCategories());
 
-        $parent_ids = array_filter(find_parents($list, $category->getCategoryId()), function($id) {
+        $parent_ids = array_filter(Utils::find_parents($list, $category->getCategoryId()), function($id) {
             return $id !== "0";
         });
 
