@@ -2,7 +2,7 @@
     <div class="h-100">
         <div class="flex flex-column pb1 pb2 h-100 relative">
             <div class="nested-img flex flex-shrink-0 justify-center "  >
-                    <div class="w-100 contain  bg-center" style="height: 12rem; background-image: url('{{ Image::getPath($product)  }}')">
+                    <div class="w-100 contain  bg-left" style="height: 12rem; background-image: url('{{ Image::getPath($product)  }}')">
 
                     </div>
             </div>
