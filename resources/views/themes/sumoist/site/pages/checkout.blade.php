@@ -48,12 +48,12 @@
                                 <input name="change" class=" ph3 pv2 w-100 br2 bn placeholder-black black" type="text" placeholder="Приготувати здачу з">
                             </div>
                             <div class="flex items-center">
-                                <button id="checkout-loader" class="dn relative link w4 bg-dark-red tc white pa3 bn br-pill bg-animate hover-bg-dark-red pointer">
+                                <button id="checkout-loader" class="dn relative link w4 bg-dark-red tc white pa2 bn br-pill bg-animate hover-bg-dark-red pointer">
                                     <span style="opacity:0" >Оформити</span>
-                                    <div style="transform: scale(0.3); position: absolute ;top: -14px;left: 26px;" class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                                    <div style="transform: scale(0.3); position: absolute ;top: -23px;left: 26px;" class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
                                     {{--<div  style="top: -16px;left: -8px;transform: scale(0.25);width: auto;height: auto;" class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>--}}
                                 </button>
-                                <button id="place-order" type="submit"  class="relative link db w4 bg-dark-red tc white pa3 bn br-pill bg-animate hover-bg-red pointer">
+                                <button id="place-order" type="submit"  class="relative link db w4 bg-dark-red tc white pa2 bn br-pill bg-animate hover-bg-red pointer">
                                     <span >Оформити</span>
                                     {{--<div  style="top: -16px;left: -8px;transform: scale(0.25);width: auto;height: auto;" class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>--}}
                                 </button>

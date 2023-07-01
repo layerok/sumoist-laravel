@@ -38,7 +38,7 @@
                         <div ><span data-cart-total>{{ Cart::getTotal() }}</span> грн</div>
                     </div>
                     <div class="mh3 mv2 pv1 flex justify-center" >
-                        <a href="{{ route('order.index') }}"  class="link db w4 bg-dark-red tc white pa3 bn br-pill bg-animate hover-bg-red pointer">Оформити</a>
+                        <a href="{{ route('order.index') }}"  class="link db w4 bg-dark-red tc white pa2 bn br-pill bg-animate hover-bg-red pointer">Оформити</a>
                     </div>
                 </div>
             </div>
