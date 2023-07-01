@@ -51,10 +51,10 @@
                             @endforeach
                         @if(count($modificators) > 0)
 
-                        <p class="flex flex-column flex-row-l mb3 bg-white-10 br2 modificator bg-black">
+                        <p class="flex flex-column flex-row-l mb3 bg-white-10 br2 modificator bg-white br-pill overflow-hidden">
                             @foreach($modificators as $key => $modificator)
                             <input data-modificator id="modificator_{{ $modificator["id"] }}" class="checked-bg-dark-red checked-white dn" type="radio" name="active_modificator" value="{{ $key }}"  checked >
-                            <label class=" ma2 w-100-l bg-white black pa2 tc br-pill shadow-1 pointer flex items-center justify-center" for="modificator_{{ $modificator["id"] }}">{{ $modificator["value"] }}</label>
+                            <label class=" w-100-l bg-white black pa2 tc shadow-1 pointer flex items-center justify-center" for="modificator_{{ $modificator["id"] }}">{{ $modificator["value"] }}</label>
                             @endforeach
                         </p>
                         @endif
@@ -82,7 +82,11 @@
                 @endforeach
 
                 <div class="flex flex-column">
-                    <p  class="self-end f7 fw3 mt2 mb1">{{ number_format($product->weight, '0', ',', ' ') . ' ' . $product->unit }}</p>
+                    <p  class="self-end f7 fw3 mt2 mb1">
+                        @if($product->weight != '0')
+                            {{ number_format($product->weight, '0', ',', ' ') . ' ' . $product->unit }}
+                        @endif
+                    </p>
                     @if(count($modificators) > 0 )
                         @foreach($modificators as $key => $modificator)
                             <div data-product-controls="99{{ $modificator['id'] }}99" class=" @if(count($modificators) != $key + 1 ) dn  @else flex @endif flex-column flex-row-ns justify-between items-center">
