@@ -66,6 +66,10 @@ class PosterProduct extends PosterModel
         return $this->attributes->photo;
     }
 
+    public function getOut() {
+        return $this->attributes->out;
+    }
+
     public function getMenuCategoryId()
     {
         return $this->attributes->menu_category_id;

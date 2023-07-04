@@ -212,64 +212,6 @@ class ProductController extends BaseController
             return 0;
         }
 
-
-        function skipIngredient($ingredient) {
-            $skipIngredients = [
-                'Бутылка соев соус \d*мл',
-                'Набор ролл',
-                'Моющее д\/посуды л',
-                'Бокс д\/суши',
-                'Губка д\/посуды',
-                'Палочки суши',
-                'Коробка лапша',
-                'сливки \d*%',
-                'Масло растительное',
-                'Салфетка целлюлоза',
-                'Дезинфектор АХД 2000',
-                'Держатели д\/палочек',
-                'Ершик д\/посуды уп',
-                'Заправка для риса',
-                'кофе зерна',
-                'Фанни сыр'
-            ];
-
-            $patterns = [];
-
-            foreach($skipIngredients as $skip) {
-                $patterns[] = '/' . $skip . '/';
-            }
-            return match($patterns, $ingredient['ingredient_name']);
-        }
-
-/*        function createIngredient($ingredient) {
-            $replacers = [
-                '^Ролл',
-                '^ролл',
-                'ПФ$',
-                'пф$',
-                'Пф$',
-                'филе на шкуре',
-                '31\/40',
-                '16\/20$'
-            ];
-
-            $pattern = '/' . implode('|',$replacers) .'/';
-
-            $ingredient_name = preg_replace($pattern,'',$ingredient['ingredient_name']);
-            // Создаю ингридиент и привязываю его к аттрибуты "Ингридиент"
-            if(AttributeValue::where('poster_id', '=', $ingredient['ingredient_id'])->exists()){
-                return AttributeValue::where('poster_id', '=', $ingredient['ingredient_id'])->first();
-            }else{
-                return AttributeValue::insertGetId([
-                    'attribute_id' => 3,// 3 - id аттрибута "Ингридиент"
-                    'value'        => $ingredient_name,
-                    'poster_id'    => $ingredient['ingredient_id']
-                ]);
-            }
-        }*/
-
-
-
         Schema::disableForeignKeyConstraints();
 
         AttributeValue::whereNotNull('id')->delete();

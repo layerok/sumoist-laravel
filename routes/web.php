@@ -29,6 +29,7 @@ Route::group(['prefix' => 'order'], function(){
     Route::post( '/handle', 'Site\OrderController@handle');
 });
 
+//Route::get('/migrate-salesbox', 'SalesboxMigrationController');
 
 
 
