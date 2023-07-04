@@ -36,7 +36,7 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['daily'],
+            'channels' => ['daily', 'telegram'],
             'ignore_exceptions' => false,
         ],
 
@@ -88,6 +88,13 @@ return [
         'errorlog' => [
             'driver' => 'errorlog',
             'level' => 'debug',
+        ],
+
+        'telegram' => [
+            'driver'  => 'custom',
+            'via'     => Kagatan\MonologTelegram\TelegramLogger::class,
+            'token'   => env('LOG_TELEGRAM_BOT_ID'),
+            'channel' => env('LOG_TELEGRAM_CHAT_ID')
         ],
     ],
 
