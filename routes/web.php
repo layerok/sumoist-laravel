@@ -16,7 +16,6 @@ Route::match(['get', 'post'],'/', 'Site\IndexController@index');
 
 Route::match(['get', 'post'], '/category/{slug}', 'Site\CategoryController@show')->name('category.show');
 
-Route::get('/{page}','Site\PageController@index');
 
 Route::get('/cart/get', 'Site\CartController@getCart')->name('checkout.cart.get');
 Route::get('/cart/item/{id}/remove', 'Site\CartController@removeItem')->name('checkout.cart.remove');
@@ -29,6 +28,7 @@ Route::group(['prefix' => 'order'], function(){
     Route::post('/send', 'Site\OrderController@send')->name('order.send');
     Route::post( '/handle', 'Site\OrderController@handle');
 });
+Route::get('/{page}','Site\PageController@index');
 
 //Route::get('/migrate-salesbox', 'SalesboxMigrationController');
 
