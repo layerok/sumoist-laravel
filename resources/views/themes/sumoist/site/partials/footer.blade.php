@@ -2,7 +2,7 @@
     <div class="w-100 mw7 ph3 bg-black flex flex-row-l flex-column items-center justify-center">
         <!-- Лого -->
         <a href="/" class=" mb3 pb2 mb0-l pb0-l">
-            <img class="w5  " src="{{ Asset::load('img/logo.jpg') }}" alt="">
+            <img class="w5 h3" style="height:100%"  src="{{ Asset::load('img/logo.png') }}" alt="">
         </a>
 
         <!-- Телефоны -->

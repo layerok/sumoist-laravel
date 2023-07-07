@@ -45,7 +45,7 @@
             <div class="w-100 flex justify-between relative">
                 <div class="flex">
                     <a class="w5 h3" href="/">
-                        <img  src="{{ Asset::load('img/logo.jpg') }}" alt="">
+                        <img style="height:100%"  src="{{ Asset::load('img/logo.png') }}" alt="">
                     </a>
                 </div>
                 <div class="dn db-l">
