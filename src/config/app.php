@@ -180,9 +180,6 @@ return [
         App\Providers\ThemeServiceProvider::class,
         Maksa988\WayForPay\WayForPayServiceProvider::class,
         Jenssegers\Date\DateServiceProvider::class,
-        App\Poster\PosterServiceProvider::class,
-        \App\Salesbox\SalesboxServiceProvider::class,
-
     ],
 
 

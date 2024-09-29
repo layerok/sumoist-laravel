@@ -30,6 +30,8 @@ Route::group(['prefix' => 'order'], function(){
 });
 Route::get('/{page}','Site\PageController@index');
 
+Route::post('/poster-webhook', 'PosterWebhookController')->name('webhook.poster');
+
 //Route::get('/migrate-salesbox', 'SalesboxMigrationController');
 
 

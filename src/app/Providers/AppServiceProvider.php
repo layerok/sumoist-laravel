@@ -27,5 +27,6 @@ class AppServiceProvider extends ServiceProvider
     {
         Date::setlocale(config('app.locale'));
         Schema::defaultStringLength(191);
+
     }
 }

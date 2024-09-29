@@ -22,8 +22,6 @@ use Illuminate\Support\Facades\DB;
 
 class ProductController extends BaseController
 {
-
-
     protected $categoryRepository;
 
     protected $productRepository;

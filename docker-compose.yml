@@ -1,0 +1,164 @@
+version: '3.8'
+
+#Docker Networks
+networks:
+  laravel:
+    driver: bridge
+
+#Volumes
+volumes:
+  dbdata:
+    driver: local
+
+# Workflow
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: ./compose/nginx/Dockerfile
+    container_name: nginx
+    ports:
+      - "8080:80"
+      # Port for xdebug (ensure this matches the remote_port in the xdebug.ini)
+      - "9001:9001"
+    volumes:
+      - ./src:/var/www/html:delegated
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - laravel
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PHP_IDE_CONFIG: "serverName=${PHP_IDE_CONFIG_SERVER_NAME:-salesbox}"
+
+  mysql:
+    image: mysql:5.7.29
+    platform: linux/x86_64
+    container_name: mysql
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: secret
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+    - ./compose/mysql/my.cnf:/etc/mysql/my.cnf
+#    - dbdata:/var/lib/mysql/
+    networks:
+      - laravel
+
+  redis:
+    image: "redis:alpine"
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - laravel
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8081:80"
+    volumes:
+      - /sessions
+    networks:
+      - laravel
+    links:
+      - mysql
+
+  php:
+    build:
+      context: .
+      dockerfile: ./compose/php/Dockerfile
+    container_name: php
+    volumes:
+      - ./src:/var/www/html:delegated
+      # Enable xdebug
+      - ./compose/php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+      - ./compose/php/error_reporting.ini:/usr/local/etc/php/conf.d/error_reporting.ini
+    ports:
+      - "9000:9000"
+    networks:
+      - laravel
+    environment:
+      PHP_IDE_CONFIG: "serverName=${PHP_IDE_CONFIG_SERVER_NAME:-salesbox}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  composer:
+    build:
+      context: .
+      dockerfile: ./compose/php/composer/Dockerfile
+    container_name: composer
+    volumes:
+      - ./src:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - php
+    user: laravel
+    networks:
+      - laravel
+    entrypoint: ['composer', '--ignore-platform-reqs']
+
+  npm:
+    image: node:15.0.1
+    container_name: npm
+    volumes:
+      - ./src:/var/www/html
+    working_dir: /var/www/html
+    entrypoint: ['npm']
+
+  artisan:
+    build:
+      context: .
+      dockerfile: ./compose/php/Dockerfile
+    container_name: artisan
+    volumes:
+      - ./src:/var/www/html:delegated
+    depends_on:
+      - mysql
+    working_dir: /var/www/html
+    user: laravel
+    entrypoint: ['php', '/var/www/html/artisan']
+    networks:
+      - laravel
+
+#  ngrok:
+#    image: ngrok/ngrok:latest
+#    restart: unless-stopped
+#    command:
+#      - "start"
+#      - "--all"
+#      - "--config"
+#      - "/etc/ngrok.yml"
+#    volumes:
+#      - ./ngrok.yml:/etc/ngrok.yml
+#    ports:
+#      - 4040:4040
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    command:
+      - "http"
+      - "http://host.docker.internal:8080"
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    ports:
+      - 4040:4040

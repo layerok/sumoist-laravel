@@ -1,1 +1,1 @@
-Файлы проекта [sumoist.od.ua](https://sumoist.od.ua)
+Файлы проекта [mazipizza7nebo.com.ua](https://maxipizza7nebo.com.ua)

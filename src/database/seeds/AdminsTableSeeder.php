@@ -3,7 +3,6 @@
 use App\Models\Admin;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class AdminsTableSeeder extends Seeder
 {
