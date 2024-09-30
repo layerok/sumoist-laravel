@@ -92,6 +92,10 @@ class PosterWebhookController
         ];
 
         Product::create($data);
+
+        Log::info(
+            sprintf('new product was added to site %s. It needs moderation', $posterProduct->product_name)
+        );
     }
 
     public function updateProduct($postData)
