@@ -39,7 +39,7 @@ To get started, make sure you have [Docker installed](https://docs.docker.com/) 
 4. Build the project whit the next commands:
 
    ```sh
-   docker-compose up --build
+   docker compose up --build
    ```
 
 ---
@@ -83,23 +83,23 @@ DB_HOST=mysql
 To Down and remove the volumes we use the next command:
 
 ```sh
-docker-compose down -v
+docker compose down -v
 ```
 
 Update Composer:
 
 ```sh
-docker-compose run --rm composer update
+docker compose run --rm composer update
 ```
 
 Run compiler (Webpack.mix.js) or Show the view compiler in node:
 
 ```sh
-docker-compose run --rm npm run dev
+docker compose run --rm npm run dev
 ```
 
 Run all migrations:
 
 ```sh
-docker-compose run --rm artisan migrate
+docker compose run --rm artisan migrate
 ```
