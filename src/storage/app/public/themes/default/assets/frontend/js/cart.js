@@ -1,7 +1,7 @@
 $(document).ready(function(){
 
     function initTemplates(){
-        $.get( PATH_TO_THEME_ASSETS +  "frontend/js/templates/cart.html", function(data){
+        $.get( PATH_TO_THEME_ASSETS + "frontend/js/templates/cart.html", function(data){
             /* Compile markup string as a named template */
             $.template( "cartTemplate", data);
         });

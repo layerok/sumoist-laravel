@@ -9,7 +9,7 @@ window.addEventListener("load", function(event) {
                 //document.querySelector('.cart-in-menu').classList.add('dn');
             },
             onEnter: () => {
-                //document.querySelector('.cart-in-menu').classList.remove('dn');
+               // document.querySelector('.cart-in-menu').classList.remove('dn');
             }
         },
         top: -1

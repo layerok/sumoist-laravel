@@ -1,28 +1,25 @@
-<div   class="pa3-l pa2 w-50 w-50-ns w-33-l ">
-    <div class="br3 ba b--orange pa3-l pa2 h-100">
+<div   class="pa3-ns pa2 w-100 w-50-ns w-33-l ">
+    <div class="h-100">
         <div class="flex flex-column pb1 pb2 h-100 relative">
             <div class="nested-img flex flex-shrink-0 justify-center "  >
 
-                <div class="w-100 h4 h45-l contain bg-left relative" style="background-image: url('{{ Image::getPath($product)  }}')">
-                    @php
-                        if($product->id == 181):
-                            echo ' <div style="width: 50px; height: 50px; margin: 10px" class="absolute bottom-0 right-0 bg-dark-red white br-100 flex items-center justify-center" >50%</div>';
-                        endif;
-                    @endphp
-
-                </div>
+                @if(count(array_intersect([51, 50], $product->categories->pluck('id')->toArray())) > 0)
+                    <div class="w-100 cover" style="height: 12rem; background-image: url('{{ Image::getPath($product)  }}')"></div>
+                @else
+                    <div class="w-100 contain bg-left" style="height: 12rem; background-image: url('{{ Image::getPath($product)  }}')"></div>
+                @endif
             </div>
             <form action="{{ route('cart.manipulate') }}" method="post" data-buy class="flex flex-column justify-between h-100">
                 @csrf
                 <div>
-                    <h3  class="f3-l f5 fw5 mv3 mb0">{{ $product->name }}</h3>
-                    <div class="f6-l f7 fw5 mb2">
+                    <h3  class="f3-ns f4 fw8 mt3 mb0">{{ $product->name }}</h3>
+                    <div class="f6-ns f7 fw3 mb2 mt1">
 
                             @php
                                 $modificators = [];
                                 $ingredients = [];
                                 $sharpness = [];
-                                $i = -1;
+
                             @endphp
                             @foreach($product->attributes as $productAttribute)
 
@@ -39,7 +36,7 @@
 
                                     @if($attributeValue->attribute->frontend_type == 'radio')
                                         @php
-                                            $i++;
+
                                             $modificators[] = [
                                                         'id'                    => $attributeValue->poster_id,
                                                         'price'                 => $productAttribute->price,
@@ -47,22 +44,26 @@
                                                         'attribute_value_id'    => $attributeValue->id
                                                     ]
                                         @endphp
+
+
+
+
                                     @endif
                                 @endforeach
 
                             @endforeach
                         @if(count($modificators) > 0)
 
-                            <p class="flex flex-column flex-row-l mb3 bg-white-10 br2 modificator bg-black">
-                                @foreach($modificators as $key => $modificator)
-                                    <input data-modificator id="modificator_{{ $modificator["id"] }}" class="checked-bg-orange checked-black dn" type="radio" name="active_modificator" value="{{ $key }}"  checked >
-                                    <label class="ma2 w-100-l bg-white black pa2 tc br-pill shadow-1 pointer flex items-center justify-center" for="modificator_{{ $modificator["id"] }}">{{ $modificator["value"] }}</label>
-                                @endforeach
-                            </p>
-                            @endif
+                        <p class="flex flex-column flex-row-l mb3 bg-white-10 br2 modificator bg-white br-pill overflow-hidden">
+                            @foreach($modificators as $key => $modificator)
+                            <input data-modificator id="modificator_{{ $modificator["id"] }}" class="checked-bg-dark-red checked-white dn" type="radio" name="active_modificator" value="{{ $key }}"  checked >
+                            <label class=" w-100-l bg-white black pa2 tc shadow-1 pointer flex items-center justify-center" for="modificator_{{ $modificator["id"] }}">{{ $modificator["value"] }}</label>
+                            @endforeach
+                        </p>
+                        @endif
 
+                        <p class="ma0">{{ $product->description }}</p>
 
-                        <p>{{ implode(', ', $ingredients) }}</p>
                         <input type="hidden" name="ingredients" value="{{ implode(', ', $ingredients) }}">
                     </div>
                 </div>
@@ -84,7 +85,11 @@
                 @endforeach
 
                 <div class="flex flex-column">
-                    <p  class="self-end f4-l f7 mt2 mb1">{{ number_format($product->weight, '0', ',', ' ') . ' ' . $product->unit }}</p>
+                    <p  class="self-end f7 fw3 mt2 mb1">
+                        @if($product->weight != '0')
+                            {{ number_format($product->weight, '0', ',', ' ') . ' ' . $product->unit }}
+                        @endif
+                    </p>
                     @if(count($modificators) > 0 )
                         @foreach($modificators as $key => $modificator)
                             <div data-product-controls="99{{ $modificator['id'] }}99" class=" @if(count($modificators) != $key + 1 ) dn  @else flex @endif flex-column flex-row-ns justify-between items-center">
@@ -95,47 +100,47 @@
                                 <input type="hidden" name="modificator_value[]" value="{{ $modificator['value'] }}">
                                 <input type="hidden" name="modificator_price[]" value="{{ $modificator['price'] }}">
 
-                                <button data-control-add type="submit" name="action" value="add" class="@if(Cart::get('99'.$modificator['id']. '99' )) dn @endif order-2 order-1-ns w4 bg-orange tc black pa3 bn br-pill bg-animate hover-bg-gold pointer">
+                                <button data-control-add type="submit" name="action" value="add" class="@if(Cart::get('99'.$modificator['id']. '99' )) dn @endif mt2 mt0-ns order-2 order-1-ns w4 bg-dark-red tc white pa2 bn br-pill bg-animate hover-bg-red pointer">
                                     В кошик
                                 </button>
 
-                                <div data-control-update class="order-2 order-1-l @if(!Cart::get('99'.$modificator['id']. '99')) dn @endif" >
-                                    <div class="flex bg-orange w4 black br-pill overflow-hidden ">
-                                        <button name="action" value="decrease" type="submit" class="w-third bn  pv3 ph2 bg-inherit black bg-animate hover-bg-gold pointer">-</button>
-                                        <div data-control-quantity class="w-third tc pv3">
+                                <div data-control-update class="mt2 mt0-ns order-2 order-1-l @if(!Cart::get('99'.$modificator['id']. '99')) dn @endif" >
+                                    <div class="flex bg-dark-red w4 white br-pill overflow-hidden ">
+                                        <button name="action" value="decrease" type="submit" class="w-third bn  pv2 ph2 bg-inherit white bg-animate hover-bg-red pointer">-</button>
+                                        <div data-control-quantity class="w-third tc pv2 white">
                                             @if(Cart::get('99' . $modificator['id'] . '99'))
                                                 {{ Cart::get( '99' .$modificator['id'] . '99')['quantity']  }}
                                             @endif
                                         </div>
-                                        <button name="action" value="increase" type="submit" class="w-third bn  pv3 ph2 bg-inherit black bg-animate hover-bg-gold pointer">+</button>
+                                        <button name="action" value="increase" type="submit" class="w-third bn  pv2 ph2 bg-inherit white bg-animate hover-bg-red pointer">+</button>
                                     </div>
                                 </div>
 
-                                <div class="order-1 order-2-ns fw5 tc tl-ns"><span class="f2">{{ number_format($modificator['price'], '0', ',', ' ') }}</span> <span class="f4"> грн.</span></div>
+                                <div class="order-1 order-2-ns fw5 tl tl-ns"><span class="f2-ns f4">{{ number_format($modificator['price'], '0', ',', ' ') }}</span> <span class="f4"> грн.</span></div>
                             </div>
                         @endforeach
                     @else
-                        <div data-product-controls="{{ $product->id }}" class="flex flex-column flex-row-ns justify-between items-center">
+                        <div data-product-controls="{{ $product->id }}" class="flex flex-row justify-between items-end items-end-ns">
                             <input type="hidden" name="product_id" value="{{ $product->id }}">
                             <input type="hidden" name="uid" value="{{ $product->id }}">
 
-                            <button data-control-add type="submit" name="action" value="add" class="@if(Cart::get($product->id)) dn @endif order-2 order-1-ns w4 bg-orange tc black pa3 bn br-pill bg-animate hover-bg-gold pointer">
+                            <button data-control-add type="submit" name="action" value="add" class="@if(Cart::get($product->id)) dn @endif w4 bg-dark-red tc white pa2 bn br-pill bg-animate hover-bg-red pointer mt2 mt0-ns">
                                 В кошик
                             </button>
 
-                            <div data-control-update class="order-2 order-1-l @if(!Cart::get($product->id)) dn @endif" >
-                                <div class="flex bg-orange w4 black br-pill overflow-hidden ">
-                                    <button name="action" value="decrease" type="submit" class="w-third bn  pv3 ph2 bg-inherit black bg-animate hover-bg-gold pointer">-</button>
-                                    <div data-control-quantity class="w-third tc pv3">
+                            <div data-control-update class="mt2 mt0-ns @if(!Cart::get($product->id)) dn @endif" >
+                                <div class="flex bg-dark-red w4 black br-pill overflow-hidden ">
+                                    <button name="action" value="decrease" type="submit" class="w-third bn  pv2 ph2 bg-inherit white bg-animate hover-bg-red pointer">-</button>
+                                    <div data-control-quantity class="w-third tc pv2 white">
                                         @if(Cart::get($product->id))
                                             {{ Cart::get($product->id)['quantity'] }}
                                         @endif
                                     </div>
-                                    <button name="action" value="increase" type="submit" class="w-third bn  pv3 ph2 bg-inherit black bg-animate hover-bg-gold pointer">+</button>
+                                    <button name="action" value="increase" type="submit" class="w-third bn  pv2 ph2 bg-inherit white bg-animate hover-bg-red pointer">+</button>
                                 </div>
                             </div>
 
-                            <div class="order-1 order-2-ns fw5 tc tl-ns"><span class="f2">{{ number_format($product->price, '0', ',', ' ') }}</span> <span class="f4"> грн.</span></div>
+                            <div class="fw5 tr ml3"><span class="f2">{{ number_format($product->price, '0', ',', ' ') }}</span> <span class="f4"> грн.</span></div>
                         </div>
                     @endif
 

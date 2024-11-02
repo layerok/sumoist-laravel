@@ -11,17 +11,17 @@
                 <div class="flex flex-column flex-row-l">
                     <div class="order-2 order-1-l w-40-l pr3-l mt4 mt0-l">
 
-                        <div ><span class="gold">Телефон</span> - обязательное поле</div>
+                        <div ><span class="dark-red">Телефон</span> - обов'язкове поле</div>
                         <form  class="mt2 checkout-form"  action="{{ route('order.send') }}" method="post">
                             @csrf
                             <div class="flex mb3 pb2">
                                 @foreach($delivery as $key => $record)
-                                    <input  id="deliveryMethod{{ $record->id }}" class="checked-bg-orange checked-black dn" type="radio" name="delivery_id" value="{{ $record->id }}" @if($loop->first) checked @endif >
+                                    <input  id="deliveryMethod{{ $record->id }}" class="checked-bg-dark-red checked-white dn" type="radio" name="delivery_id" value="{{ $record->id }}" @if($loop->first) checked @endif >
                                     <label class="w-100 bg-white black pa2 tc @if($loop->first) br2  br--left @endif @if($loop->last) br2 br--right  @endif  pointer" for="deliveryMethod{{$record->id}}">{{ $record->name }}</label>
                                 @endforeach
                             </div>
                             <div class="flex flex-column mb3 pb2">
-                                <input  name="name" class=" ph3 pv2 w-100 br2 bn placeholder-black black" type="text" placeholder="Имя">
+                                <input  name="name" class=" ph3 pv2 w-100 br2 bn placeholder-black black" type="text" placeholder="Ім'я">
                             </div>
                             <div class="flex flex-column mb3 pb2">
                                 <input  name="email" class=" ph3 pv2 w-100 br2 bn placeholder-black black" type="text" placeholder="Email">
@@ -30,31 +30,31 @@
                                 <input name="phone" data-type="phone"  value="" type="tel"  class=" ph3 pv2 w-100 br2 bn placeholder-black black" placeholder="Телефон">
                             </div>
                             <div class="flex flex-column mb3 pb2">
-                                <input name="address" class=" ph3 pv2 w-100 br2 bn placeholder-black black" type="text" placeholder="Адрес доставки">
+                                <input name="address" class=" ph3 pv2 w-100 br2 bn placeholder-black black" type="text" placeholder="Адреса доставки">
                             </div>
                             <div class="flex flex-column mb3 pb2">
-                                <input  name="comment" class=" ph3 pv2 w-100 br2 bn placeholder-black black" type="text" placeholder="Комментарий к заказу">
+                                <input  name="comment" class=" ph3 pv2 w-100 br2 bn placeholder-black black" type="text" placeholder="Коментар до замовлення">
                             </div>
                             <div class="flex flex-column mb3 pb2">
-                                <input  name="sticks" class=" ph3 pv2 w-100 br2 bn placeholder-black black" type="text" placeholder="Палочки на сколько персон?">
+                                <input  name="sticks" class=" ph3 pv2 w-100 br2 bn placeholder-black black" type="text" placeholder="Палички на скільки осіб?">
                             </div>
                             <div class="flex mb3 pb2">
                                 @foreach($payment as $key => $record)
-                                    <input id="paymentMethod{{ $record->id }}" class="checked-bg-orange checked-black dn" type="radio" name="payment_id" value="{{ $record->id }}" @if($loop->first) checked @endif  >
+                                    <input id="paymentMethod{{ $record->id }}" class="checked-bg-dark-red checked-white dn" type="radio" name="payment_id" value="{{ $record->id }}" @if($loop->first) checked @endif  >
                                     <label class="w-100 bg-white black pa2 tc  @if($loop->first) br2 br--left @endif @if($loop->last) br2 br--right  @endif  pointer" for="paymentMethod{{$record->id}}">{{ $record->name }}</label>
                                 @endforeach
                             </div>
                             <div class="flex flex-column mb3 pb2">
-                                <input name="change" class=" ph3 pv2 w-100 br2 bn placeholder-black black" type="text" placeholder="Приготовить сдачу с">
+                                <input name="change" class=" ph3 pv2 w-100 br2 bn placeholder-black black" type="text" placeholder="Приготувати здачу з">
                             </div>
                             <div class="flex items-center">
-                                <button id="checkout-loader" class="dn relative link w4 bg-orange tc black pa3 bn br-pill bg-animate hover-bg-gold pointer">
-                                    <span style="opacity:0" >Оформить</span>
-                                    <div style="transform: scale(0.3); position: absolute ;top: -14px;left: 26px;" class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                                <button id="checkout-loader" class="dn relative link w4 bg-dark-red tc white pa2 bn br-pill bg-animate hover-bg-dark-red pointer">
+                                    <span style="opacity:0" >Оформити</span>
+                                    <div style="transform: scale(0.3); position: absolute ;top: -23px;left: 26px;" class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
                                     {{--<div  style="top: -16px;left: -8px;transform: scale(0.25);width: auto;height: auto;" class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>--}}
                                 </button>
-                                <button id="place-order" type="submit"  class="relative link db w4 bg-orange tc black pa3 bn br-pill bg-animate hover-bg-gold pointer">
-                                    <span >Оформить</span>
+                                <button id="place-order" type="submit"  class="relative link db w4 bg-dark-red tc white pa2 bn br-pill bg-animate hover-bg-red pointer">
+                                    <span >Оформити</span>
                                     {{--<div  style="top: -16px;left: -8px;transform: scale(0.25);width: auto;height: auto;" class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>--}}
                                 </button>
                                 <div  class="ml4 fw5 mv0"><span data-cart-total class="f2">{{ Cart::getTotal() }}</span> <span class="f4"> грн. </span></div>
@@ -65,7 +65,7 @@
                         </form>
                         <div id="form-holder" class="mt3"></div>
                     </div>
-                    <div class="order-1 order-2-l w-100 w-60-l pa2 ba b--orange overflow-y-scroll self-start" style="max-height: 520px " >
+                    <div class="order-1 order-2-l w-100 w-60-l pa2 ba b--dark-red overflow-y-scroll self-start" style="max-height: 520px " >
                         <!-- products container -->
                         <div class="flex flex-column f3 ">
                             <h3 class="dn-ns f3 fw5 mt0 pl2">Мой заказ:</h3>
@@ -92,7 +92,7 @@
                                                 <div class=" fw5 mv0 mr4 mr0-ns"><span class="f2-ns f4">{{ $product->price }}</span> <span class="f4-ns f6"> грн.</span></div>
                                                 <p class="fw5 mv0 f5 dn db-ns">{{ $product->quantity }} шт</p>
                                             </div>
-                                            <p class="f4 mv0 dn db-ns">{{ $product->associatedModel->weight }} г</p>
+                                            <p class="f4 mv0 dn db-ns">{{ number_format($product->associatedModel->weight, '0', ',', ' ') . ' ' . $product->associatedModel->unit }}</p>
                                         </div>
                                     </form>
                                 @endforeach

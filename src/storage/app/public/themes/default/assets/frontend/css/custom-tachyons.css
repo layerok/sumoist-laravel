@@ -2,6 +2,7 @@
     scroll-behavior: smooth
 }
 
+
 label.error{
     font-size: 14px;
     color: #e7040f;
@@ -111,6 +112,10 @@ label.error{
 
 .h0{
     height: 0;
+}
+
+.h35{
+    height: 12rem;
 }
 
 .hover-bg-near-white:hover,
@@ -300,43 +305,6 @@ label.error{
         opacity: 0;
     }
 }
-
-.drawer-nav{
-    z-index:5!important;
-    border-left: 1px #F8CE46 solid;
-    background-color: black!important;
-}
-.drawer-open .drawer-hamburger-icon {
-    background-color: transparent!important;
-}
-.drawer-open .drawer-hamburger {
-    position: fixed!important;
-    right: 259px!important;
-}
-.drawer-open .drawer-hamburger{
-    border: 1px #F8CE46 solid!important;
-    background-color: black!important;
-    border-right: 1px black solid!important;
-    border-top: none!important;
-    z-index: 6!important;
-}
-.drawer-hamburger {
-    position: absolute!important;
-}
-
-.drawer-hamburger-icon,
-.drawer-hamburger-icon:after,
-.drawer-hamburger-icon:before {
-    background-color:white!important;
-}
-
-#nav{
-    top:-1px!important;
-}
-@media screen and (max-width: 60em) {
-
-}
-
 @media screen and (min-width: 30em) {
     .h40-ns{
         height: 40px;
@@ -381,8 +349,41 @@ label.error{
     .drawer-hamburger{
         display: none!important;
     }
-
 }
+
+.drawer-nav{
+    z-index:5!important;
+    border-left: 1px #e7040f solid;
+    background-color: black!important;
+}
+.drawer-open .drawer-hamburger-icon {
+    background-color: transparent!important;
+}
+.drawer-open .drawer-hamburger {
+    position: fixed!important;
+    right: 259px!important;
+}
+.drawer-open .drawer-hamburger{
+    border: 1px #e7040f solid!important;
+    background-color: black!important;
+    border-right: 1px black solid!important;
+    border-top: none!important;
+    z-index: 6!important;
+}
+.drawer-hamburger {
+    position: absolute!important;
+}
+
+.drawer-hamburger-icon,
+.drawer-hamburger-icon:after,
+.drawer-hamburger-icon:before {
+    background-color:white!important;
+}
+
+#nav{
+    top:-1px!important;
+}
+
 
 
 /**
